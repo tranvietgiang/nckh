@@ -1,0 +1,53 @@
+version: "3"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: project-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: project_cd2
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./laravel-backend
+    container_name: project-backend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./laravel-backend:/var/www/html
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./react-frontend
+    container_name: project-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./react-frontend:/app
+      - /app/node_modules
+    working_dir: /app
+    command: ["npm", "run", "dev", "--", "--host"]
+    depends_on:
+      - backend
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: project-phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: rootpassword
+      UPLOAD_LIMIT: 128M
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:
