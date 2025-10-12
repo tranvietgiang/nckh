@@ -1,8 +1,17 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
+import GetUser from "./Components/PageOther/GetUser";
+
 function App() {
   return (
     <>
-      <div className="text-red-500 bg-blue-500 font-bold">tailwind</div>
+      <Router>
+        <div>
+          <Routes>
+            <Route path="/nckh_ng" element={<GetUser />} />
+          </Routes>
+        </div>
+      </Router>
     </>
   );
 }
