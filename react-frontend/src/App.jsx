@@ -1,6 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
-import GetUser from "./Components/PageOther/GetUser";
+import Login from "./Components/PageOther/Auth/Login";
+import Header from "./Components/View/Header/Header";
+import Content from "./Components/View/Content/Content";
+import Footer from "./Components/View/Footer/Footer";
 
 function App() {
   return (
@@ -8,7 +11,19 @@ function App() {
       <Router>
         <div>
           <Routes>
-            <Route path="/nckh_ng" element={<GetUser />} />
+            <Route
+              path="/nckh-home"
+              element={
+                <>
+                  <Header />
+                  <Content />
+                  <Footer />
+                </>
+              }
+            />
+          </Routes>
+          <Routes>
+            <Route path="/nckh-login" element={<Login />} />
           </Routes>
         </div>
       </Router>
