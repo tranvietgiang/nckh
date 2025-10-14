@@ -10,13 +10,14 @@ import {
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 const navigation = [
-  { name: "Home", href: "#", current: true },
+  { name: "Home", href: "nckh-home", current: true },
   { name: "Team", href: "#", current: false },
 ];
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
+import { Link } from "react-router-dom";
 
 export default function Example() {
   return (
@@ -75,7 +76,7 @@ export default function Example() {
               className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
             >
               <span className="absolute -inset-1.5" />
-              <span className="sr-only">View notifications</span>
+              <span className="sr-only">Xem Thông báo</span>
               <BellIcon aria-hidden="true" className="size-6" />
             </button>
 
@@ -96,11 +97,19 @@ export default function Example() {
                 className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-1 outline outline-1 -outline-offset-1 outline-white/10 transition data-[closed]:scale-95 data-[closed]:transform data-[closed]:opacity-0 data-[enter]:duration-100 data-[leave]:duration-75 data-[enter]:ease-out data-[leave]:ease-in"
               >
                 <MenuItem>
+                  <Link
+                    to="/nckh-profile"
+                    className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
+                  >
+                    Hồ sơ
+                  </Link>
+                </MenuItem>
+                <MenuItem>
                   <a
                     href="#"
                     className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
                   >
-                    Your profile
+                    Cài đặt
                   </a>
                 </MenuItem>
                 <MenuItem>
@@ -108,15 +117,7 @@ export default function Example() {
                     href="#"
                     className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
                   >
-                    Settings
-                  </a>
-                </MenuItem>
-                <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
-                  >
-                    Sign out
+                    Đăng xuất
                   </a>
                 </MenuItem>
               </MenuItems>

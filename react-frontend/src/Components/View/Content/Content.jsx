@@ -1,9 +1,13 @@
 import PendingReports from "./PendingReports";
+import ReportCompleted from "./ReportCompleted";
 export default function Content() {
   return (
     <>
-      <main className="flex-1 flex items-center justify-center bg-gray-100 py-10">
+      <main className="bg-gray-50 min-h-screen">
+        {/* phần chưa hoàn thành */}
         <PendingReports />
+        {/* phần đã hoàn thành */}
+        <ReportCompleted />
       </main>
     </>
   );
