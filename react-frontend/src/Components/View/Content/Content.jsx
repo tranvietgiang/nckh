@@ -1,7 +1,10 @@
+import PendingReports from "./PendingReports";
 export default function Content() {
   return (
     <>
-      <main className="flex-1 flex items-center justify-center bg-gray-100 py-10"></main>
+      <main className="flex-1 flex items-center justify-center bg-gray-100 py-10">
+        <PendingReports />
+      </main>
     </>
   );
 }

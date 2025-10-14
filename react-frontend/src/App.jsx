@@ -8,6 +8,7 @@ import Footer from "./Components/View/Footer/Footer";
 import ImportStudents from "./Components/Features/ImportListStudents/ImportStudents";
 import Login from "./Components/PageOther/Auth/Login";
 
+import NavBar from "./Components/View/Header/Navbar";
 function App() {
   return (
     <>
