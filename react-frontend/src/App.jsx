@@ -13,7 +13,7 @@ function App() {
   return (
     <>
       <Router>
-        <div>
+        <div className="bg-gray-50">
           <Routes>
             {/* Trang chủ */}
             <Route
