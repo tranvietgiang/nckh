@@ -21,7 +21,7 @@ const PendingReports = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md">
+    <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-4">
         BÁO CHƯA HOÀN THÀNH (2)
       </h1>

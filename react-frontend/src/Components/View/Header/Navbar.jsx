@@ -8,6 +8,9 @@ import {
   MenuItems,
 } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import ModelNotifications from "../../PageOther/Student/ModelNotifications";
 
 const navigation = [
   { name: "Home", href: "nckh-home", current: true },
@@ -17,9 +20,10 @@ const navigation = [
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
-import { Link } from "react-router-dom";
+export default function Navbar() {
+  const [openNotification, setOpenNotification] = useState(false);
 
-export default function Example() {
+  console.log(openNotification);
   return (
     <Disclosure
       as="nav"
@@ -72,6 +76,7 @@ export default function Example() {
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
             <button
+              onClick={() => setOpenNotification(true)}
               type="button"
               className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
             >
@@ -105,20 +110,17 @@ export default function Example() {
                   </Link>
                 </MenuItem>
                 <MenuItem>
-                  <a
-                    href="#"
-                    className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
-                  >
+                  <Link className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none">
                     Cài đặt
-                  </a>
+                  </Link>
                 </MenuItem>
                 <MenuItem>
-                  <a
-                    href="#"
+                  <Link
+                    to="/nckh-login"
                     className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
                   >
                     Đăng xuất
-                  </a>
+                  </Link>
                 </MenuItem>
               </MenuItems>
             </Menu>
@@ -146,6 +148,11 @@ export default function Example() {
           ))}
         </div>
       </DisclosurePanel>
+
+      <ModelNotifications
+        stateOpen={openNotification}
+        onClose={setOpenNotification}
+      />
     </Disclosure>
   );
 }
