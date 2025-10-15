@@ -41,10 +41,10 @@ class StudentsImport implements ToModel, WithHeadingRow
         $class = Classe::where('class_id', 1)->first();
 
 
-        if (User::where('user_id', $msv)->orWhere('email', $email)->exists()) {
-            $this->failed++;
-            return null;
-        }
+        // if (User::where('user_id', $msv)->orWhere('email', $email)->exists()) {
+        //     $this->failed++;
+        //     return null;
+        // }
 
         // --- 2. Kiểm tra user trùng ---
         $existingUser = User::where('user_id', $msv)
