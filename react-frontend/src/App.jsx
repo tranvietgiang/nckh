@@ -10,6 +10,7 @@ import ImportStudents from "./Components/Features/ImportListStudents/ImportStude
 import Login from "./Components/PageOther/Auth/Login";
 
 import ProfilePage from "./Components/PageOther/Student/ProfilePage";
+import TestApi from "./Components/PageOther/test_api";
 function App() {
   return (
     <>
@@ -30,6 +31,9 @@ function App() {
 
             {/* Trang import danh sách sinh viên */}
             <Route path="/nckh-ng" element={<ImportStudents />} />
+
+            {/* Trang import danh sách sinh viên */}
+            <Route path="/nckh-test-pc" element={<TestApi />} />
 
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
