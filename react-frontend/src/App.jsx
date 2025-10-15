@@ -10,6 +10,7 @@ import ImportStudents from "./Components/Features/ImportListStudents/ImportStude
 import Login from "./Components/PageOther/Auth/Login";
 
 import ProfilePage from "./Components/PageOther/Student/ProfilePage";
+import TeacherDashboard from "./Components/PageOther/Teacher/TeacherDashboard";
 function App() {
   return (
     <>
@@ -36,10 +37,14 @@ function App() {
 
             {/* Trang đăng profile */}
             <Route path="/nckh-profile" element={<ProfilePage />} />
-          </Routes>
-           <Routes>
+
+            {/* Trang đăng profile */}
             <Route path="/nckh-admin" element={<Admin />} />
+
+            {/* Trang giảng viên */}
+            <Route path="/nckh-teacher" element={<TeacherDashboard />} />
           </Routes>
+
         </div>
       </Router>
     </>
