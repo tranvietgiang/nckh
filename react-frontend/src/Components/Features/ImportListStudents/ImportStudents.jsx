@@ -4,6 +4,7 @@ import axios from "../../../config/axios";
 function ImportStudents() {
   const [file, setFile] = useState(null);
   const [students, setStudents] = useState([]);
+  const [studentError, setStudentErrors] = useState([]);
   const [totalStudent, setTotalStudent] = useState(0);
   const [loading, setLoading] = useState(false);
 
@@ -25,32 +26,37 @@ function ImportStudents() {
 
     try {
       // Gửi file tới Laravel API
-      await axios.post("/students/import", formData, {
+      const res = await axios.post("/students/import", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
 
-      // Sau khi import xong thì lấy danh sách mới
-      const res = await axios.get("/get-students");
-      setStudents(res.list_student);
-      setTotalStudent(res.total_student);
+      const { success, failed, total_student, duplicates } = res.data;
 
-      const { success, failed, total, duplicates } = res.data;
-
-      let dupText = "";
       if (duplicates && duplicates.length > 0) {
-        dupText =
-          "\n\n⚠️ Danh sách bị trùng:\n" +
-          duplicates.map((d) => `- ${d.msv} (${d.ten})`).join("\n");
+        if (failed > 0) {
+          setStudentErrors(duplicates);
+          localStorage.setItem(
+            "cache_student_import_error",
+            JSON.stringify(duplicates)
+          );
+        } else {
+          localStorage.removeItem("cache_student_import_error");
+        }
       }
 
       alert(
         `✅ Import hoàn tất!\n` +
           `Thành công: ${success}\n` +
           `Lỗi: ${failed}\n` +
-          `Tổng SV: ${total}${dupText}`
+          `Tổng SV: ${total_student}`
       );
+
+      // Sau khi import xong thì lấy danh sách mới
+      const res_student = await axios.get("/get-students");
+      setStudents(res_student.list_student);
+      setTotalStudent(res_student.total_student);
     } catch (error) {
       console.error(error);
       alert("❌ Lỗi khi import file!");
@@ -60,6 +66,14 @@ function ImportStudents() {
   };
 
   useEffect(() => {
+    const cache_student_error = JSON.parse(
+      localStorage.getItem("cache_student_import_error")
+    );
+
+    if (cache_student_error) {
+      setStudentErrors(cache_student_error);
+    }
+
     axios
       .get("/get-students")
       .then((res) => {
@@ -132,6 +146,40 @@ function ImportStudents() {
                 Tổng số sinh viên: {totalStudent}
               </span>
             </div>
+          </div>
+        )}
+        {/* Danh sách lỗi / trùng */}
+        {studentError.length > 0 && (
+          <div className="mt-8 bg-red-50 border border-red-300 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-red-700 mb-3">
+              ⚠️ Danh sách sinh viên bị trùng hoặc lỗi ({studentError.length})
+            </h3>
+            <table className="min-w-full divide-y divide-red-200">
+              <thead className="bg-red-100">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
+                    MSSV
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
+                    Họ tên
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
+                    Email
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-red-100">
+                {studentError.map((e, index) => (
+                  <tr key={index} className="hover:bg-red-50">
+                    <td className="px-4 py-2 text-sm text-gray-800">{e.msv}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">{e.ten}</td>
+                    <td className="px-4 py-2 text-sm text-gray-800">
+                      {e.email}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
