@@ -17,4 +17,4 @@ Route::get('/get-user', function () {
 
 
 Route::post('/students/import', [StudentController::class, 'import']);
-Route::get('/get-students', [StudentController::class, 'getUser']);
+Route::get('/get-students', [StudentController::class, 'getStudent']);

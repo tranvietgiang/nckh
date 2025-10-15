@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Imports\StudentsImport;
 use App\Models\User;
-use Illuminate\Foundation\Auth\User as AuthUser;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -17,16 +16,48 @@ class StudentController extends Controller
             'file' => 'required|mimes:xlsx,xls,csv'
         ]);
 
-        Excel::import(new StudentsImport, $request->file('file'));
+        $import = new StudentsImport();
+        Excel::import($import, $request->file('file'));
 
-        return response()->json(['message' => 'Import thành công!']);
+        // Tổng sinh viên sau khi import
+        $totalStudent = $this->fetchStudentsData()->count();
+
+        return response()->json([
+            'message' => 'Import hoàn tất!',
+            'total_student' => $totalStudent,
+            'success' => $import->success ?? 0,
+            'failed'  => $import->failed ?? 0,
+            'duplicates' => $import->duplicates ?? [],
+        ]);
     }
 
-    public function getUser()
+
+    public function fetchStudentsData()
     {
-        $getUser = User::all();
-        if ($getUser->count() > 0) {
-            return response()->json($getUser);
+        return User::select(
+            'users.user_id',
+            'user_profiles.fullname',
+            'user_profiles.birthdate',
+            'user_profiles.phone',
+            'user_profiles.class_student',
+            'classes.class_name',
+            'users.email'
+        )
+            ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
+            ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
+            ->where('users.role', 'student')
+            ->get();
+    }
+
+    public function getStudent()
+    {
+        $students = $this->fetchStudentsData();
+
+        if ($students->count() > 0) {
+            return response()->json([
+                "list_student" => $students,
+                "total_student" => $students->count(),
+            ]);
         }
     }
 }
