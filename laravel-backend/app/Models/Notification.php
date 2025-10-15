@@ -16,6 +16,6 @@ class Notification extends Model
         'title',
         'content',
         'teacher_id',
-        'project_id'
+        'class_id'
     ];
 }

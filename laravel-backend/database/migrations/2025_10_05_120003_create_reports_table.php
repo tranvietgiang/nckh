@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id('report_id');
-            $table->string('report_name', 150)->charset('utf8mb4')->collation('utf8mb4_unicode_ci');
+            $table->string('report_name', 150);
             $table->text('description', 1000)->nullable();
             $table->foreignId("class_id")->constrained("classes", "class_id")->onDelete("cascade");
             $table->enum('status', ['submitted', 'graded', 'rejected'])->comment('Trạng thái của đồ án');

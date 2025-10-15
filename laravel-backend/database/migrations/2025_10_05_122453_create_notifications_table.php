@@ -15,8 +15,9 @@ return new class extends Migration
             $table->id('notification_id');
             $table->string('title', 200);
             $table->string('content', 500);
-            $table->foreignId("report_id")->constrained("reports", "report_id")->onDelete("cascade");
-            $table->foreignId("teacher_id")->constrained("users", "user_id")->onDelete("cascade");
+            $table->foreignId("class_id")->constrained("classes", "class_id")->onDelete("cascade");
+            $table->string('teacher_id');
+            $table->foreign('teacher_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

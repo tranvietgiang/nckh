@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('submissions', function (Blueprint $table) {
             $table->id('submission_id');
             $table->foreignId("report_id")->constrained("reports", "report_id")->onDelete("cascade");
-            $table->foreignId("student_id")->constrained("users", "user_id")->onDelete("cascade");
+            $table->string('student_id');
+            $table->foreign("student_id")->references('user_id')->on("users")->onDelete("cascade");
             $table->string('version', 50);
             $table->enum('status', ['submitted', 'graded', 'rejected'])->comment('Trạng thái từng phiên bản của đồ án ');
             $table->date('submission_time');

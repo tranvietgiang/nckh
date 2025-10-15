@@ -19,4 +19,9 @@ class Classe extends Model
         'semester',
         'academic_year'
     ];
+
+    public function students()
+    {
+        return $this->hasMany(user_profile::class, 'class_id', 'class_id');
+    }
 }

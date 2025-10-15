@@ -4,11 +4,10 @@ export default function ModelNotifications({ stateOpen, onClose }) {
       id: 1,
       type: "THÔNG BÁO MỚI",
       time: "10:30 • 14/12/2024",
-      title: "thông báo lịch nộp bài điều chỉnh",
+      title: "",
       subject: "Lập trình Cơ bản",
       teacher: "GV Nguyễn Văn A",
-      content:
-        "Lịch nộp bài Báo cáo Cuối kỳ đã được điều chỉnh: deadline mới 20/12/2024 (thay vì 15/12). Các em có thêm 5 ngày để hoàn thiện báo cáo. Yêu cầu format vẫn giữ nguyên.",
+      content: "",
       isNew: true,
       isRead: false,
     },

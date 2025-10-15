@@ -26,4 +26,4 @@ Route::get('/users', [AuthController::class, 'getUser']);
 
 
 Route::post('/students/import', [StudentController::class, 'import']);
-Route::get('/get-students', [StudentController::class, 'getUser']);
+Route::get('/get-students', [StudentController::class, 'getStudent']);
