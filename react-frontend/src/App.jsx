@@ -11,7 +11,6 @@ import Login from "./Components/PageOther/Auth/Login";
 
 import ProfilePage from "./Components/PageOther/Student/ProfilePage";
 import TeacherDashboard from "./Components/PageOther/Teacher/TeacherDashboard";
-import CreateNotification from "./Components/PageOther/Teacher/CreateNotification";
 function App() {
   return (
     <>

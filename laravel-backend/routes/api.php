@@ -9,22 +9,14 @@ use App\Http\Controllers\StudentController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\CreateNotificationController;
+use App\Http\Controllers\NotificationController;
 
 Route::post("/test", function () {
     return "test";
 });
 
-Route::get('/get-user', function () {
-    return response()->json([
-        'fullname' => 'Nguyễn Văn A',
-        'email' => 'vana@example.com',
-    ]);
-});
-
 
 Route::get('/users', [AuthController::class, 'getUser']);
-
 
 /**Giảng viên import ds sinh viên vào db */
 Route::post('/students/import', [StudentController::class, 'import']);
@@ -32,4 +24,7 @@ Route::post('/students/import', [StudentController::class, 'import']);
 Route::get('/get-students', [StudentController::class, 'getStudent']);
 
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
-Route::get('/get-class-teacher/{idTeacher}', [CreateNotificationController::class, 'getClassByTeacher']);
+Route::get('/get-class-teacher/{teacherId}', [NotificationController::class, 'getClassByTeacher']);
+
+/**Tạo thông báo gửi đến sinh viên */
+Route::post('/create-notification', [NotificationController::class, 'createNotification']);

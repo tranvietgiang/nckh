@@ -70,8 +70,10 @@ function ImportStudents() {
       localStorage.getItem("cache_student_import_error")
     );
 
-    if (cache_student_error) {
+    if (cache_student_error.length > 1) {
       setStudentErrors(cache_student_error);
+    } else {
+      localStorage.removeItem("cache_student_import_error");
     }
 
     axios
