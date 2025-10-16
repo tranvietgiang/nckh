@@ -4,7 +4,10 @@
 use App\Http\Controllers\AuthController;
 use Illuminate\Auth\Authenticatable;
 
+
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\ClassController;
+
 
 
 use Illuminate\Support\Facades\Route;
@@ -22,7 +25,14 @@ Route::get('/get-user', function () {
 });
 
 
+
 Route::get('/users', [AuthController::class, 'getUser']);
+
+// danh sách các lớp theo id
+Route::get('/classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
+
+
+
 
 
 Route::post('/students/import', [StudentController::class, 'import']);
