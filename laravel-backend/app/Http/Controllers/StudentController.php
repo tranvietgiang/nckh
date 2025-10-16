@@ -35,13 +35,9 @@ class StudentController extends Controller
     public function fetchStudentsData()
     {
         return User::select(
-            'users.user_id',
-            'user_profiles.fullname',
-            'user_profiles.birthdate',
-            'user_profiles.phone',
-            'user_profiles.class_student',
-            'classes.class_name',
-            'users.email'
+            'users.*',
+            'user_profiles.*',
+            'classes.*'
         )
             ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
@@ -53,7 +49,7 @@ class StudentController extends Controller
     {
         $students = $this->fetchStudentsData();
 
-        if ($students->count() > 0) {
+        if ($students->count() >= 1) {
             return response()->json([
                 "list_student" => $students,
                 "total_student" => $students->count(),

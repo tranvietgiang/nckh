@@ -35,7 +35,7 @@ function ImportStudents() {
       const { success, failed, total_student, duplicates } = res.data;
 
       if (duplicates && duplicates.length > 0) {
-        if (failed > 0) {
+        if (failed >= 1) {
           setStudentErrors(duplicates);
           localStorage.setItem(
             "cache_student_import_error",
@@ -79,6 +79,7 @@ function ImportStudents() {
       .then((res) => {
         setStudents(res.data.list_student);
         setTotalStudent(res.data.total_student);
+        console.log(res.data);
       })
       .catch((e) => {
         console.log(e);

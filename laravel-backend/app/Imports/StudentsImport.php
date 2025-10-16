@@ -18,9 +18,7 @@ class StudentsImport implements ToModel, WithHeadingRow
 
     public function model(array $row)
     {
-
-
-        $msv = trim($row['msv'] ?? '');
+        $msv = trim((string)($row['msv'] ?? ''));
         $lop  = trim($row['lop_sv'] ?? '');
         $ten  = trim($row['ten'] ?? '');
         $birthdate = trim($row['ngay_sinh'] ?? '');

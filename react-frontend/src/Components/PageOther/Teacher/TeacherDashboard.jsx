@@ -43,7 +43,9 @@ export default function TeacherDashboard() {
 
         {/* Quick Actions */}
         <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">⚡ THAO TÁC NHANH</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">
+            ⚡ THAO TÁC NHANH
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               "Import Lớp",
@@ -64,10 +66,15 @@ export default function TeacherDashboard() {
 
         {/* Class Reports */}
         <div className="mt-10">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">📚 DANH SÁCH LỚP</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">
+            📚 DANH SÁCH LỚP
+          </h3>
           <div className="space-y-4">
             {[1, 2].map((item) => (
-              <div key={item} className="border rounded-xl p-4 shadow-sm bg-gray-50">
+              <div
+                key={item}
+                className="border rounded-xl p-4 shadow-sm bg-gray-50"
+              >
                 <p className="font-semibold">
                   Báo cáo Cuối kỳ - Chuyên đề {item}
                 </p>
@@ -86,8 +93,12 @@ export default function TeacherDashboard() {
         <div className="flex justify-between items-center mt-8 border-t pt-4 text-sm text-gray-500">
           <p>🕓 Cập nhật: 15/10/2025</p>
           <div className="flex gap-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">👁️ Xem chi tiết</button>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow">🔄 Cập nhật</button>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">
+              👁️ Xem chi tiết
+            </button>
+            <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow">
+              🔄 Cập nhật
+            </button>
           </div>
         </div>
       </div>
