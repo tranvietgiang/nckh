@@ -27,3 +27,4 @@ Route::get('/users', [AuthController::class, 'getUser']);
 
 Route::post('/students/import', [StudentController::class, 'import']);
 Route::get('/get-students', [StudentController::class, 'getStudent']);
+Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
