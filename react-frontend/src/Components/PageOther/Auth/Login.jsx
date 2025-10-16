@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import axios from "../../../config/axios";
+// import axios from "../../../config/axios";
+
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
@@ -19,18 +20,23 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await axios.post("/auth/check-login", {
-        username,
-        password,
-      });
+      // const res = await axios.post("/auth/check-login", {
+      //   username,
+      //   password,
+      // });
 
-      if (res.data.state === 200) {
-        setLoading(false);
+      // if (res.data.state === 200) {
+      //   setLoading(false);
+      //   navigate("/nckh-home");
+      // } else {
+      //   setLoading(false);
+      //   alert("Sai tên đăng nhập hoặc mật khẩu!");
+      // }
+
+      setTimeout(() => {
         navigate("/nckh-home");
-      } else {
         setLoading(false);
-        alert("Sai tên đăng nhập hoặc mật khẩu!");
-      }
+      }, 3000);
     } catch (error) {
       setLoading(false);
 

@@ -4,13 +4,14 @@ import "./App.css";
 import Header from "./Components/View/Header/Header";
 import Content from "./Components/View/Content/Content";
 import Footer from "./Components/View/Footer/Footer";
-import Admin from "./Components/PageOther/Admin/Admin"
+import Admin from "./Components/PageOther/Admin/Admin";
 
 import ImportStudents from "./Components/Features/ImportListStudents/ImportStudents";
 import Login from "./Components/PageOther/Auth/Login";
 
 import ProfilePage from "./Components/PageOther/Student/ProfilePage";
 import TeacherDashboard from "./Components/PageOther/Teacher/TeacherDashboard";
+import CreateNotification from "./Components/PageOther/Teacher/CreateNotification";
 function App() {
   return (
     <>
@@ -44,7 +45,6 @@ function App() {
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
           </Routes>
-
         </div>
       </Router>
     </>
