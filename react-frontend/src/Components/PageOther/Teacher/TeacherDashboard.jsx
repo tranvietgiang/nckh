@@ -1,6 +1,61 @@
-import React from "react";
+import { useState } from "react";
+import CreateNotification from "./CreateNotification";
 
 export default function TeacherDashboard() {
+  const [openNotification, setOpenNotification] = useState(false);
+
+  // Hàm xử lý click button đơn giản
+  const handleButtonClick = (buttonName) => {
+    console.log("Button clicked:", buttonName);
+
+    // Xử lý theo từng button
+    switch (buttonName) {
+      case "Import Lớp":
+        handleImportClass();
+        break;
+      case "Quản Lý Lớp":
+        handleManageClass();
+        break;
+      case "Tạo Báo Cáo":
+        handleCreateReport();
+        break;
+      case "Chấm Điểm":
+        handleGrading();
+        break;
+      case "Tạo Thông Báo":
+        handleCreateNotification();
+        break;
+      default:
+        console.log("Chức năng khác");
+    }
+  };
+
+  // Các hàm xử lý đơn giản
+  const handleImportClass = () => {
+    console.log("Xử lý Import Lớp...");
+    // Thêm logic import lớp ở đây
+  };
+
+  const handleManageClass = () => {
+    console.log("Xử lý Quản Lý Lớp...");
+    // Thêm logic quản lý lớp ở đây
+  };
+
+  const handleCreateReport = () => {
+    console.log("Xử lý Tạo Báo Cáo...");
+    // Thêm logic tạo báo cáo ở đây
+  };
+
+  const handleGrading = () => {
+    console.log("Xử lý Chấm Điểm...");
+    // Thêm logic chấm điểm ở đây
+  };
+
+  const handleCreateNotification = () => {
+    console.log("Xử lý Tạo Thông Báo...");
+    setOpenNotification(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       {/* Header */}
@@ -52,10 +107,11 @@ export default function TeacherDashboard() {
               "Quản Lý Lớp",
               "Tạo Báo Cáo",
               "Chấm Điểm",
-              "Thông Báo",
+              "Tạo Thông Báo",
             ].map((item, i) => (
               <button
                 key={i}
+                onClick={() => handleButtonClick(item)}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
               >
                 {item}
@@ -102,6 +158,11 @@ export default function TeacherDashboard() {
           </div>
         </div>
       </div>
+
+      <CreateNotification
+        stateOpen={openNotification}
+        onClose={setOpenNotification}
+      />
     </div>
   );
 }
