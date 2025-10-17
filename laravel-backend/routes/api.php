@@ -20,6 +20,7 @@ Route::get('/users', [AuthController::class, 'getUser']);
 
 /**Giảng viên import ds sinh viên vào db */
 Route::post('/students/import', [StudentController::class, 'import']);
+
 /**lấy ra dữ liệu của sinh viên theo lớp */
 Route::get('/get-students', [StudentController::class, 'getStudent']);
 
@@ -28,3 +29,7 @@ Route::get('/get-class-teacher/{teacherId}', [NotificationController::class, 'ge
 
 /**Tạo thông báo gửi đến sinh viên */
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
+
+Route::get('/get-students', [StudentController::class, 'getStudent']);
+Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
+

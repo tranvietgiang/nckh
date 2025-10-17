@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Edit2, Trash2, Search, Users, GraduationCap, BookOpen, FileText, AlertTriangle, Home, Settings, Bell, LogOut, Menu, X } from 'lucide-react';
 import axios from "../../../config/axios";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 
 export default function AdminManagement() {
   const [activeTab, setActiveTab] = useState('students');
@@ -10,15 +13,33 @@ export default function AdminManagement() {
   const [modalMode, setModalMode] = useState('add');
   const [editingItem, setEditingItem] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [students, setStudents] = useState([]); 
+  const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
+
+  const [toastMessage, setToastMessage] = React.useState('');
+  const [showToast, setShowToast] = React.useState(false);
+
+  const showSuccessToast = (msg) => {
+    setToastMessage(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000); // 3s tự ẩn
+  };
+
+
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const res = await axios.get(`/users`);
         console.log("Dữ liệu user API:", res.data);
-        setStudents(res.data); // lưu danh sách sinh viên vào state
-        console.log(res.data);
+
+        // Phân tách theo user_id và role
+        const teachersData = res.data.filter(user => user.user_id.startsWith('gv') || user.role === 'admin');
+        const studentsData = res.data.filter(user => !user.user_id.startsWith('gv') && user.role !== 'admin');
+
+        setStudents(studentsData);
+        setTeachers(teachersData);
+
       } catch (err) {
         console.error("Lỗi khi gọi API /users:", err);
       }
@@ -28,18 +49,19 @@ export default function AdminManagement() {
 
 
 
-//   const [students, setStudents] = useState([
-//     { id: 1, name: 'Nguyễn Văn A', studentId: 'SV001', email: 'nguyenvana@email.com', major: 'Công nghệ thông tin', class: 'CNTT01' },
-//     { id: 2, name: 'Trần Thị B', studentId: 'SV002', email: 'tranthib@email.com', major: 'Kỹ thuật phần mềm', class: 'KTPM01' },
-//     { id: 3, name: 'Lê Văn C', studentId: 'SV003', email: 'levanc@email.com', major: 'Khoa học máy tính', class: 'KHMT01' },
-//   ]);
+
+  //   const [students, setStudents] = useState([
+  //     { id: 1, name: 'Nguyễn Văn A', studentId: 'SV001', email: 'nguyenvana@email.com', major: 'Công nghệ thông tin', class: 'CNTT01' },
+  //     { id: 2, name: 'Trần Thị B', studentId: 'SV002', email: 'tranthib@email.com', major: 'Kỹ thuật phần mềm', class: 'KTPM01' },
+  //     { id: 3, name: 'Lê Văn C', studentId: 'SV003', email: 'levanc@email.com', major: 'Khoa học máy tính', class: 'KHMT01' },
+  //   ]);
 
 
-  const [teachers, setTeachers] = useState([
-    { id: 1, name: 'TS. Phạm Văn D', teacherId: 'GV001', email: 'phamvand@email.com', department: 'Công nghệ thông tin', position: 'Phó Giáo sư' },
-    { id: 2, name: 'ThS. Hoàng Thị E', teacherId: 'GV002', email: 'hoangthie@email.com', department: 'Kỹ thuật phần mềm', position: 'Giảng viên' },
-    { id: 3, name: 'PGS.TS. Võ Văn F', teacherId: 'GV003', email: 'vovanf@email.com', department: 'Khoa học máy tính', position: 'Phó Giáo sư' },
-  ]);
+  // const [teachers, setTeachers] = useState([
+  //   { id: 1, name: 'TS. Phạm Văn D', teacherId: 'GV001', email: 'phamvand@email.com', department: 'Công nghệ thông tin', position: 'Phó Giáo sư' },
+  //   { id: 2, name: 'ThS. Hoàng Thị E', teacherId: 'GV002', email: 'hoangthie@email.com', department: 'Kỹ thuật phần mềm', position: 'Giảng viên' },
+  //   { id: 3, name: 'PGS.TS. Võ Văn F', teacherId: 'GV003', email: 'vovanf@email.com', department: 'Khoa học máy tính', position: 'Phó Giáo sư' },
+  // ]);
 
   const [reports] = useState([
     { id: 1, title: 'Báo cáo tuần 1', status: 'completed' },
@@ -105,24 +127,35 @@ export default function AdminManagement() {
     closeModal();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (user_id) => {
     if (window.confirm(`Bạn có chắc muốn xóa ${activeTab === 'students' ? 'sinh viên' : 'giảng viên'} này?`)) {
-      if (activeTab === 'students') {
-        setStudents(students.filter(s => s.id !== id));
-      } else {
-        setTeachers(teachers.filter(t => t.id !== id));
+      try {
+        const res = await axios.delete(`/delete/${user_id}`);
+
+        // Cập nhật state
+        if (activeTab === 'students') {
+          setStudents(students.filter(s => s.user_id !== user_id));
+        } else {
+          setTeachers(teachers.filter(t => t.user_id !== user_id));
+        }
+
+        // Thông báo xóa thành công
+         showSuccessToast('Xóa thành công!');
+      } catch (err) {
+        console.error(err);
+         showSuccessToast('Xóa không thành công!');
       }
     }
   };
 
-  // ông code lunn ồi hh  nay la data tĩnh ko phải data ý là code á cứ ít ửa ông đưa atabase vào tthi
   const filterData = (data) => {
     return data.filter(item =>
-      Object.values(item).some(val =>
-        val.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.user_id?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
+
+
 
   const filteredStudents = filterData(students);
   const filteredTeachers = filterData(teachers);
@@ -216,7 +249,7 @@ export default function AdminManagement() {
                     <span className="text-xs sm:text-sm font-medium text-green-600">60%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-green-600 h-2 rounded-full" style={{width: '60%'}}></div>
+                    <div className="bg-green-600 h-2 rounded-full" style={{ width: '60%' }}></div>
                   </div>
                 </div>
                 <div>
@@ -225,7 +258,7 @@ export default function AdminManagement() {
                     <span className="text-xs sm:text-sm font-medium text-yellow-600">20%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-yellow-600 h-2 rounded-full" style={{width: '20%'}}></div>
+                    <div className="bg-yellow-600 h-2 rounded-full" style={{ width: '20%' }}></div>
                   </div>
                 </div>
                 <div>
@@ -234,7 +267,7 @@ export default function AdminManagement() {
                     <span className="text-xs sm:text-sm font-medium text-red-600">20%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-red-600 h-2 rounded-full" style={{width: '20%'}}></div>
+                    <div className="bg-red-600 h-2 rounded-full" style={{ width: '20%' }}></div>
                   </div>
                 </div>
               </div>
@@ -252,11 +285,10 @@ export default function AdminManagement() {
               <nav className="flex -mb-px whitespace-nowrap">
                 <button
                   onClick={() => { setActiveTab('students'); setActiveMenu('students'); }}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'students'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === 'students'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -265,11 +297,10 @@ export default function AdminManagement() {
                 </button>
                 <button
                   onClick={() => { setActiveTab('teachers'); setActiveMenu('teachers'); }}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'teachers'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === 'teachers'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -299,16 +330,21 @@ export default function AdminManagement() {
               </button>
             </div>
           </div>
-
+          {showToast && (
+            <div className="{`fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500 ${showToast ? 'opacity-100' : 'opacity-0'}">
+              {toastMessage}
+            </div>
+          )}
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
+
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     {activeTab === 'students' ? (
                       <>
                         <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã SV</th>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Họ Tên</th>
+                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                         <th className="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th className="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chuyên Ngành</th>
                         <th className="hidden xl:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lớp</th>
@@ -329,12 +365,12 @@ export default function AdminManagement() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {activeTab === 'students' ? (
                     filteredStudents.map((student) => (
-                      <tr key={student.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={student.id || student.studentId} className="hover:bg-gray-50 transition-colors">
                         <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">{student.user_id}</td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">{student.name}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">{student.role}</td>
                         <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">{student.email}</td>
-                        <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">{student.major}</td>
-                        <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">{student.class}</td>
+                        <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
+                        <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
                         <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
                           <div className="flex items-center space-x-2 sm:space-x-4">
                             <button
@@ -344,7 +380,7 @@ export default function AdminManagement() {
                               <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
                             </button>
                             <button
-                              onClick={() => handleDelete(student.id)}
+                              onClick={() => handleDelete(student.user_id)}
                               className="text-red-600 hover:text-red-900"
                             >
                               <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -356,8 +392,8 @@ export default function AdminManagement() {
                   ) : (
                     filteredTeachers.map((teacher) => (
                       <tr key={teacher.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">{teacher.teacherId}</td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">{teacher.name}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">{teacher.user_id}</td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">{teacher.role}</td>
                         <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">{teacher.email}</td>
                         <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">{teacher.department}</td>
                         <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">{teacher.position}</td>
@@ -426,7 +462,7 @@ export default function AdminManagement() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
@@ -457,11 +493,10 @@ export default function AdminManagement() {
                   setActiveMenu(item.id);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${
-                  activeMenu === item.id
-                    ? 'bg-indigo-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100'
-                }`}
+                className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${activeMenu === item.id
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-gray-700 hover:bg-gray-100'
+                  }`}
               >
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <span className="font-medium">{item.label}</span>
@@ -647,3 +682,4 @@ export default function AdminManagement() {
     </div>
   );
 }
+
