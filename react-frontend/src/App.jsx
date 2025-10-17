@@ -11,6 +11,7 @@ import Login from "./Components/PageOther/Auth/Login";
 
 import ProfilePage from "./Components/PageOther/Student/ProfilePage";
 import TeacherDashboard from "./Components/PageOther/Teacher/TeacherDashboard";
+import Navbar from "./Components/View/Header/Navbar";
 function App() {
   return (
     <>
@@ -30,7 +31,16 @@ function App() {
             />
 
             {/* Trang import danh sách sinh viên */}
-            <Route path="/nckh-ng" element={<ImportStudents />} />
+            <Route
+              path="/nckh-teacher-import"
+              element={
+                <>
+                  <Navbar />
+                  <ImportStudents />
+                  <Footer />
+                </>
+              }
+            />
 
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
@@ -42,7 +52,16 @@ function App() {
             <Route path="/nckh-admin" element={<Admin />} />
 
             {/* Trang giảng viên */}
-            <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            <Route
+              path="/nckh-teacher"
+              element={
+                <>
+                  <Navbar />
+                  <TeacherDashboard />
+                  <Footer />
+                </>
+              }
+            />
           </Routes>
         </div>
       </Router>
