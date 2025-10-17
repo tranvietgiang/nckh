@@ -56,4 +56,47 @@ class StudentController extends Controller
             ]);
         }
     }
+
+
+    // public function CheckUserExit()
+    public function  getProfile(Request $request)
+    {
+        $role = $request->input('role') ?? null;
+        $user_id = $request->input('user_id') ?? null;
+
+        if (!$role || !$user_id) {
+            return response()->json(["message_error" => "Thiếu dữ liệu role hoặc user_id"], 402);
+        }
+
+
+        $checkUser = User::where("user_id", $user_id)->where("role", $role)->exists();
+        if (!$checkUser) {
+            return response()->json(["message_error" => "người dùng này không tồn tại!"], 402);
+        }
+
+
+        $dataProfile = User::select("users.*", "user_profiles.*", "classes.*")
+            ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
+            ->join("classes", "users.user_id", "=", "classes.teacher_id")
+            ->where("users.user_id", $user_id)
+            ->where('users.role', $role)
+            ->get();
+
+        if (!$dataProfile) {
+            return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
+        }
+
+        $teacherInfo = [
+            "fullname" => $dataProfile[0]->fullname,
+            "user_id" => $dataProfile[0]->user_id,
+            "email" => $dataProfile[0]->email,
+            "phone" => $dataProfile[0]->phone,
+            "birthdate" => $dataProfile[0]->birthdate,
+            "role" => $dataProfile[0]->role,
+            // "nganh" => $dataProfile[0]->nganh,
+            "classes" => $dataProfile->pluck('class_name')->unique()->values(),
+        ];
+
+        return response()->json($teacherInfo, 200);
+    }
 }

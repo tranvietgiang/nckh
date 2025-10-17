@@ -1,23 +1,44 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../../View/Header/Navbar";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Footer from "../../View/Footer/Footer";
+import axios from "../../../config/axios";
 
 export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [getProfile, setProfile] = useState({});
+  const navigate = useNavigate();
+  const role = "teacher";
+  const user_id = "gv001";
+  // const users = localStorage.getItem("users") ?? "";
+  // const getProfile = {
+  //   name: "Nguyen Van A",
+  //   studentId: "23211TT2984",
+  //   major: "Công nghệ Thông tin",
+  //   email: "nguyenvana@student.edu.vn",
+  //   phone: "0123 456 789",
+  //   class: "D21CQCN01-B",
+  //   status: "Đang học",
+  // };
 
-  const userInfo = {
-    name: "Nguyen Van A",
-    studentId: "23211TT2984",
-    major: "Công nghệ Thông tin",
-    email: "nguyenvana@student.edu.vn",
-    phone: "0123 456 789",
-    class: "D21CQCN01-B",
-    status: "Đang học",
+  const fetchDataProfile = async () => {
+    if (!user_id || !role) return;
+    try {
+      const res = await axios.get("/get-profile", {
+        params: { role, user_id },
+      });
+      setProfile(res.data);
+    } catch (error) {
+      // alert("vui gì đó");
+      console.log(error);
+    }
   };
+  useEffect(() => {
+    fetchDataProfile();
+  }, []);
 
   const handlePasswordChange = (e) => {
     e.preventDefault();
@@ -64,15 +85,15 @@ export default function ProfilePage() {
                         Họ và tên
                       </label>
                       <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {userInfo.name}
+                        {getProfile?.fullname}
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Mã sinh viên
+                        {role === "student" ? "Mã sinh viên" : "Mã Giảng viên"}
                       </label>
                       <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {userInfo.studentId}
+                        {getProfile?.user_id}
                       </div>
                     </div>
                   </div>
@@ -80,18 +101,28 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ngành học
+                        {role === "student" ? "Ngành học" : "Ngành"}
                       </label>
                       <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {userInfo.major}
+                        {getProfile?.major ?? "?"}
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Lớp
+                        {role === "student" ? "Lớp" : "Các lớp đang dạy"}
                       </label>
                       <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {userInfo.class}
+                        {role === "student" ? (
+                          <span>{getProfile?.class_name}</span>
+                        ) : getProfile?.classes?.length > 0 ? (
+                          getProfile.classes.map((cls, index) => (
+                            <p key={index} className="mb-1">
+                              {cls}
+                            </p>
+                          ))
+                        ) : (
+                          <p>Không có lớp nào</p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -101,16 +132,26 @@ export default function ProfilePage() {
                       Email
                     </label>
                     <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                      {userInfo.email}
+                      {getProfile?.email}
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Số điện thoại
-                    </label>
-                    <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                      {userInfo.phone}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Số điện thoại
+                      </label>
+                      <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {getProfile?.phone}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Ngày sinh
+                      </label>
+                      <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                        {getProfile?.birthdate}
+                      </div>
                     </div>
                   </div>
 
@@ -119,7 +160,7 @@ export default function ProfilePage() {
                       Trạng thái
                     </label>
                     <div className="p-2 bg-green-50 text-green-700 rounded-lg border border-green-200 inline-block">
-                      ✅ {userInfo.status}
+                      ✅ {getProfile?.status}
                     </div>
                   </div>
                 </div>
@@ -216,7 +257,10 @@ export default function ProfilePage() {
                     📧 Đổi email
                   </button>
 
-                  <button className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center">
+                  <button
+                    onClick={() => navigate("/nckh-login")}
+                    className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
+                  >
                     🚪 Đăng xuất
                   </button>
                 </div>

@@ -30,6 +30,10 @@ Route::get('/get-class-teacher/{teacherId}', [NotificationController::class, 'ge
 /**Tạo thông báo gửi đến sinh viên */
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
 
-Route::get('/get-students', [StudentController::class, 'getStudent']);
-Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
+Route::get('/get-profile', [StudentController::class, 'getProfile']);
 
+/**Tạo thông báo gửi đến sinh viên */
+Route::get('/get-students', [StudentController::class, 'getStudent']);
+
+/**xóa sinh viên */
+Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
