@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import axios from "../../../config/axios";
-
+import { Loader2 } from "lucide-react";
 export default function CreateNotification({ stateOpen, onClose }) {
   const [getClass, setClass] = useState([]);
   const idTeacher = "gv001";
   const [loading, setLoading] = useState(false);
+  const [loadingClass, setLoadingClass] = useState(false);
   const [formData, setFormData] = useState({
     sendTo: "",
     title: "",
@@ -18,7 +19,6 @@ export default function CreateNotification({ stateOpen, onClose }) {
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // Nếu người dùng thay đổi "sendTo" (lớp), gán thêm class_id
     if (name === "sendTo") {
       setFormData((prev) => ({
         ...prev,
@@ -72,6 +72,14 @@ export default function CreateNotification({ stateOpen, onClose }) {
         }
       }
 
+      if (!formData.sendEmail && !formData.showDashboard) {
+        alert(
+          "⚠️ Vui lòng chọn ít nhất một hình thức gửi thông báo (Email hoặc Dashboard)!"
+        );
+        console.log(formData.sendEmail, formData.showDashboard);
+        return;
+      }
+
       if (!formData.class_id || !formData.teacher_id) {
         alert("❌ Lỗi dữ liệu từ máy chủ, vui lòng tải lại trang!");
         if (
@@ -115,10 +123,14 @@ export default function CreateNotification({ stateOpen, onClose }) {
   };
 
   useEffect(() => {
+    setLoadingClass(true);
     axios
       .get(`/get-class-teacher/${idTeacher}`)
       .then((res) => {
-        setClass(res.data);
+        setTimeout(() => {
+          setClass(res.data);
+          setLoadingClass(false);
+        }, 4000);
         console.log(res.data);
       })
       .catch((error) => {
@@ -161,11 +173,11 @@ export default function CreateNotification({ stateOpen, onClose }) {
   return (
     <>
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        className="fixed inset-0 bg-black bg-opacity-50 z-30"
         onClick={handleBackdropClick}
       ></div>
 
-      <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="fixed inset-0 flex items-center justify-center z-40">
         <div
           className="bg-white rounded-xl shadow-lg w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()} // Ngăn click trong modal đóng modal
@@ -195,19 +207,23 @@ export default function CreateNotification({ stateOpen, onClose }) {
                 name="sendTo"
                 value={formData.sendTo}
                 onChange={handleInputChange}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled={loadingClass}
+                className={`w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  loadingClass ? "opacity-60 cursor-not-allowed" : ""
+                }`}
               >
-                <option value="">Chọn lớp</option>
-                {getClass?.length > 0 ? (
+                <option>
+                  {loadingClass ? "🔄 Đang tải lớp..." : "Chọn lớp"}
+                </option>
+
+                {!loadingClass && getClass?.length > 0 ? (
                   getClass.map((classItem, index) => (
-                    <option key={index} value={classItem.class_id_teacher}>
-                      {classItem.class_name}
+                    <option key={index} value={classItem?.class_id_teacher}>
+                      {classItem?.class_name}
                     </option>
                   ))
                 ) : (
-                  <option value="" disabled>
-                    Không có lớp
-                  </option>
+                  <option disabled>Không có lớp</option>
                 )}
               </select>
             </div>

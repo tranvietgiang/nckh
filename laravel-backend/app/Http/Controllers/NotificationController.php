@@ -44,6 +44,7 @@ class NotificationController extends Controller
         }
 
         foreach ($data as $key => $item) {
+            if ($data['sendEmail'] == false) continue;
             if (empty($item)) {
                 return response()->json(["error" => "Trường $key không được để trống!"], 403);
             }
@@ -102,14 +103,14 @@ class NotificationController extends Controller
                 }
 
                 return response()->json([
-                    "message_success" => "Gửi thông báo thành công đến lớp $check_class->class_name bằng email"
+                    "message_success" => "Gửi thông báo thành công đến lớp $check_class->class_name qua 'email'"
                 ], 200);
             }
         }
 
         if ($createNotify) {
             return response()->json([
-                "message_success" => "Gửi thông báo thành công đến lớp $check_class->class_name"
+                "message_success" => "Gửi thông báo thành công đến lớp '$check_class->class_name'"
             ], 200);
         }
     }
