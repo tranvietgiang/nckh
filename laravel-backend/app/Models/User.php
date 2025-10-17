@@ -13,7 +13,9 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
     protected $table = 'users'; // tên bảng (nếu bạn không đổi)
     protected $primaryKey = 'user_id'; // KHÓA CHÍNH trong bảng của bạn
+
     protected $keyType = 'string'; // 🔹 Bắt buộc giữ nguyên dạng chuỗi
+
 
     /**
      * The attributes that are mass assignable.
