@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CreateNotification from "./CreateNotification";
 
 export default function TeacherDashboard() {
@@ -30,9 +31,11 @@ export default function TeacherDashboard() {
     }
   };
 
+  const navigate = useNavigate();
   // Các hàm xử lý đơn giản
   const handleImportClass = () => {
     console.log("Xử lý Import Lớp...");
+    navigate("/nckh-teacher-import");
     // Thêm logic import lớp ở đây
   };
 
@@ -59,7 +62,7 @@ export default function TeacherDashboard() {
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       {/* Header */}
-      <div className="bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
+      <div className="max-w-5xl mx-auto m-[10px] bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
         <h1 className="text-3xl font-bold text-center">📊 THỐNG KÊ CÁ NHÂN</h1>
       </div>
 

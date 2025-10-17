@@ -22,7 +22,7 @@ function classNames(...classes) {
 }
 export default function Navbar() {
   const [openNotification, setOpenNotification] = useState(false);
-
+  const idTeacher = "gv001";
   console.log(openNotification);
   return (
     <Disclosure
@@ -82,7 +82,11 @@ export default function Navbar() {
             >
               <span className="absolute -inset-1.5" />
               <span className="sr-only">Xem Thông báo</span>
-              <BellIcon aria-hidden="true" className="size-6" />
+              {idTeacher === "gv001" ? (
+                ""
+              ) : (
+                <BellIcon aria-hidden="true" className="size-6" />
+              )}
             </button>
 
             {/* Profile dropdown */}
