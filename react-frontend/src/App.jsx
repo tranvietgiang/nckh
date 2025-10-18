@@ -5,6 +5,7 @@ import Header from "./Components/View/Header/Header";
 import Content from "./Components/View/Content/Content";
 import Footer from "./Components/View/Footer/Footer";
 import Admin from "./Components/PageOther/Admin/Admin";
+import ScoringFeedback from "./Components/PageOther/Teacher/ScoringFeedback"
 
 import ImportStudents from "./Components/Features/ImportListStudents/ImportStudents";
 import Login from "./Components/PageOther/Auth/Login";
@@ -43,6 +44,9 @@ function App() {
 
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+             
+            {/** Trang Chấm điểm và phản hồi */}
+            <Route path="/nckh-teacher-scoringfeedback" element={<ScoringFeedback />} />
           </Routes>
         </div>
       </Router>
