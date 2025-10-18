@@ -11,7 +11,6 @@ import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import ModelNotifications from "../../PageOther/Student/ModelNotifications";
-
 const navigation = [
   { name: "Home", href: "nckh-home", current: true },
   { name: "Team", href: "#", current: false },
@@ -23,7 +22,7 @@ function classNames(...classes) {
 export default function Navbar() {
   const [openNotification, setOpenNotification] = useState(false);
   const idTeacher = "gv001";
-  console.log(openNotification);
+
   return (
     <Disclosure
       as="nav"
@@ -120,6 +119,10 @@ export default function Navbar() {
                 </MenuItem>
                 <MenuItem>
                   <Link
+                    onClick={() => {
+                      localStorage.removeItem("user");
+                      localStorage.removeItem("token");
+                    }}
                     to="/nckh-login"
                     className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
                   >

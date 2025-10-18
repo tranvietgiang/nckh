@@ -2,57 +2,59 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-// import axios from "../../../config/axios";
-
+import axios from "../../../config/axios";
+import RouterHome from "../../Features/Router/RouterHome";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user")) ?? null;
+  const token = localStorage.getItem("token") ?? null;
+
+  RouterHome(user, token);
 
   useEffect(() => {
     document.title = "Đăng nhập";
   }, []);
+
+  useEffect(() => {}, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // const res = await axios.post("/auth/check-login", {
-      //   username,
-      //   password,
-      // });
-
-      // if (res.data.state === 200) {
-      //   setLoading(false);
-      //   navigate("/nckh-home");
-      // } else {
-      //   setLoading(false);
-      //   alert("Sai tên đăng nhập hoặc mật khẩu!");
-      // }
-
-      setTimeout(() => {
+      const res = await axios.post("/auth/check-login", {
+        username,
+        password,
+      });
+      console.log(res.data.user);
+      if (res.data.user.role === "student") {
         navigate("/nckh-home");
-        setLoading(false);
-      }, 3000);
+      } else if (res.data.user.role === "teacher") {
+        navigate("/nckh-teacher");
+      } else if (res.data.user.role === "admin") {
+        navigate("/nckh-admin");
+      }
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      localStorage.setItem("token", JSON.stringify(res.data.token));
+
+      setLoading(false);
     } catch (error) {
       setLoading(false);
 
       if (error.response) {
-        // Nếu server trả lỗi (như 401)
-        if (error.response.status === 401) {
-          alert("Tài khoản hoặc mật khẩu không hợp lệ!");
-        } else {
-          console.error("Lỗi server:", error.response.data);
-          alert("Có lỗi xảy ra trên máy chủ!");
-        }
-      } else {
+        console.error("Lỗi server:", error.response.data);
+        alert("Có lỗi xảy ra trên máy chủ!");
+
         // Nếu không kết nối được tới server
-        console.error("Không thể kết nối server:", error);
-        alert("Không thể kết nối tới máy chủ!");
+        // console.error("Không thể kết nối server:", error);
+        // alert("Không thể kết nối tới máy chủ!");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -71,8 +73,8 @@ export default function Login() {
             placeholder="Tên đăng nhập"
             value={username}
             onChange={(e) => {
-              const value = e.target.value.replace(/[^0-9]/g, ""); // chỉ cho nhập số
-              setUsername(value);
+              // const value = e.target.value.replace(/[^0-9]/g, ""); // chỉ cho nhập số
+              setUsername(e.target.value);
             }}
             className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400"
             maxLength={30}
