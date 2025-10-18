@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionController;
+use App\Http\Controllers\ClassController;
 
 Route::post("/test", function () {
     return "test";
@@ -51,3 +52,7 @@ Route::get('/get-students', [StudentController::class, 'getStudent']);
 
 /**xóa sinh viên */
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
+
+Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
+Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
+
