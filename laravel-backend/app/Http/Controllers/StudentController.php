@@ -75,28 +75,42 @@ class StudentController extends Controller
         }
 
 
-        $dataProfile = User::select("users.*", "user_profiles.*", "classes.*")
-            ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-            ->join("classes", "users.user_id", "=", "classes.teacher_id")
-            ->where("users.user_id", $user_id)
-            ->where('users.role', $role)
-            ->get();
+        if ($role === "student") {
+            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*")
+                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
+                ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
+                ->where("users.user_id", $user_id)
+                ->where('users.role', $role)
+                ->first();
 
-        if (!$dataProfile) {
-            return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
+            if (!$dataProfile) {
+                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
+            }
+            return response()->json($dataProfile, 200);
+        } else if ($role === "teacher") {
+            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*")
+                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
+                ->join("classes", "users.user_id", "=", "classes.teacher_id")
+                ->where("users.user_id", $user_id)
+                ->where('users.role', $role)
+                ->get();
+
+            if (!$dataProfile) {
+                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
+            }
+
+            $Info = [
+                "fullname" => $dataProfile[0]->fullname,
+                "user_id" => $dataProfile[0]->user_id,
+                "email" => $dataProfile[0]->email,
+                "phone" => $dataProfile[0]->phone,
+                "birthdate" => $dataProfile[0]->birthdate,
+                "role" => $dataProfile[0]->role,
+                // "nganh" => $dataProfile[0]->nganh,
+                "classes" => $dataProfile->pluck('class_name')->unique()->values(),
+            ];
+            return response()->json($Info, 200);
+        } else if ($role === "admin") {
         }
-
-        $teacherInfo = [
-            "fullname" => $dataProfile[0]->fullname,
-            "user_id" => $dataProfile[0]->user_id,
-            "email" => $dataProfile[0]->email,
-            "phone" => $dataProfile[0]->phone,
-            "birthdate" => $dataProfile[0]->birthdate,
-            "role" => $dataProfile[0]->role,
-            // "nganh" => $dataProfile[0]->nganh,
-            "classes" => $dataProfile->pluck('class_name')->unique()->values(),
-        ];
-
-        return response()->json($teacherInfo, 200);
     }
 }

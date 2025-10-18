@@ -10,19 +10,22 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [getProfile, setProfile] = useState({});
+  const user = JSON.parse(localStorage.getItem("user")) ?? null;
+  const token = localStorage.getItem("token") ?? null;
   const navigate = useNavigate();
-  const role = "teacher";
-  const user_id = "gv001";
-  // const users = localStorage.getItem("users") ?? "";
-  // const getProfile = {
-  //   name: "Nguyen Van A",
-  //   studentId: "23211TT2984",
-  //   major: "Công nghệ Thông tin",
-  //   email: "nguyenvana@student.edu.vn",
-  //   phone: "0123 456 789",
-  //   class: "D21CQCN01-B",
-  //   status: "Đang học",
-  // };
+  useEffect(() => {
+    document.title = "Hồ sơ";
+  }, []);
+
+  useEffect(() => {
+    if (!user || !token) {
+      alert("Bạn chưa đăng nhập tài khoản!");
+      navigate("/nckh-login");
+    }
+  }, []);
+
+  const role = user?.role ?? null;
+  const user_id = user?.user_id ?? null;
 
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;
@@ -258,7 +261,11 @@ export default function ProfilePage() {
                   </button>
 
                   <button
-                    onClick={() => navigate("/nckh-login")}
+                    onClick={() => {
+                      navigate("/nckh-login");
+                      localStorage.removeItem("user");
+                      localStorage.removeItem("token");
+                    }}
                     className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
                   >
                     🚪 Đăng xuất
