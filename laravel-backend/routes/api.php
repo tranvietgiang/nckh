@@ -1,16 +1,13 @@
 <?php
 
-
 use App\Http\Controllers\AuthController;
-use Illuminate\Auth\Authenticatable;
-
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Controller;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionController;
+
 Route::post("/test", function () {
     return "test";
 });
@@ -32,9 +29,7 @@ Route::get('/get-class-teacher/{teacherId}', [NotificationController::class, 'ge
 /**Tạo thông báo gửi đến sinh viên */
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
 
-<<<<<<< HEAD
 Route::get('/get-profile', [StudentController::class, 'getProfile']);
-=======
 Route::get('/get-students', [StudentController::class, 'getStudent']);
 
 /**Lấy danh sách ở trong phần admin */
@@ -48,7 +43,6 @@ Route::get('/grades/{submission_id}', [GradeController::class, 'show']);
 /**Lấy thông tin sinh viên đã nộp */
 Route::get('/submissions', [SubmissionController::class, 'indes']);
 
->>>>>>> Feature-Scoring&Feedback-Teacher-nhhh
 
 /**Tạo thông báo gửi đến sinh viên */
 Route::get('/get-students', [StudentController::class, 'getStudent']);

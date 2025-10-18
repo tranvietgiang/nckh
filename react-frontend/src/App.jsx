@@ -5,7 +5,7 @@ import Header from "./Components/View/Header/Header";
 import Content from "./Components/View/Content/Content";
 import Footer from "./Components/View/Footer/Footer";
 import Admin from "./Components/PageOther/Admin/Admin";
-import ScoringFeedback from "./Components/PageOther/Teacher/ScoringFeedback"
+import ScoringFeedback from "./Components/PageOther/Teacher/ScoringFeedback";
 
 import ImportStudents from "./Components/Features/ImportListStudents/ImportStudents";
 import Login from "./Components/PageOther/Auth/Login";
@@ -30,7 +30,6 @@ function App() {
                 </>
               }
             />
-
             {/* Trang import danh sách sinh viên */}
             <Route
               path="/nckh-teacher-import"
@@ -42,18 +41,13 @@ function App() {
                 </>
               }
             />
-
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
-
             {/* Trang đăng profile */}
             <Route path="/nckh-profile" element={<ProfilePage />} />
-
             {/* Trang đăng profile */}
             <Route path="/nckh-admin" element={<Admin />} />
-
             {/* Trang giảng viên */}
-<<<<<<< HEAD
             <Route
               path="/nckh-teacher"
               element={
@@ -64,12 +58,12 @@ function App() {
                 </>
               }
             />
-=======
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
-             
             {/** Trang Chấm điểm và phản hồi */}
-            <Route path="/nckh-teacher-scoringfeedback" element={<ScoringFeedback />} />
->>>>>>> Feature-Scoring&Feedback-Teacher-nhhh
+            <Route
+              path="/nckh-teacher-scoringfeedback"
+              element={<ScoringFeedback />}
+            />
           </Routes>
         </div>
       </Router>
