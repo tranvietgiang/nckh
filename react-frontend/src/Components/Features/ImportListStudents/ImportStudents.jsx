@@ -42,11 +42,11 @@ function ImportStudents() {
         if (failed >= 1) {
           setStudentErrors(duplicates);
           localStorage.setItem(
-            `cache_student_import_error_${idTeacher}`,
+            `cache_student_import_error`,
             JSON.stringify(duplicates)
           );
         } else {
-          localStorage.removeItem(`cache_student_import_error_${idTeacher}`);
+          localStorage.removeItem(`cache_student_import_error`);
         }
       }
 
@@ -70,14 +70,14 @@ function ImportStudents() {
 
   useEffect(() => {
     const get_student_error = JSON.parse(
-      localStorage.getItem(`cache_student_import_error_${idTeacher}`)
+      localStorage.getItem(`cache_student_import_error`)
     );
 
     if (get_student_error?.length > 1) {
       setStateDeleteStudentError(false);
       setStudentErrors(get_student_error);
     } else {
-      localStorage.removeItem(`cache_student_import_error_${idTeacher}`);
+      localStorage.removeItem(`cache_student_import_error`);
       setStateDeleteStudentError(true);
     }
 
@@ -95,7 +95,7 @@ function ImportStudents() {
 
   const handleDeleteStudent = () => {
     if (!idTeacher) return;
-    localStorage.removeItem(`cache_student_import_error_${idTeacher}`);
+    localStorage.removeItem(`cache_student_import_error`);
     setStateDeleteStudentError(true);
     window.location.reload();
   };

@@ -18,6 +18,9 @@ Route::post("/test", function () {
 
 Route::get('/users', [AuthController::class, 'getUser']);
 
+/**X ác thực người dùng */
+Route::post('/auth/check-login', [AuthController::class, 'authRole']);
+
 /**Giảng viên import ds sinh viên vào db */
 Route::post('/students/import', [StudentController::class, 'import']);
 
