@@ -6,6 +6,7 @@ use Illuminate\Auth\Authenticatable;
 
 use App\Http\Controllers\StudentController;
 
+use App\Http\Controllers\ClassController;
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Controller;
@@ -37,3 +38,8 @@ Route::get('/get-students', [StudentController::class, 'getStudent']);
 
 /**xóa sinh viên */
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
+
+// danh sách các lớp theo id
+Route::get('/classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
+
+Route::get('/classes/students/{classId}', [ClassController::class, 'getStudentsByClass']);
