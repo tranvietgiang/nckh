@@ -3,7 +3,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import axios from "../../../config/axios";
-
+import RouterHome from "../../Features/Router/RouterHome";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
@@ -12,21 +12,14 @@ export default function Login() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user")) ?? null;
   const token = localStorage.getItem("token") ?? null;
+
+  RouterHome(user, token);
+
   useEffect(() => {
     document.title = "Đăng nhập";
   }, []);
 
-  useEffect(() => {
-    if (user && token) {
-      if (user?.role === "student") {
-        navigate("/nckh-home");
-      } else if (user?.role === "teacher") {
-        navigate("/nckh-teacher");
-      } else if (user?.role === "admin") {
-        navigate("/nckh-admin");
-      }
-    }
-  }, []);
+  useEffect(() => {}, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
