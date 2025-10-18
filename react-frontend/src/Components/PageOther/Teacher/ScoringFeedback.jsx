@@ -43,7 +43,7 @@ export default function ScoringFeedback() {
       fetchSubmissions();
     } catch (err) {
       console.error("Lỗi khi chấm điểm:", err);
-      alert("Không thể gửi phản hồi. Vui lòng thử lại.");
+      alert("Không thể gửi phản hồi. Vui lòng .");
     } finally {
       setLoading(false);
     }
