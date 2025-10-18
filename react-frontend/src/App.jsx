@@ -12,6 +12,7 @@ import Login from "./Components/PageOther/Auth/Login";
 import ProfilePage from "./Components/PageOther/Student/ProfilePage";
 import TeacherDashboard from "./Components/PageOther/Teacher/TeacherDashboard";
 import Navbar from "./Components/View/Header/Navbar";
+import ClassManager from "./Components/PageOther/Teacher/ClassManagement"
 function App() {
   return (
     <>
@@ -50,6 +51,9 @@ function App() {
 
             {/* Trang đăng profile */}
             <Route path="/nckh-admin" element={<Admin />} />
+            
+            {/* Trang đăng profile */}
+            <Route path="/nckh-class-manager" element={<ClassManager />} />
             
 
             {/* Trang giảng viên */}
