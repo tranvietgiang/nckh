@@ -53,7 +53,6 @@ function App() {
             <Route path="/nckh-admin" element={<Admin />} />
 
             {/* Trang giảng viên */}
-<<<<<<< HEAD
             <Route
               path="/nckh-teacher"
               element={
@@ -64,12 +63,10 @@ function App() {
                 </>
               }
             />
-=======
-            <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            {/* <Route path="/nckh-teacher" element={<TeacherDashboard />} /> */}
              
             {/** Trang Chấm điểm và phản hồi */}
             <Route path="/nckh-teacher-scoringfeedback" element={<ScoringFeedback />} />
->>>>>>> Feature-Scoring&Feedback-Teacher-nhhh
           </Routes>
         </div>
       </Router>

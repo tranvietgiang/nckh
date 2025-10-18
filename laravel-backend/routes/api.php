@@ -32,9 +32,9 @@ Route::get('/get-class-teacher/{teacherId}', [NotificationController::class, 'ge
 /**Tạo thông báo gửi đến sinh viên */
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
 
-<<<<<<< HEAD
+
 Route::get('/get-profile', [StudentController::class, 'getProfile']);
-=======
+
 Route::get('/get-students', [StudentController::class, 'getStudent']);
 
 /**Lấy danh sách ở trong phần admin */
@@ -47,8 +47,6 @@ Route::post('/grades', [GradeController::class, 'store']);
 Route::get('/grades/{submission_id}', [GradeController::class, 'show']);
 /**Lấy thông tin sinh viên đã nộp */
 Route::get('/submissions', [SubmissionController::class, 'indes']);
-
->>>>>>> Feature-Scoring&Feedback-Teacher-nhhh
 
 /**Tạo thông báo gửi đến sinh viên */
 Route::get('/get-students', [StudentController::class, 'getStudent']);
