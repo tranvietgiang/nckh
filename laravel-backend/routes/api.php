@@ -30,6 +30,9 @@ Route::get('/get-class-teacher/{teacherId}', [NotificationController::class, 'ge
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
 
 Route::get('/get-profile', [StudentController::class, 'getProfile']);
+
+Route::get('/get-profile', [StudentController::class, 'getProfile']);
+
 Route::get('/get-students', [StudentController::class, 'getStudent']);
 
 /**Lấy danh sách ở trong phần admin */
@@ -42,7 +45,6 @@ Route::post('/grades', [GradeController::class, 'store']);
 Route::get('/grades/{submission_id}', [GradeController::class, 'show']);
 /**Lấy thông tin sinh viên đã nộp */
 Route::get('/submissions', [SubmissionController::class, 'indes']);
-
 
 /**Tạo thông báo gửi đến sinh viên */
 Route::get('/get-students', [StudentController::class, 'getStudent']);

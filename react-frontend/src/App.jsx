@@ -58,8 +58,13 @@ function App() {
                 </>
               }
             />
-            <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+
             {/** Trang Chấm điểm và phản hồi */}
+            <Route
+              path="/nckh-teacher-scoringfeedback"
+              element={<ScoringFeedback />}
+            />
+
             <Route
               path="/nckh-teacher-scoringfeedback"
               element={<ScoringFeedback />}
