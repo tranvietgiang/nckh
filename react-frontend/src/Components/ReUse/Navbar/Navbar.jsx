@@ -10,7 +10,7 @@ import {
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import ModelNotifications from "../../Pages/Student/Features/ModelNotifications";
+import ModelNotifications from "../../Pages/Student/Features/ModalNotifications";
 import { getRole } from "../../Constants/INFO_USER";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
