@@ -1,29 +1,46 @@
+import { useEffect, useState } from "react";
+import axios from "../../../../config/axios";
+
 export default function ModelNotifications({ stateOpen, onClose }) {
-  const notifications = [
-    {
-      id: 1,
-      type: "THÔNG BÁO MỚI",
-      time: "10:30 • 14/12/2024",
-      title: "",
-      subject: "Lập trình Cơ bản",
-      teacher: "GV Nguyễn Văn A",
-      content: "",
-      isNew: true,
-      isRead: false,
-    },
-    {
-      id: 2,
-      type: "THÔNG BÁO CŨ",
-      time: "10:30 • 11/12/2024",
-      title: "thông báo lịch nộp bài điều chỉnh",
-      subject: "Lập trình Cơ bản",
-      teacher: "GV Nguyễn Văn A",
-      content:
-        "Lịch nộp bài Báo cáo Cuối kỳ đã được điều chỉnh: deadline mới 20/12/2024 (thay vì 15/12). Các em có thêm 5 ngày để hoàn thiện báo cáo. Yêu cầu format vẫn giữ nguyên.",
-      isNew: false,
-      isRead: true,
-    },
-  ];
+  const [notifications, setNotifications] = useState([]);
+
+  // const notifications = [
+  //   {
+  //     id: 1,
+  //     type: "THÔNG BÁO MỚI",
+  //     time: "10:30 • 14/12/2024",
+  //     title: "",
+  //     subject: "Lập trình Cơ bản",
+  //     teacher: "GV Nguyễn Văn A",
+  //     content: "",
+  //     isNew: true,
+  //     isRead: false,
+  //   },
+  //   {
+  //     id: 2,
+  //     type: "THÔNG BÁO CŨ",
+  //     time: "10:30 • 11/12/2024",
+  //     title: "thông báo lịch nộp bài điều chỉnh",
+  //     subject: "Lập trình Cơ bản",
+  //     teacher: "GV Nguyễn Văn A",
+  //     content:
+  //       "Lịch nộp bài Báo cáo Cuối kỳ đã được điều chỉnh: deadline mới 20/12/2024 (thay vì 15/12). Các em có thêm 5 ngày để hoàn thiện báo cáo. Yêu cầu format vẫn giữ nguyên.",
+  //     isNew: false,
+  //     isRead: true,
+  //   },
+  // ];
+
+  useEffect(() => {
+    axios
+      .get("/get-notify")
+      .then((res) => {
+        setNotifications(res.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        setNotifications([]);
+      });
+  }, []);
 
   const unreadCount = notifications.filter((noti) => !noti.isRead).length;
 
@@ -68,8 +85,8 @@ export default function ModelNotifications({ stateOpen, onClose }) {
 
         {/* Notifications List */}
         <div className="overflow-y-auto max-h-96">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => (
+          {notifications?.length > 0 ? (
+            notifications?.map((notification) => (
               <div
                 key={notification.id}
                 className={`p-6 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${

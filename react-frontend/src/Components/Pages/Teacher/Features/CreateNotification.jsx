@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import axios from "../../../config/axios";
-import { Loader2 } from "lucide-react";
+import axios from "../../../../config/axios";
+import { getUser } from "../../../Constants/INFO_USER";
 export default function CreateNotification({ stateOpen, onClose }) {
   const [getClass, setClass] = useState([]);
-  const idTeacher = "gv001";
+  const user = getUser();
+  const idTeacher = user?.user_id ?? null;
   const [loading, setLoading] = useState(false);
   const [loadingClass, setLoadingClass] = useState(false);
+
   const [formData, setFormData] = useState({
     sendTo: "",
     title: "",
@@ -124,14 +126,20 @@ export default function CreateNotification({ stateOpen, onClose }) {
 
   useEffect(() => {
     setLoadingClass(true);
+
+    const data = JSON.parse(localStorage.getItem("data_get_class_of_teacher"));
+    if (data) {
+      setClass(data);
+    }
     axios
-      .get(`/get-class-teacher/${idTeacher}`)
+      .get(`/get-class-teacher`)
       .then((res) => {
-        setTimeout(() => {
-          setClass(res.data);
-          setLoadingClass(false);
-        }, 4000);
-        console.log(res.data);
+        setClass(res.data);
+        setLoadingClass(false);
+        localStorage.setItem(
+          "data_get_class_of_teacher",
+          JSON.stringify(res.data)
+        );
       })
       .catch((error) => {
         console.log(error);

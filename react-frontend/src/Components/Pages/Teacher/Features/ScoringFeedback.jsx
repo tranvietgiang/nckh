@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "../../../config/axios";
+import axios from "../../../../config/axios";
 import { Eye, Send, RefreshCw } from "lucide-react";
 
 export default function ScoringFeedback() {

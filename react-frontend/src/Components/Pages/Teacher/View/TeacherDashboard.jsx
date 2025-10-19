@@ -1,9 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import CreateNotification from "./CreateNotification";
-
+import CreateNotification from "../Features/CreateNotification";
+import RouterHome from "../../../ReUse/Router/RouterHome";
+import { getAuth } from "../../../Constants/INFO_USER";
+import Navbar from "../../../ReUse/Navbar/Navbar";
+import Footer from "../../Student/Home/Footer";
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
+  const { user, token } = getAuth();
+  RouterHome(user, token);
+
+  useEffect(() => {
+    document.title = "Trang teacher";
+  }, []);
 
   // Hàm xử lý click button đơn giản
   const handleButtonClick = (buttonName) => {
@@ -36,22 +45,18 @@ export default function TeacherDashboard() {
   const handleImportClass = () => {
     console.log("Xử lý Import Lớp...");
     navigate("/nckh-teacher-import");
-    // Thêm logic import lớp ở đây
   };
 
   const handleManageClass = () => {
-    console.log("Xử lý Quản Lý Lớp...");
-    // Thêm logic quản lý lớp ở đây
+    navigate("/nckh-class-manager");
   };
 
   const handleCreateReport = () => {
     console.log("Xử lý Tạo Báo Cáo...");
-    // Thêm logic tạo báo cáo ở đây
   };
 
   const handleGrading = () => {
     console.log("Xử lý Chấm Điểm...");
-    // Thêm logic chấm điểm ở đây
   };
 
   const handleCreateNotification = () => {
@@ -61,6 +66,7 @@ export default function TeacherDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
+      <Navbar />
       {/* Header */}
       <div className="max-w-5xl mx-auto m-[10px] bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
         <h1 className="text-3xl font-bold text-center">📊 THỐNG KÊ CÁ NHÂN</h1>
@@ -166,6 +172,7 @@ export default function TeacherDashboard() {
         stateOpen={openNotification}
         onClose={setOpenNotification}
       />
+      <Footer />
     </div>
   );
 }

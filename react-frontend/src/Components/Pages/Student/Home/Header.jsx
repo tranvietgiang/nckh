@@ -1,7 +1,8 @@
 import React from "react";
-import Navbar from "./Navbar";
-
+import Navbar from "../../../ReUse/Navbar/Navbar";
+import { getUser } from "../../../Constants/INFO_USER";
 export default function Header() {
+  const user = getUser();
   return (
     <header className="bg-gray-50 min-h-screen">
       <Navbar />
@@ -21,7 +22,7 @@ export default function Header() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
               <div className="text-center sm:text-left">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center">
-                  👋 Chào Nguyen Van A - 23211TT2984
+                  👋 Chào {user?.fullname} - {user?.user_id}
                 </h2>
                 <p className="text-gray-600 mt-1 text-base flex items-center">
                   🎓 CNTT

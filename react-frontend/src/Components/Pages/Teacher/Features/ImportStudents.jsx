@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import axios from "../../../config/axios";
-
+import axios from "../../../../config/axios";
+import Navbar from "../../../ReUse/Navbar/Navbar";
+import Footer from "../../Student/Home/Footer";
+import RouterBack from "../../../ReUse/Back/RouterBack";
 function ImportStudents() {
   const [file, setFile] = useState(null);
   const [students, setStudents] = useState([]);
@@ -102,6 +104,7 @@ function ImportStudents() {
 
   return (
     <>
+      <Navbar />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -113,12 +116,7 @@ function ImportStudents() {
               Tải lên file Excel để import danh sách sinh viên vào hệ thống
             </p>
           </div>
-          <button
-            onClick={() => navigate(-1)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 mb-3 rounded-lg transition-colors duration-200 flex items-center space-x-2"
-          >
-            Quay lại
-          </button>
+          <RouterBack navigate={navigate} />
           <div className="bg-white rounded-xl shadow-md p-6 mb-8">
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
               <div className="flex-1">
@@ -285,6 +283,7 @@ function ImportStudents() {
           </div>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

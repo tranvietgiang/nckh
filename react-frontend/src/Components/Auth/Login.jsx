@@ -1,25 +1,33 @@
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-import axios from "../../../config/axios";
-import RouterHome from "../../Features/Router/RouterHome";
+import axios from "../../config/axios";
+import RouterHome from "../ReUse/Router/RouterHome";
+import { getAuth } from "../Constants/INFO_USER";
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false); // ✅ checkbox ghi nhớ
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem("user")) ?? null;
-  const token = localStorage.getItem("token") ?? null;
 
+  const navigate = useNavigate();
+  const { user, token } = getAuth();
+  // Nếu đã đăng nhập thì chuyển hướng
   RouterHome(user, token);
 
+  // 🟢 Khi load trang: tự động điền lại nếu trước đó có lưu thông tin
   useEffect(() => {
     document.title = "Đăng nhập";
-  }, []);
 
-  useEffect(() => {}, []);
+    const savedUser = localStorage.getItem("savedUser");
+    const savedPass = localStorage.getItem("savedPass");
+    if (savedUser && savedPass) {
+      setUsername(savedUser);
+      setPassword(savedPass);
+      setRemember(true);
+    }
+  }, []);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -30,31 +38,35 @@ export default function Login() {
         username,
         password,
       });
-      console.log(res.data.user);
-      if (res.data.user.role === "student") {
-        navigate("/nckh-home");
-      } else if (res.data.user.role === "teacher") {
-        navigate("/nckh-teacher");
-      } else if (res.data.user.role === "admin") {
-        navigate("/nckh-admin");
-      }
+
+      // ✅ Nếu đăng nhập thành công
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      localStorage.setItem("token", JSON.stringify(res.data.token));
+      localStorage.setItem("token", res.data.token);
+
+      // ✅ Nếu người dùng chọn "Ghi nhớ"
+      if (remember) {
+        localStorage.setItem("savedUser", username);
+        localStorage.setItem("savedPass", password); // ⚠️ Có thể mã hóa nhẹ bằng btoa() nếu cần
+      } else {
+        localStorage.removeItem("savedUser");
+        localStorage.removeItem("savedPass");
+      }
+
+      // ✅ Điều hướng
+      const role = res.data.user.role;
+      if (role === "student") navigate("/nckh-home");
+      else if (role === "teacher") navigate("/nckh-teacher");
+      else if (role === "admin") navigate("/nckh-admin");
 
       setLoading(false);
     } catch (error) {
       setLoading(false);
-
       if (error.response) {
         console.error("Lỗi server:", error.response.data);
-        alert("Có lỗi xảy ra trên máy chủ!");
-
-        // Nếu không kết nối được tới server
-        // console.error("Không thể kết nối server:", error);
-        // alert("Không thể kết nối tới máy chủ!");
+        alert("Sai tài khoản hoặc mật khẩu!");
+      } else {
+        alert("Không thể kết nối tới máy chủ!");
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -72,17 +84,14 @@ export default function Login() {
             type="text"
             placeholder="Tên đăng nhập"
             value={username}
-            onChange={(e) => {
-              // const value = e.target.value.replace(/[^0-9]/g, ""); // chỉ cho nhập số
-              setUsername(e.target.value);
-            }}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full border rounded-lg px-4 py-3 outline-none focus:ring-2 focus:ring-blue-400"
             maxLength={30}
           />
         </div>
 
         {/* Mật khẩu */}
-        <div className="relative mb-6">
+        <div className="relative mb-3">
           <input
             type={showPassword ? "text" : "password"}
             placeholder="Mật khẩu"
@@ -97,6 +106,20 @@ export default function Login() {
           >
             {showPassword ? <Eye size={22} /> : <EyeOff size={22} />}
           </button>
+        </div>
+
+        {/* Checkbox ghi nhớ đăng nhập */}
+        <div className="flex items-center mb-6">
+          <input
+            type="checkbox"
+            id="remember"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+            className="mr-2"
+          />
+          <label htmlFor="remember" className="text-gray-600">
+            Ghi nhớ đăng nhập
+          </label>
         </div>
 
         {/* Nút đăng nhập */}
