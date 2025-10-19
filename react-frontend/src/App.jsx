@@ -1,72 +1,43 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
 
-import Header from "./Components/View/Header/Header";
-import Content from "./Components/View/Content/Content";
-import Footer from "./Components/View/Footer/Footer";
-import Admin from "./Components/PageOther/Admin/Admin";
+import Login from "./Components/Auth/Login";
+import TeacherDashboard from "./Components/Pages/Teacher/View/TeacherDashboard";
+import Admin from "./Components/Pages/Admin/View/Admin";
 
-import ImportStudents from "./Components/Features/ImportListStudents/ImportStudents";
-import Login from "./Components/PageOther/Auth/Login";
+/**page Feature */
+import ImportStudents from "./Components/Pages/Teacher/Features/ImportStudents";
+import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
+import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
+import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
+import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 
-import ProfilePage from "./Components/PageOther/Student/ProfilePage";
-import TeacherDashboard from "./Components/PageOther/Teacher/TeacherDashboard";
-import Navbar from "./Components/View/Header/Navbar";
-import ClassManager from "./Components/PageOther/Teacher/ClassManagement"
 function App() {
   return (
     <>
       <Router>
         <div className="bg-gray-50">
           <Routes>
-            {/* Trang chủ */}
-            <Route
-              path="/nckh-home"
-              element={
-                <>
-                  <Header />
-                  <Content />
-                  <Footer />
-                </>
-              }
-            />
-
+            /*===============================================BEGIN==========================================
+            */
+            {/* Trang chủ sinh viên */}
+            <Route path="/nckh-home" element={<StudentDashboard />} />
             {/* Trang import danh sách sinh viên */}
-            <Route
-              path="/nckh-teacher-import"
-              element={
-                <>
-                  <Navbar />
-                  <ImportStudents />
-                  <Footer />
-                </>
-              }
-            />
-
+            <Route path="/nckh-teacher-import" element={<ImportStudents />} />
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
-
-            {/* Trang đăng profile */}
+            {/* Trang profile */}
             <Route path="/nckh-profile" element={<ProfilePage />} />
-
-            {/* Trang đăng profile */}
+            {/* Trang admin */}
             <Route path="/nckh-admin" element={<Admin />} />
-            
-            {/* Trang đăng profile */}
+            {/* Trang quản lý lớp học */}
             <Route path="/nckh-class-manager" element={<ClassManager />} />
-            
-
             {/* Trang giảng viên */}
-            <Route
-              path="/nckh-teacher"
-              element={
-                <>
-                  <Navbar />
-                  <TeacherDashboard />
-                  <Footer />
-                </>
-              }
-            />
+            <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            {/* Trang không tồn tại */}
+            <Route path="/nckh-404" element={<NotFoundPage />} />
+            /*===============================================END============================================
+            */
           </Routes>
         </div>
       </Router>

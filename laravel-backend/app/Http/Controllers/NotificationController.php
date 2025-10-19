@@ -8,26 +8,14 @@ use App\Models\Notification;
 use App\Models\User;
 use App\Models\user_profile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use app\Http\Controllers\ClassController;
 
 class NotificationController extends Controller
 {
     //
-    public function getClassByTeacher($idTeacher)
-    {
-        $getClasses = Classe::select('classes.class_id as class_id_teacher', 'classes.class_name', 'user_profiles.*',)
-            ->join('user_profiles', 'user_profiles.user_id', '=', 'classes.teacher_id')
-            ->where('classes.teacher_id', $idTeacher)
-            ->get();
-
-        if ($getClasses->count() > 0) {
-            return response()->json($getClasses);
-        }
-
-        return response()->json(['message' => 'Không tìm thấy lớp'], 404);
-    }
-
     public function createNotification(Request $request)
     {
         $data = $request->all();
@@ -113,5 +101,51 @@ class NotificationController extends Controller
                 "message_success" => "Gửi thông báo thành công đến lớp '$check_class->class_name'"
             ], 200);
         }
+    }
+
+    public function getClassOfTeacher()
+    {
+        $useId = Auth::id() ?? null;
+
+        $getClasses = Classe::select('classes.class_id as class_id_teacher', 'classes.class_name', 'user_profiles.*',)
+            ->join('user_profiles', 'user_profiles.user_id', '=', 'classes.teacher_id')
+            ->where('classes.teacher_id', $useId)
+            ->get();
+
+        if ($getClasses->count() > 0) {
+            return response()->json($getClasses);
+        }
+
+        return response()->json(['message' => 'Không tìm thấy lớp'], 404);
+    }
+
+
+    public function getNotify()
+    {
+        $useId = Auth::id() ?? null;
+        if (!$useId) {
+            return response()->json(["message_error" => "Người dùng chưa đăng nhâp!"], 401);
+        }
+
+        $dataNotify = User::select(
+            "users.user_id",
+            "users.role",
+            "classes.class_id",
+            "user_profiles.user_id",
+            "user_profiles.class_id",
+            "notifications.*"
+        )
+            ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
+            ->join("classes", "classes.class_id", "=", "user_profiles.class_id")
+            ->join("notifications", "classes.class_id", "=", "notifications.class_id")
+            ->where("users.user_id", $useId)
+            ->where("users.role", "student")
+            ->orderBy("notifications.created_at", "desc")->get();
+
+        if ($dataNotify->count() > 0) {
+            return response()->json($dataNotify);
+        }
+
+        return response()->json(["message_error" => "Lỗi serve, vui lòng tải lại trang"], 500);
     }
 }

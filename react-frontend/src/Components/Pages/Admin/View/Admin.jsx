@@ -16,7 +16,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import axios from "../../../config/axios";
+import axios from "../../../../config/axios";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 

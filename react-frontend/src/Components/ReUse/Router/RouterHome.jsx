@@ -13,6 +13,8 @@ function LoginPage(user, token) {
       } else if (user?.role === "admin") {
         navigate("/nckh-admin");
       }
+    } else {
+      navigate("/nckh-login");
     }
   }, []);
 }

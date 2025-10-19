@@ -8,20 +8,36 @@ import {
   MenuItems,
 } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import ModelNotifications from "../../PageOther/Student/ModelNotifications";
-const navigation = [
-  { name: "Home", href: "nckh-home", current: true },
-  { name: "Team", href: "#", current: false },
-];
-
+import ModelNotifications from "../../Pages/Student/Features/ModelNotifications";
+import { getRole } from "../../Constants/INFO_USER";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
 export default function Navbar() {
+  const [role, setRole] = useState(null);
+  useEffect(() => {
+    const roleNow = getRole();
+    setRole(roleNow);
+  }, []);
+
+  const navigation = [
+    {
+      name: "Trang chủ",
+      href:
+        role === "student"
+          ? "/nckh-home"
+          : role === "teacher"
+          ? "/nckh-teacher"
+          : role === "admin"
+          ? "/nckh-admin"
+          : "/nckh-404",
+    },
+    { name: "Team", href: "#", current: false },
+  ];
+
   const [openNotification, setOpenNotification] = useState(false);
-  const idTeacher = "gv001";
 
   return (
     <Disclosure
@@ -74,19 +90,19 @@ export default function Navbar() {
             </div>
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-            <button
-              onClick={() => setOpenNotification(true)}
-              type="button"
-              className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
-            >
-              <span className="absolute -inset-1.5" />
-              <span className="sr-only">Xem Thông báo</span>
-              {idTeacher === "gv001" ? (
-                ""
-              ) : (
+            {role === "student" ? (
+              <button
+                onClick={() => setOpenNotification(true)}
+                type="button"
+                className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
+              >
+                <span className="absolute -inset-1.5" />
+                <span className="sr-only">Xem Thông báo</span>
                 <BellIcon aria-hidden="true" className="size-6" />
-              )}
-            </button>
+              </button>
+            ) : (
+              ""
+            )}
 
             {/* Profile dropdown */}
             <Menu as="div" className="relative ml-3">

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import Navbar from "../../View/Header/Navbar";
+import Navbar from "../../../ReUse/Navbar/Navbar";
 import { Link, useNavigate } from "react-router-dom";
-import Footer from "../../View/Footer/Footer";
-import axios from "../../../config/axios";
+import Footer from "../Home/Footer";
+import axios from "../../../../config/axios";
 
 export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");

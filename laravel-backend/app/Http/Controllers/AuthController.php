@@ -10,27 +10,6 @@ use function Laravel\Prompts\password;
 
 class AuthController extends Controller
 {
-    //
-    public function getUser()
-    {
-
-        $getUser = User::all();
-        return response()->json($getUser);
-    }
-    public function destroy($user_id)
-    {
-        $user = User::find($user_id);
-
-        if (!$user) {
-            return response()->json(['message' => 'Người dùng không tồn tại'], 404);
-        }
-
-        $user->delete();
-
-        return response()->json(['message' => 'Xóa thành công']);
-    }
-
-
     public function authRole(Request $request)
     {
         $username = $request->input('username') ?? null;
@@ -48,9 +27,14 @@ class AuthController extends Controller
 
         // Tạo token (sanctum / personal token)
         $token = $user->createToken('api-token')->plainTextToken;
+        // get info
+        $userProfile = User::select("users.*", "user_profiles.*")
+            ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
+            ->where('users.user_id', $username)->first();
+
 
         return response()->json([
-            'user' => $user,
+            'user' => $userProfile,
             'token' => $token
         ]);
     }
