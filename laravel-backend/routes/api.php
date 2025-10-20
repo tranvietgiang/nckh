@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\GoogleOAuthController;
+use App\Http\Controllers\SimpleDriveController;
+use Illuminate\Support\Facades\Request;
 
 Route::post("/test", function () {
     return "test";
@@ -59,3 +63,8 @@ Route::middleware('auth:sanctum')->post('/classes/inerts-class-new', [ClassContr
 
 /**lấy ra lỗi sau khi import ds sinh viên */
 Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);
+
+
+Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
+Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
+Route::middleware('auth:sanctum')->post('/drive-upload', [ReportController::class, 'updateFile']);

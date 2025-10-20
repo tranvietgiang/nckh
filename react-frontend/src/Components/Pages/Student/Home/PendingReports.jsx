@@ -1,63 +1,118 @@
-import React from "react";
-
-const PendingReports = () => {
+import React, { useState } from "react";
+import axios from "../../../../config/axios";
+import ReportSubmissionModal from "../Features/ReportSubmissionPage";
+import { getAuth } from "../../../Constants/INFO_USER";
+export default function PendingReports() {
+  const { user, token } = getAuth();
+  console.log(user?.email);
   const reports = [
     {
       title: "Báo cáo cuối kỳ: Hệ thống nộp đồ án trực tuyến",
       mon: "Chuyên đề web 1",
       hanNop: "15/12/2024 (3 ngày nữa)",
-      yeuCau: "PDF",
-      trangThai: "✅ Chưa nộp",
-      nam: "2025",
-    },
-    {
-      title: "Báo cáo cuối kỳ:?",
-      mon: "CMS",
-      hanNop: "11/12/2024 (3 ngày nữa)",
-      yeuCau: "PDF",
+      yeuCau: "PDF / DOCX / ZIP",
       trangThai: "✅ Chưa nộp",
       nam: "2025",
     },
   ];
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [link, setLink] = useState("");
 
+  const handleSubmit = async (file) => {
+    if (!file) return alert("Vui lòng chọn file!");
+
+    setUploading(true);
+    setMessage("");
+    setLink("");
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("email", user?.email); // email thật
+
+    try {
+      const res = await axios.post("/drive-upload", formData);
+      setMessage(res.data.message);
+      setLink(res.data.drive_url);
+    } catch (err) {
+      console.error(err);
+      setMessage("❌ Upload thất bại!");
+    } finally {
+      setUploading(false);
+    }
+  };
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
-      <h1 className="text-3xl font-bold text-center mb-4">
-        BÁO CHƯA HOÀN THÀNH (2)
+      <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
+        DANH SÁCH BÁO CÁO CHƯA NỘP
       </h1>
 
       {reports.map((report, index) => (
-        <div key={index} className="mb-6 last:mb-0">
-          <div className="border border-gray-300 rounded-lg p-4">
-            <h2 className="font-semibold mb-2">{report.title}</h2>
+        <div key={index} className="mb-6">
+          <div className="border border-gray-300 rounded-lg p-4 bg-white hover:shadow-md transition">
+            <h2 className="font-semibold text-lg mb-2 text-gray-800">
+              {report.title}
+            </h2>
 
-            <div className="space-y-1 text-sm">
-              <div>
+            <div className="space-y-1 text-sm text-gray-600">
+              <p>
                 <strong>Môn:</strong> {report.mon}
-              </div>
-              <div>
+              </p>
+              <p>
                 <strong>Hạn nộp:</strong> {report.hanNop}
-              </div>
-              <div>
+              </p>
+              <p>
                 <strong>Yêu cầu:</strong> {report.yeuCau}
-              </div>
-              <div>
-                <strong>Trạng thái:</strong> {report.trangThai}
-              </div>
-              <div>
-                <strong>năm:</strong> {report.nam}
-              </div>
+              </p>
+              <p>
+                <strong>Trạng thái:</strong>{" "}
+                <span className="text-orange-500">{report.trangThai}</span>
+              </p>
+              <p>
+                <strong>Năm:</strong> {report.nam}
+              </p>
             </div>
 
-            <button className="w-full mt-3 bg-red-600 text-white py-2 px-4 rounded-lg flex items-center justify-center">
-              <span className="mr-2">🔴</span>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center"
+            >
+              <span className="mr-2">📤</span>
               Nộp báo cáo
             </button>
           </div>
         </div>
       ))}
+
+      {/* Modal Nộp Báo Cáo */}
+      <ReportSubmissionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleSubmit}
+      />
+
+      {/* Trạng thái Upload */}
+      {uploading && (
+        <p className="mt-4 text-blue-600 font-medium text-center">
+          ⏳ Đang upload lên Google Drive...
+        </p>
+      )}
+      {message && (
+        <div className="mt-4 text-center">
+          <p className="text-gray-700">{message}</p>
+          {link && (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline"
+            >
+              🔗 Xem file trên Google Drive
+            </a>
+          )}
+        </div>
+      )}
     </div>
   );
-};
-
-export default PendingReports;
+}
