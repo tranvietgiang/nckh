@@ -160,6 +160,7 @@ export default function ClassManagement() {
                         <th className="px-4 py-2 border">Họ và Tên</th>
                         <th className="px-4 py-2 border">Email</th>
                         <th className="px-4 py-2 border">Lớp</th>
+                        <th className="px-4 py-2 border">Trạng thái</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -175,6 +176,20 @@ export default function ClassManagement() {
                             </td>
                             <td className="px-4 py-2 border text-center">
                               {st.class_name}
+                            </td>
+                            <td className="px-4 py-2 border text-center">
+                              {st.status === "Đã nộp" && (
+                                <span className="text-blue-600 font-semibold">Đã nộp</span>
+                              )}
+                              {st.status === "Đã chấm" && (
+                                <span className="text-green-600 font-semibold">Đã chấm</span>
+                              )}
+                              {st.status === "Bị từ chối" && (
+                                <span className="text-red-600 font-semibold">Bị từ chối</span>
+                              )}
+                              {st.status === "Chưa nộp" && (
+                                <span className="text-gray-500 font-semibold">Chưa nộp</span>
+                              )}
                             </td>
                           </tr>
                         ))
