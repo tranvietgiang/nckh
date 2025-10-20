@@ -1,36 +1,13 @@
 import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
-
+import { getRole } from "../../../Constants/INFO_USER";
 export default function ModelNotifications({ stateOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
-
-  // const notifications = [
-  //   {
-  //     id: 1,
-  //     type: "THÔNG BÁO MỚI",
-  //     time: "10:30 • 14/12/2024",
-  //     title: "",
-  //     subject: "Lập trình Cơ bản",
-  //     teacher: "GV Nguyễn Văn A",
-  //     content: "",
-  //     isNew: true,
-  //     isRead: false,
-  //   },
-  //   {
-  //     id: 2,
-  //     type: "THÔNG BÁO CŨ",
-  //     time: "10:30 • 11/12/2024",
-  //     title: "thông báo lịch nộp bài điều chỉnh",
-  //     subject: "Lập trình Cơ bản",
-  //     teacher: "GV Nguyễn Văn A",
-  //     content:
-  //       "Lịch nộp bài Báo cáo Cuối kỳ đã được điều chỉnh: deadline mới 20/12/2024 (thay vì 15/12). Các em có thêm 5 ngày để hoàn thiện báo cáo. Yêu cầu format vẫn giữ nguyên.",
-  //     isNew: false,
-  //     isRead: true,
-  //   },
-  // ];
+  const role = getRole();
 
   useEffect(() => {
+    if (role !== "student") return;
+
     axios
       .get("/get-notify")
       .then((res) => {

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-function LoginPage(user, token) {
+function RouterHome(user, token) {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,4 +19,4 @@ function LoginPage(user, token) {
   }, []);
 }
 
-export default LoginPage;
+export default RouterHome;

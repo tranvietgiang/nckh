@@ -3,10 +3,10 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import { getUser } from "../../../Constants/INFO_USER";
 export default function Header() {
   const user = getUser();
+
   return (
     <header className="bg-gray-50 min-h-screen">
       <Navbar />
-
       {/* Main Content */}
       <div className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto bg-white rounded-2xl shadow-lg overflow-hidden">

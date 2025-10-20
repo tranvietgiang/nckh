@@ -20,7 +20,7 @@ class UserSeeder extends Seeder
         User::create([
             'user_id' => 'gv001',
             'email' => 'gv001@tdc.edu.vn',
-            'password' => Hash::make('teacher123'),
+            'password' => Hash::make('gv001'),
             'role' => 'teacher',
         ]);
     }

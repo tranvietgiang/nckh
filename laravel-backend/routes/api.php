@@ -13,15 +13,14 @@ Route::post("/test", function () {
     return "test";
 });
 
-
 /**X ác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
 
 /**Giảng viên import ds sinh viên vào db */
-Route::post('/students/import', [StudentController::class, 'import']);
+Route::middleware('auth:sanctum')->post('/students/import', [StudentController::class, 'import']);
 
 /**lấy ra dữ liệu của sinh viên theo lớp */
-Route::get('/get-students', [StudentController::class, 'getStudent']);
+Route::middleware('auth:sanctum')->get('/get-students/{selectedClass}', [StudentController::class, 'getStudent']);
 
 /**lấy ra dữ liệu lớp giảng viên đang dạy */
 Route::middleware('auth:sanctum')->get('/get-class-teacher', [NotificationController::class, 'getClassOfTeacher']);
@@ -54,3 +53,9 @@ Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudents
 
 /*lấy ra thông báo mà giảng viển gửi*/
 Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify']);
+
+/**Tạo lớp học mới */
+Route::middleware('auth:sanctum')->post('/classes/inerts-class-new', [ClassController::class, 'inertsClassNew']);
+
+/**lấy ra lỗi sau khi import ds sinh viên */
+Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);

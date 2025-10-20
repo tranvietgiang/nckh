@@ -11,7 +11,7 @@ class ClassSeeder extends Seeder
     public function run(): void
     {
         Classe::create([
-            'class_name' => 'Chuyên đề web 2',
+            'class_name' => 'Chuyên đề web 1',
             'class_code' => '20',
             'teacher_id' => 'gv001',
             'semester' => '1',

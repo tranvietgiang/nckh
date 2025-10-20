@@ -4,6 +4,8 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { useNavigate } from "react-router-dom";
+import { getAuth } from "../../../Constants/INFO_USER";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 export default function ClassManagement() {
   const [selectedClass, setSelectedClass] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
@@ -13,8 +15,11 @@ export default function ClassManagement() {
   const [loading, setLoading] = useState(true);
   const [studentLoading, setStudentLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, token } = getAuth();
   // 🔑 Giảng viên đang đăng nhập
-  const teacherId = "gv001";
+  const teacherId = user?.user_id ?? null;
+
+  IsLogin(user, token);
 
   // 🧠 Lấy danh sách lớp mà giảng viên phụ trách
   useEffect(() => {

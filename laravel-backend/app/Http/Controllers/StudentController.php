@@ -3,38 +3,70 @@
 namespace App\Http\Controllers;
 
 use App\Imports\StudentsImport;
+use App\Models\Classe;
+use App\Models\ImportError;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
     //
     public function import(Request $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls,csv'
+        $validated = $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'class_id' => [
+                'required',
+                'integer',
+                Rule::exists('classes', 'class_id')->where(function ($q) {
+                    $q->where('teacher_id', Auth::id());
+                }),
+            ],
         ]);
 
-        $import = new StudentsImport();
-        Excel::import($import, $request->file('file'));
+        $classId   = (int) $validated['class_id'];
+        $teacherId = Auth::id();
 
-        // Tổng sinh viên sau khi import
-        $totalStudent = $this->fetchStudentsData()->count();
+        // Tạo instance để lấy thống kê sau import
+        $import = new StudentsImport(classId: $classId, teacherId: $teacherId);
+
+        // Chỉ import 1 lần
+        Excel::import($import, $validated['file']);
+
+        $list_import_error = ImportError::where("class_id", $classId)
+            ->where("teacher_id", $teacherId)->get();
+
+        if ($list_import_error->count() > 0) {
+            return response()->json([
+                'message' => 'Import hoàn tất!',
+                'total_student' => $import->totalStudent,
+                'success' => $import->success ?? 0,
+                'failed'  => $import->failed ?? 0,
+                'list_import_error' => $list_import_error,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Import hoàn tất!',
-            'total_student' => $totalStudent,
+            'total_student' => $import->totalStudent,
             'success' => $import->success ?? 0,
             'failed'  => $import->failed ?? 0,
-            'duplicates' => $import->duplicates ?? [],
         ]);
     }
 
 
-    public function fetchStudentsData()
+
+    public function getStudent($selectedClass)
     {
-        return User::select(
+        $userId = Auth::id();
+        if (!Auth::check()) {
+            return response()->json(["message_error" => "Vui lòng đăng nhâp"], 401);
+        }
+
+        $students = User::select(
             'users.*',
             'user_profiles.*',
             'classes.*'
@@ -42,19 +74,18 @@ class StudentController extends Controller
             ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
             ->where('users.role', 'student')
+            ->where("user_profiles.class_id", $selectedClass)
+            ->where("classes.teacher_id", $userId)
             ->get();
-    }
 
-    public function getStudent()
-    {
-        $students = $this->fetchStudentsData();
-
-        if ($students->count() >= 1) {
+        if ($students->count() > 0) {
             return response()->json([
                 "list_student" => $students,
                 "total_student" => $students->count(),
-            ]);
+            ], 200);
         }
+
+        return response()->json(["message_error" => "Lỗi phía serve"], 500);
     }
 
 
@@ -111,6 +142,25 @@ class StudentController extends Controller
             ];
             return response()->json($Info, 200);
         } else if ($role === "admin") {
+        }
+    }
+
+    public function getStudentErrors($selectedClass)
+    {
+        if (!Auth::check()) {
+            return response()->json(["message_error" => "Vui lòng đăng nhập!"], 401);
+        }
+
+        $useId = Auth::id() ?? null;
+
+        if ($useId == null) {
+            return response()->json(["message_error" => "Dữ liệu bị lỗi, vui lòng tải lại trang!"], 402);
+        }
+        $list_import_error = ImportError::where("class_id", $selectedClass)
+            ->where("teacher_id", $useId)->get();
+
+        if ($list_import_error->count() > 0) {
+            return response()->json($list_import_error, 200);
         }
     }
 }

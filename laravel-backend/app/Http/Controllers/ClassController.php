@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Classe;
 use App\Models\user_profile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ClassController extends Controller
 {
@@ -40,5 +41,58 @@ class ClassController extends Controller
             ->get();
 
         return response()->json($students);
+    }
+
+    public function inertsClassNew(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(["message_error" => "Vui lòng đăng nhập tài khoản!"], 401);
+        }
+
+        $data = $request->all() ?? [];
+        $userId = Auth::id() ?? null;
+
+        if (!is_array($data)) {
+            response()->json([
+                "message_error" => "Lỗi dữ liệu vui lòng tải lại trang!"
+            ], 402);
+        }
+
+        $check = Classe::where("class_name", $data["class_name"])
+            ->where("teacher_id", $userId)->exists();
+
+
+        if ($check) {
+            return response()->json(["message_error" => "Lớp này đã tồn tai!"], 402);
+        }
+
+        $class = Classe::create([
+            "class_name" => $data["class_name"],
+            "class_code" => $data["class_code"],
+            "teacher_id" => $userId,
+            "semester" => $data["semester"],
+            "academic_year" => $data["academic_year"],
+        ]);
+
+        if ($class) {
+            return response()->json(
+                [
+                    "success" => true,
+                    "data_classes" => $class
+                ],
+                200
+            );
+        } else {
+            return response()->json(
+                [
+                    "message_error" => "Tạo lớp mới không thành công!",
+                ],
+                402
+            );
+        }
+
+        return response()->json([
+            "message_error" => "Lỗi server vui lòng tải lại trang!"
+        ], 500);
     }
 }
