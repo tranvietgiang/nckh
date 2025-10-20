@@ -15,7 +15,7 @@ class ImportError extends Model
 
     protected $fillable = [
         'user_id',
-        'name',
+        'fullname',
         'email',
         'reason',
         'class_id',

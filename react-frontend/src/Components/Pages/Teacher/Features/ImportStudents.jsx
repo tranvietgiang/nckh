@@ -60,8 +60,6 @@ function ImportStudents() {
 
       const { success, failed, total_student, list_import_error } = res.data;
 
-      console.log(res.data);
-
       if (failed > 0) {
         setStudentErrors(list_import_error);
         setSafeJSON(
@@ -86,16 +84,7 @@ function ImportStudents() {
     }
   };
 
-  useEffect(() => {
-    const get_student_error = getSafeJSON(
-      `cache_student_import_error_${selectedClass}`
-    );
-
-    if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
-      setStateDeleteStudentError(false);
-      setStudentErrors(get_student_error);
-    }
-  }, []);
+  useEffect(() => {}, []);
 
   const FetchDataStudentByClass = () => {
     if (!selectedClass) {
@@ -104,7 +93,6 @@ function ImportStudents() {
     }
     const data_students_current = getSafeJSON("data_students_current");
     const total_student_current = getSafeJSON("total_student_current");
-
     if (
       Array.isArray(data_students_current) &&
       data_students_current.length > 0
@@ -118,6 +106,29 @@ function ImportStudents() {
     ) {
       setTotalStudent(total_student_current);
     }
+
+    const get_student_error = getSafeJSON(
+      `student_import_error_${selectedClass}`
+    );
+
+    if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
+      setStateDeleteStudentError(false);
+      setStudentErrors(get_student_error);
+    }
+
+    axios
+      .get(`/get-student-errors/${selectedClass}`)
+      .then((res) => {
+        setStudentErrors(res.data);
+        setSafeJSON(
+          `student_import_error_${selectedClass}`,
+          JSON.stringify(res.data)
+        );
+      })
+      .catch((error) => {
+        setStudentErrors([]);
+        console.log(error);
+      });
 
     axios
       .get(`/get-students/${selectedClass}`)
@@ -301,13 +312,13 @@ function ImportStudents() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-red-100">
-                  {studentError.map((e, index) => (
+                  {studentError?.map((e, index) => (
                     <tr key={index} className="hover:bg-red-50">
                       <td className="px-4 py-2 text-sm text-gray-800">
                         {e.user_id}
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-800">
-                        {e.name}
+                        {e.fullname}
                       </td>
                       <td className="px-4 py-2 text-sm text-gray-800">
                         {e.email}

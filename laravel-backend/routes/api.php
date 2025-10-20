@@ -54,4 +54,8 @@ Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudents
 /*lấy ra thông báo mà giảng viển gửi*/
 Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify']);
 
+/**Tạo lớp học mới */
 Route::middleware('auth:sanctum')->post('/classes/inerts-class-new', [ClassController::class, 'inertsClassNew']);
+
+/**lấy ra lỗi sau khi import ds sinh viên */
+Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);

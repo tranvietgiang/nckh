@@ -144,4 +144,23 @@ class StudentController extends Controller
         } else if ($role === "admin") {
         }
     }
+
+    public function getStudentErrors($selectedClass)
+    {
+        if (!Auth::check()) {
+            return response()->json(["message_error" => "Vui lòng đăng nhập!"], 401);
+        }
+
+        $useId = Auth::id() ?? null;
+
+        if ($useId == null) {
+            return response()->json(["message_error" => "Dữ liệu bị lỗi, vui lòng tải lại trang!"], 402);
+        }
+        $list_import_error = ImportError::where("class_id", $selectedClass)
+            ->where("teacher_id", $useId)->get();
+
+        if ($list_import_error->count() > 0) {
+            return response()->json($list_import_error, 200);
+        }
+    }
 }

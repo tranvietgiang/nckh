@@ -13,22 +13,16 @@ return new class extends Migration
     {
         Schema::create('import_errors', function (Blueprint $table) {
             $table->id('error_id');
-            $table->string('user_id')->nullable();     // MSSV
-            $table->string('name')->nullable();        // Họ tên SV
-            $table->string('email')->nullable();       // Email SV
-            $table->string('reason')->nullable();      // Lý do lỗi
-            $table->unsignedBigInteger('class_id')->nullable();
-            $table->string('teacher_id')->nullable();
-            $table->timestamps();
-
-            // 🔹 Khóa ngoại mềm (tùy chọn)
-            $table->foreign('class_id')
-                ->references('class_id')->on('classes')
-                ->onDelete('set null');
-
+            $table->string('user_id', 15)->nullable();
+            $table->string('fullname', 50)->nullable();
+            $table->string('email')->nullable();
+            $table->string('reason')->nullable();
+            $table->foreignId('class_id')->constrained("classes", "class_id")->nullable();
+            $table->string('teacher_id', 15)->nullable();
             $table->foreign('teacher_id')
                 ->references('user_id')->on('users')
                 ->onDelete('set null');
+            $table->timestamps();
         });
     }
 
