@@ -11,6 +11,7 @@ import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
+import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
 
 function App() {
   return (
@@ -36,6 +37,10 @@ function App() {
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
+
+             {/* Trang tạo báo cáo */}
+            <Route path="/nckh-create-reports" element={<CreateReports />} />
+            
             /*===============================================END============================================
             */
           </Routes>
