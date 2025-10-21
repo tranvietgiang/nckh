@@ -11,7 +11,6 @@ import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
-import ReportSubmissionPage from "./Components/Pages/Student/Features/ReportSubmissionPage";
 
 function App() {
   return (
