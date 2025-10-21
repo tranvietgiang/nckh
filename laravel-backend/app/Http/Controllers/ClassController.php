@@ -84,10 +84,8 @@ class ClassController extends Controller
 }
 
 
-<<<<<<< HEAD
-        return response()->json($students);
-    }
 
+  
     public function inertsClassNew(Request $request)
     {
         if (!Auth::check()) {
@@ -141,6 +139,4 @@ class ClassController extends Controller
         ], 500);
     }
 }
-=======
-}
->>>>>>> feature-managerclass-pc
+

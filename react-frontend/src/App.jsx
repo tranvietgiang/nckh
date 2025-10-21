@@ -11,11 +11,6 @@ import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
-<<<<<<< HEAD
-import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
-=======
-import ReportSubmissionPage from "./Components/Pages/Student/Features/ReportSubmissionPage";
->>>>>>> 6-submit-report-tvg
 
 function App() {
   return (
@@ -41,19 +36,6 @@ function App() {
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
-<<<<<<< HEAD
-
-             {/* Trang tạo báo cáo */}
-            <Route path="/nckh-create-reports" element={<CreateReports />} />
-            
-=======
-            {/* <Route
-              path="/nckh-submit-report"
-              element={<ReportSubmissionPage />}
-            /> */}
->>>>>>> 6-submit-report-tvg
-            /*===============================================END============================================
-            */
           </Routes>
         </div>
       </Router>
