@@ -11,6 +11,7 @@ import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
+import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback"
 
 function App() {
   return (
@@ -34,6 +35,8 @@ function App() {
             <Route path="/nckh-class-manager" element={<ClassManager />} />
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            {/**Trang chấm điểm GV */}
+            <Route path="/nckh-teacher-scoringfeedback" element={<ScoringFeedback />} />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
             /*===============================================END============================================

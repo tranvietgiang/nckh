@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\ClassController;
-
+use App\Http\Controllers\ReportController;
 Route::post("/test", function () {
     return "test";
 });
@@ -59,3 +59,8 @@ Route::middleware('auth:sanctum')->post('/classes/inerts-class-new', [ClassContr
 
 /**lấy ra lỗi sau khi import ds sinh viên */
 Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);
+/**Lấy báo cáo  */
+Route::get('/submissions', [AdminController::class, 'getReports']);
+Route::middleware('auth:sanctum')->get('/reports', [ReportController::class, 'getReportsByClass']);
+
+Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsByReport']);

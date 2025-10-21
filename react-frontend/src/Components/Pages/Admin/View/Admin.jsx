@@ -30,16 +30,41 @@ export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [students, setStudents] = useState([]);
   const [teachers, setTeachers] = useState([]);
-
   const [toastMessage, setToastMessage] = React.useState("");
   const [showToast, setShowToast] = React.useState(false);
+  const [reports, setReports] = useState([]);
+  /**Thông kế báo cáo */
+  useEffect(() => {
+    if (activeMenu === "reports") {
+      fetchReports();
+    }
+  }, [activeMenu]);
 
+  const fetchReports = async () => {
+    try {
+      const response = await axios.get("/submissions");
+      const data = response.data; // 
+
+      
+      const validReports = data.filter(
+        (item) => item.status === "submitted" || item.status === "graded"
+      );
+
+      setReports(validReports);
+    } catch (error) {
+      console.error("Lỗi khi tải báo cáo:", error);
+    }
+  };
+
+
+  /**Thông báo ẩn hiện */
   const showSuccessToast = (msg) => {
     setToastMessage(msg);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000); // 3s tự ẩn
   };
 
+  /**Lấy Dữ liệu */
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -75,13 +100,13 @@ export default function AdminManagement() {
   //   { id: 3, name: 'PGS.TS. Võ Văn F', teacherId: 'GV003', email: 'vovanf@email.com', department: 'Khoa học máy tính', position: 'Phó Giáo sư' },
   // ]);
 
-  const [reports] = useState([
-    { id: 1, title: "Báo cáo tuần 1", status: "completed" },
-    { id: 2, title: "Báo cáo tuần 2", status: "completed" },
-    { id: 3, title: "Báo cáo tuần 3", status: "pending" },
-    { id: 4, title: "Báo cáo tuần 4", status: "pending" },
-    { id: 5, title: "Báo cáo cuối kỳ", status: "error" },
-  ]);
+  // const [reports] = useState([
+  //   { id: 1, title: "Báo cáo tuần 1", status: "completed" },
+  //   { id: 2, title: "Báo cáo tuần 2", status: "completed" },
+  //   { id: 3, title: "Báo cáo tuần 3", status: "pending" },
+  //   { id: 4, title: "Báo cáo tuần 4", status: "pending" },
+  //   { id: 5, title: "Báo cáo cuối kỳ", status: "error" },
+  // ]);
 
   const errorReports = reports.filter((r) => r.status === "error").length;
   const totalReports = reports.length;
@@ -96,7 +121,7 @@ export default function AdminManagement() {
     department: "",
     position: "",
   });
-
+  /**Thanh menu */
   const menuItems = [
     { id: "dashboard", label: "Trang Chủ", icon: Home },
     { id: "students", label: "Sinh Viên", icon: GraduationCap },
@@ -171,12 +196,11 @@ export default function AdminManagement() {
     }
     closeModal();
   };
-
+  /**Xóa */
   const handleDelete = async (user_id) => {
     if (
       window.confirm(
-        `Bạn có chắc muốn xóa ${
-          activeTab === "students" ? "sinh viên" : "giảng viên"
+        `Bạn có chắc muốn xóa ${activeTab === "students" ? "sinh viên" : "giảng viên"
         } này?`
       )
     ) {
@@ -387,11 +411,10 @@ export default function AdminManagement() {
                     setActiveTab("students");
                     setActiveMenu("students");
                   }}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === "students"
-                      ? "border-indigo-600 text-indigo-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "students"
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                 >
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -403,11 +426,10 @@ export default function AdminManagement() {
                     setActiveTab("teachers");
                     setActiveMenu("teachers");
                   }}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === "teachers"
-                      ? "border-indigo-600 text-indigo-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
+                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "teachers"
+                    ? "border-indigo-600 text-indigo-600"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
                 >
                   <div className="flex items-center space-x-1 sm:space-x-2">
                     <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -497,77 +519,77 @@ export default function AdminManagement() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {activeTab === "students"
                     ? filteredStudents.map((student) => (
-                        <tr
-                          key={student.id || student.studentId}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                            {student.user_id}
-                          </td>
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                            {student.role}
-                          </td>
-                          <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                            {student.email}
-                          </td>
-                          <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
-                          <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                            <div className="flex items-center space-x-2 sm:space-x-4">
-                              <button
-                                onClick={() => openModal("edit", student)}
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(student.user_id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
+                      <tr
+                        key={student.id || student.studentId}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
+                          {student.user_id}
+                        </td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                          {student.role}
+                        </td>
+                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
+                          {student.email}
+                        </td>
+                        <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
+                        <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                          <div className="flex items-center space-x-2 sm:space-x-4">
+                            <button
+                              onClick={() => openModal("edit", student)}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(student.user_id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
                     : filteredTeachers.map((teacher) => (
-                        <tr
-                          key={teacher.id}
-                          className="hover:bg-gray-50 transition-colors"
-                        >
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                            {teacher.user_id}
-                          </td>
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                            {teacher.role}
-                          </td>
-                          <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                            {teacher.email}
-                          </td>
-                          <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                            {teacher.department}
-                          </td>
-                          <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                            {teacher.position}
-                          </td>
-                          <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                            <div className="flex items-center space-x-2 sm:space-x-4">
-                              <button
-                                onClick={() => openModal("edit", teacher)}
-                                className="text-indigo-600 hover:text-indigo-900"
-                              >
-                                <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(teacher.id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      <tr
+                        key={teacher.id}
+                        className="hover:bg-gray-50 transition-colors"
+                      >
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
+                          {teacher.user_id}
+                        </td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
+                          {teacher.role}
+                        </td>
+                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
+                          {teacher.email}
+                        </td>
+                        <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
+                          {teacher.department}
+                        </td>
+                        <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
+                          {teacher.position}
+                        </td>
+                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
+                          <div className="flex items-center space-x-2 sm:space-x-4">
+                            <button
+                              onClick={() => openModal("edit", teacher)}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(teacher.id)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
@@ -582,14 +604,47 @@ export default function AdminManagement() {
           <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
             Quản Lý Báo Cáo
           </h2>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <p className="text-sm sm:text-base text-gray-600">
-              Chức năng quản lý báo cáo đang được phát triển...
-            </p>
+
+          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 overflow-x-auto">
+            {reports.length === 0 ? (
+              <p className="text-gray-500 text-sm">Chưa có báo cáo hợp lệ.</p>
+            ) : (
+              <table className="w-full border-collapse text-sm sm:text-base">
+                <thead>
+                  <tr className="bg-gray-100 text-gray-700">
+                    <th className="p-2 text-left">Mã báo cáo</th>
+                    <th className="p-2 text-left">Mã sinh viên</th>
+                    <th className="p-2 text-left">Tên sinh viên</th>
+                    <th className="p-2 text-left">Trạng thái</th>
+                    <th className="p-2 text-left">Ngày nộp</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reports.map((report) => (
+                    <tr key={report.submission_id} className="border-b hover:bg-gray-50">
+                      <td className="p-2">{report.submission_id}</td>
+                      <td className="p-2">{report.student_id}</td>
+                      <td className="p-2">{report.student_name}</td>
+                      <td className="p-2 capitalize">
+                        {report.status === "graded"
+                          ? "✅ Đã chấm"
+                          : report.status === "submitted"
+                            ? "📄 Đã nộp"
+                            : "❌ Lỗi"}
+                      </td>
+                      <td className="p-2">
+                        {new Date(report.submission_time).toLocaleDateString("vi-VN")}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       );
     }
+
 
     if (activeMenu === "notifications") {
       return (
@@ -634,9 +689,8 @@ export default function AdminManagement() {
 
       {/* Sidebar */}
       <div
-        className={`${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:static w-64 bg-white shadow-xl transition-transform duration-300 h-full z-50 flex flex-col`}
+        className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } lg:translate-x-0 fixed lg:static w-64 bg-white shadow-xl transition-transform duration-300 h-full z-50 flex flex-col`}
       >
         <div className="p-3 sm:p-4 border-b border-gray-200 flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -663,11 +717,10 @@ export default function AdminManagement() {
                   setActiveMenu(item.id);
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${
-                  activeMenu === item.id
-                    ? "bg-indigo-600 text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base ${activeMenu === item.id
+                  ? "bg-indigo-600 text-white"
+                  : "text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 <span className="font-medium">{item.label}</span>
