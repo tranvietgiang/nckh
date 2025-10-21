@@ -65,6 +65,12 @@ Route::middleware('auth:sanctum')->post('/classes/inerts-class-new', [ClassContr
 Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);
 
 
+
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
 Route::post('/drive-upload', [ReportController::class, 'uploadReport']);
+
+/**Lấy báo cáo  */
+Route::get('/submissions', [AdminController::class, 'getReports']);
+Route::middleware('auth:sanctum')->get('/reports', [ReportController::class, 'getReportsByClass']);
+Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsByReport']);

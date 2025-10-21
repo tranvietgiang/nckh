@@ -56,7 +56,7 @@ export default function TeacherDashboard() {
   };
 
   const handleGrading = () => {
-    console.log("Xử lý Chấm Điểm...");
+     navigate("/nckh-teacher-scoringfeedback");
   };
 
   const handleCreateNotification = () => {

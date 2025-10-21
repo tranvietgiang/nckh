@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class ClassController extends Controller
 {
+
+
     //
 
     public function getClass()
@@ -26,9 +28,33 @@ class ClassController extends Controller
         return response()->json($classes);
     }
 
+    // public function getStudentsByClass($classId)
+    // {
+    //     $students = DB::table('user_profiles')
+
+    // public function getStudentsByClass($classId)
+    // {
+    //     $students = user_profile::select(
+    //         'user_profiles.fullname',
+    //         'user_profiles.phone',
+    //         'user_profiles.user_id',
+    //         'users.email',
+    //         'classes.class_name'
+    //     )
+    //         ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
+    //         ->join('classes', 'classes.class_id', '=', 'user_profiles.class_id')
+    //         ->where('user_profiles.class_id', $classId)
+    //         ->where('users.role', 'student')
+    //         ->get();
+
+    //     return response()->json($students);
+    // }
+
+
     public function getStudentsByClass($classId)
     {
-        $students = DB::table('user_profiles')
+        $students = \DB::table('user_profiles')
+
             ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('classes', 'classes.class_id', '=', 'user_profiles.class_id') // ✅ thêm dòng này
             ->leftJoin('reports', 'reports.class_id', '=', 'user_profiles.class_id')
@@ -61,7 +87,7 @@ class ClassController extends Controller
                 'submissions.status'
             )
             ->get();
-
+        
         return response()->json($students);
     }
 
@@ -119,4 +145,6 @@ class ClassController extends Controller
             "message_error" => "Lỗi server vui lòng tải lại trang!"
         ], 500);
     }
+
 }
+
