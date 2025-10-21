@@ -36,10 +36,6 @@ function App() {
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
-            {/* <Route
-              path="/nckh-submit-report"
-              element={<ReportSubmissionPage />}
-            /> */}
             /*===============================================END============================================
             */
           </Routes>

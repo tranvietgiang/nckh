@@ -7,6 +7,7 @@ use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ReportController extends Controller
 {
@@ -96,93 +97,6 @@ class ReportController extends Controller
         return $client;
     }
 
-    // ✅ Upload báo cáo
-    public function uploadReport(Request $request)
-    {
-        try {
-            // if (!$request->hasFile('file')) {
-            //     return response()->json(['error' => '❌ Không nhận được file!'], 400);
-            // }
-
-            $file = $request->file('file');
-            $email = $request->input('email');
-
-            if (!$email) {
-                return response()->json(['error' => 'Thiếu email!'], 400);
-            }
-
-            // if (!$file->isValid()) {
-            //     return response()->json(['error' => '❌ File upload không hợp lệ!'], 400);
-            // }
-
-            // ✅ Chỉ cho phép docx, pdf, zip
-            $allowedExtensions = ['docx', 'pdf', 'zip'];
-            $ext = strtolower($file->getClientOriginalExtension());
-
-            if (!in_array($ext, $allowedExtensions)) {
-                return response()->json(['error' => '❌ Chỉ chấp nhận file DOCX, PDF hoặc ZIP!'], 400);
-            }
-
-            $client = $this->getGoogleClient();
-            $driveService = new Drive($client);
-
-            // 🗂️ Tạo folder
-            $rootFolderId = $this->getOrCreateFolder($driveService, 'StudentReports');
-            $studentFolderId = $this->getOrCreateFolder($driveService, $email, $rootFolderId);
-
-            // 🧩 Đảm bảo đọc được file
-            $realPath = $file->getRealPath();
-            if (!$realPath || !is_readable($realPath)) {
-                $tmpPath = storage_path('app/tmp');
-                if (!file_exists($tmpPath)) mkdir($tmpPath, 0777, true);
-                $file->move($tmpPath, $file->getClientOriginalName());
-                $realPath = $tmpPath . '/' . $file->getClientOriginalName();
-            }
-
-            if (!file_exists($realPath)) {
-                throw new \Exception('❌ File không tồn tại hoặc không thể đọc.');
-            }
-
-            // 🧠 MIME chính xác theo loại file
-            $mimeMap = [
-                'pdf'  => 'application/pdf',
-                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'zip'  => 'application/zip',
-            ];
-            $mimeType = $mimeMap[$ext];
-
-            // 🚀 Upload lên Google Drive
-            $fileMetadata = new Drive\DriveFile([
-                'name' => 'BaoCao_' . time() . '_' . $file->getClientOriginalName(),
-                'parents' => [$studentFolderId],
-            ]);
-
-            $uploadedFile = $driveService->files->create($fileMetadata, [
-                'data' => file_get_contents($realPath),
-                'mimeType' => $mimeType,
-                'uploadType' => 'multipart',
-                'fields' => 'id, name, webViewLink, webContentLink'
-            ]);
-
-            // 🌍 Cấp quyền xem công khai
-            $driveService->permissions->create($uploadedFile->id, new Drive\Permission([
-                'type' => 'anyone',
-                'role' => 'reader',
-            ]));
-
-            return response()->json([
-                'success' => true,
-                'message' => '✅ Báo cáo đã được nộp thành công!',
-                'file_name' => $uploadedFile->name,
-                'drive_url' => $uploadedFile->webViewLink,
-                'download_url' => $uploadedFile->webContentLink,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('❌ Drive upload error: ' . $e->getMessage());
-            return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
-        }
-    }
-
 
     // 🔧 Tạo hoặc lấy folder
     private function getOrCreateFolder($driveService, $folderName, $parentId = null)
@@ -209,5 +123,69 @@ class ReportController extends Controller
 
         $folder = $driveService->files->create($folderMetadata, ['fields' => 'id']);
         return $folder->id;
+    }
+
+    public function uploadReport(Request $request)
+    {
+        try {
+            $file = $request->file('file');
+            $email = $request->input('email');
+
+            if (!$file || !$email) {
+                return response()->json(['error' => 'Thiếu file hoặc email!'], 400);
+            }
+
+            $client = $this->getGoogleClient();
+            $driveService = new \Google\Service\Drive($client);
+
+            // 🗂️ Tạo thư mục sinh viên
+            $rootFolderId = $this->getOrCreateFolder($driveService, 'StudentReports');
+            $studentFolderId = $this->getOrCreateFolder($driveService, $email, $rootFolderId);
+
+            // ✅ MIME type chính xác
+            $ext = strtolower($file->getClientOriginalExtension());
+            $mimeMap = [
+                'pdf'  => 'application/pdf',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'doc'  => 'application/msword',
+                'zip'  => 'application/zip',
+            ];
+            $mimeType = $mimeMap[$ext] ?? $file->getMimeType() ?? 'application/octet-stream';
+
+            // 🚀 Upload trực tiếp stream lên Google Drive
+            $fileMetadata = new \Google\Service\Drive\DriveFile([
+                'name' => 'BaoCao_' . time() . '_' . $file->getClientOriginalName(),
+                'parents' => [$studentFolderId],
+            ]);
+
+            // dùng stream đọc dữ liệu file
+            $stream = fopen($file->getRealPath(), 'r');
+
+            $uploadedFile = $driveService->files->create($fileMetadata, [
+                'data' => stream_get_contents($stream),
+                'mimeType' => $mimeType,
+                'uploadType' => 'resumable', // hỗ trợ file lớn
+                'fields' => 'id, name, webViewLink, webContentLink'
+            ]);
+
+            fclose($stream);
+
+            // 🌍 Cấp quyền xem công khai
+            $driveService->permissions->create($uploadedFile->id, new \Google\Service\Drive\Permission([
+                'type' => 'anyone',
+                'role' => 'reader',
+            ]));
+
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Upload trực tiếp Google Drive thành công!',
+                'file_name' => $uploadedFile->name,
+                'drive_url' => $uploadedFile->webViewLink,
+                'download_url' => $uploadedFile->webContentLink,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Drive upload error: ' . $e->getMessage());
+            return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
+        }
     }
 }

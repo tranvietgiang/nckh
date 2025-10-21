@@ -12,6 +12,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ModelNotifications from "../../Pages/Student/Features/ModalNotifications";
 import { getRole } from "../../Constants/INFO_USER";
+import IsLogin from "../IsLogin/IsLogin";
+import { getAuth } from "../../Constants/INFO_USER";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -21,6 +23,10 @@ export default function Navbar() {
     const roleNow = getRole();
     setRole(roleNow);
   }, []);
+
+  const { user, token } = getAuth();
+
+  IsLogin(user, token);
 
   const navigation = [
     {
