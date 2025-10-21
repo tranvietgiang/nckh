@@ -11,7 +11,11 @@ class submission_file extends Model
 
     protected $primaryKey = 'file_id';
     protected $fillable = [
-        'submission_id', 'file_name', 'file_path', 'file_size', 'file_type'
+        'submission_id',
+        'file_name',
+        'file_path',
+        'file_size',
+        'file_type'
     ];
 
     public function submission()

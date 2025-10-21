@@ -3,6 +3,12 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import { Link, useNavigate } from "react-router-dom";
 import Footer from "../Home/Footer";
 import axios from "../../../../config/axios";
+import { getAuth } from "../../../Constants/INFO_USER";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import {
+  getSafeJSON,
+  setSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -10,35 +16,36 @@ export default function ProfilePage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [getProfile, setProfile] = useState({});
-  const user = JSON.parse(localStorage.getItem("user")) ?? null;
-  const token = localStorage.getItem("token") ?? null;
+  const { user, token } = getAuth();
   const navigate = useNavigate();
+
   useEffect(() => {
     document.title = "Hồ sơ";
   }, []);
 
-  useEffect(() => {
-    if (!user || !token) {
-      alert("Bạn chưa đăng nhập tài khoản!");
-      navigate("/nckh-login");
-    }
-  }, []);
+  IsLogin(user, token);
 
   const role = user?.role ?? null;
   const user_id = user?.user_id ?? null;
 
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;
+    const data_user_profile = getSafeJSON("user_profile");
+    if (data_user_profile) {
+      setProfile(data_user_profile);
+    }
+
     try {
       const res = await axios.get("/get-profile", {
         params: { role, user_id },
       });
       setProfile(res.data);
+      setSafeJSON("user_profile", JSON.stringify(res.data));
     } catch (error) {
-      // alert("vui gì đó");
       console.log(error);
     }
   };
+
   useEffect(() => {
     fetchDataProfile();
   }, []);
