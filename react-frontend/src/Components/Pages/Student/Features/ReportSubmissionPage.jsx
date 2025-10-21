@@ -3,6 +3,7 @@ import React, { useState } from "react";
 export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
+  const [uploading, setUploading] = useState(false); // Thêm state uploading
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -30,14 +31,24 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
+    // Thêm async
     e.preventDefault();
-    if (selectedFile && onSubmit) {
-      onSubmit(selectedFile);
+    if (!selectedFile || !onSubmit) return;
+
+    setUploading(true); // Bắt đầu upload
+
+    try {
+      await onSubmit(selectedFile); // Đợi upload hoàn tất
+      console.log("File submitted:", selectedFile);
+      setSelectedFile(null);
+      onClose(); // Chỉ đóng modal khi upload thành công
+    } catch (error) {
+      console.error("Upload failed:", error);
+      // Có thể thêm thông báo lỗi ở đây
+    } finally {
+      setUploading(false); // Kết thúc upload
     }
-    console.log(selectedFile);
-    setSelectedFile(null);
-    onClose();
   };
 
   const handleClose = () => {
@@ -57,6 +68,7 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 transition duration-200"
+            disabled={uploading} // Vô hiệu hóa khi đang upload
           >
             <svg
               className="w-6 h-6"
@@ -133,14 +145,15 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
                 dragActive
                   ? "border-blue-500 bg-blue-50"
                   : "border-gray-300 hover:border-blue-400 hover:bg-gray-50"
-              }`}
+              } ${uploading ? "opacity-50 cursor-not-allowed" : ""}`} // Giảm opacity khi uploading
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
               onClick={() =>
+                !uploading &&
                 document.getElementById("file-upload-modal").click()
-              }
+              } // Chỉ cho click khi không uploading
             >
               <svg
                 className="w-12 h-12 text-gray-400 mx-auto mb-4"
@@ -157,24 +170,31 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
               </svg>
 
               <p className="text-gray-600 mb-4">
-                Kéo thả file vào đây
+                {uploading ? "Đang upload..." : "Kéo thả file vào đây"}
                 <br />
-                <span className="text-sm text-gray-500">hoặc</span>
+                {!uploading && (
+                  <span className="text-sm text-gray-500">hoặc</span>
+                )}
               </p>
 
               <input
                 type="file"
                 id="file-upload-modal"
                 className="hidden"
+                name="file"
                 onChange={handleFileChange}
                 accept=".pdf,.docx,.zip"
+                disabled={uploading} // Vô hiệu hóa khi uploading
               />
-              <button
-                type="button"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 inline-block"
-              >
-                Chọn file từ máy tính
-              </button>
+
+              {!uploading && (
+                <button
+                  type="button"
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200 inline-block"
+                >
+                  Chọn file từ máy tính
+                </button>
+              )}
 
               <p className="text-sm text-gray-500 mt-4">
                 Định dạng: PDF, DOCX, ZIP
@@ -210,8 +230,9 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
                   </div>
                 </div>
                 <button
-                  onClick={() => setSelectedFile(null)}
-                  className="text-red-500 hover:text-red-700 transition duration-200"
+                  onClick={() => !uploading && setSelectedFile(null)} // Chỉ cho xóa khi không uploading
+                  disabled={uploading}
+                  className="text-red-500 hover:text-red-700 transition duration-200 disabled:opacity-50"
                 >
                   <svg
                     className="w-5 h-5"
@@ -236,20 +257,21 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
         <div className="flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
           <button
             onClick={handleClose}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition duration-200"
+            disabled={uploading}
+            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition duration-200 disabled:opacity-50"
           >
             Hủy
           </button>
           <button
             onClick={handleSubmit}
-            disabled={!selectedFile}
+            disabled={!selectedFile || uploading}
             className={`px-6 py-2 rounded-lg font-medium transition duration-200 ${
-              selectedFile
+              selectedFile && !uploading
                 ? "bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 : "bg-gray-300 text-gray-500 cursor-not-allowed"
             }`}
           >
-            Nộp bài báo cáo
+            {uploading ? "Đang nộp..." : "Nộp bài báo cáo"}
           </button>
         </div>
       </div>

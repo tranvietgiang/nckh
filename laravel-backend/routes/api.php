@@ -67,4 +67,4 @@ Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [S
 
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
-Route::middleware('auth:sanctum')->post('/drive-upload', [ReportController::class, 'updateFile']);
+Route::post('/drive-upload', [ReportController::class, 'uploadReport']);

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
-import { getAuth } from "../../../Constants/INFO_USER";
+import { getUser } from "../../../Constants/INFO_USER";
 export default function PendingReports() {
-  const { user, token } = getAuth();
+  const user = getUser();
   console.log(user?.email);
   const reports = [
     {
@@ -15,33 +15,66 @@ export default function PendingReports() {
       nam: "2025",
     },
   ];
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
 
-  const handleSubmit = async (file) => {
-    if (!file) return alert("Vui lòng chọn file!");
+  // const handleSubmit = async (file) => {
+  //   if (!file) return alert("Vui lòng chọn file!");
 
-    setUploading(true);
-    setMessage("");
-    setLink("");
+  //   setMessage("");
+  //   setUploading(true);
+  //   setLink("");
+
+  //   const formData = new FormData();
+  //   formData.append("file", file);
+  //   formData.append("email", user?.email); // email thật
+
+  //   try {
+  //     const res = await axios.post("/drive-upload", formData, {
+  //       headers: {
+  //         "Content-Type": "multipart/form-data",
+  //       },
+  //     });
+
+  //     setMessage(res.data.message);
+  //     setLink(res.data.drive_url);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setMessage("❌ Upload thất bại!");
+  //   } finally {
+  //     setUploading(false);
+  //   }
+  // };
+
+  const handleSubmit = async (file) => {
+    if (!file) {
+      alert("Vui lòng chọn file trước!");
+      return;
+    }
+
+    console.log("File submitted:", file);
 
     const formData = new FormData();
-    formData.append("file", file);
-    formData.append("email", user?.email); // email thật
+    formData.append("file", file); // 👈 đúng key Laravel cần
+    formData.append("email", user?.email); // 👈 hoặc email động
 
     try {
-      const res = await axios.post("/drive-upload", formData);
+      const res = await axios.post("/drive-upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // 👈 rất quan trọng
+        },
+      });
       setMessage(res.data.message);
       setLink(res.data.drive_url);
+      console.log("✅ Upload thành công:", res.data);
     } catch (err) {
-      console.error(err);
-      setMessage("❌ Upload thất bại!");
-    } finally {
-      setUploading(false);
+      console.error("❌ Upload lỗi:", err.response?.data || err.message);
     }
   };
+
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">

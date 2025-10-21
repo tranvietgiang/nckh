@@ -68,63 +68,123 @@ class ReportController extends Controller
     /** 
      * ✅ 3️⃣ Upload báo cáo của sinh viên (sau khi đã xác thực)
      */
-    public function updateFile(Request $request)
-    {
-        try {
-            if (!$request->hasFile('file') || !$request->has('email')) {
-                return response()->json(['error' => 'Thiếu file hoặc email!'], 400);
-            }
+    // public function updateFile(Request $request)
+    // {
+    //     try {
+    //         $file = $request->file('file');
+    //         if (!$file || !$request->input('email')) {
+    //             return response()->json(['error' => 'Thiếu file hoặc email!'], 400);
+    //         }
 
-            $file = $request->file('file');
-            $studentEmail = trim($request->input('email'));
+    //         // $file = $request->file('file');
+    //         $studentEmail = trim($request->input('email'));
 
-            $client = $this->getGoogleClient();
-            $driveService = new Drive($client);
+    //         $client = $this->getGoogleClient();
+    //         $driveService = new Drive($client);
 
-            // Tạo folder gốc
-            $rootFolderId = $this->getOrCreateFolder($driveService, 'StudentReports');
+    //         // Tạo folder gốc
+    //         $rootFolderId = $this->getOrCreateFolder($driveService, 'StudentReports');
 
-            // Folder theo email
-            $studentFolderId = $this->getOrCreateFolder($driveService, $studentEmail, $rootFolderId);
+    //         // Folder theo email
+    //         $studentFolderId = $this->getOrCreateFolder($driveService, $studentEmail, $rootFolderId);
 
-            // Upload file
-            $fileMetadata = new Drive\DriveFile([
-                'name' => 'BaoCao_' . time() . '_' . $file->getClientOriginalName(),
-                'parents' => [$studentFolderId],
-            ]);
+    //         // Upload file
+    //         $fileMetadata = new Drive\DriveFile([
+    //             'name' => 'BaoCao_' . time() . '_' . $file->getClientOriginalName(),
+    //             'parents' => [$studentFolderId],
+    //         ]);
 
 
-            $mimeType = $file->getMimeType() ?: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    //         $mimeType = $file->getMimeType() ?: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
-            $uploadedFile = $driveService->files->create($fileMetadata, [
-                'data' => file_get_contents($file->getRealPath()),
-                'mimeType' => $mimeType,
-                'uploadType' => 'multipart',
-                'fields' => 'id, name, webViewLink, webContentLink'
-            ]);
+    //         $uploadedFile = $driveService->files->create($fileMetadata, [
+    //             'data' => file_get_contents($file->getRealPath()),
+    //             'mimeType' => $mimeType,
+    //             'uploadType' => 'multipart',
+    //             'fields' => 'id, name, webViewLink, webContentLink'
+    //         ]);
 
-            // Cho phép ai có link đều xem
-            $driveService->permissions->create($uploadedFile->id, new Drive\Permission([
-                'type' => 'anyone',
-                'role' => 'reader',
-            ]));
+    //         // Cho phép ai có link đều xem
+    //         $driveService->permissions->create($uploadedFile->id, new Drive\Permission([
+    //             'type' => 'anyone',
+    //             'role' => 'reader',
+    //         ]));
 
-            return response()->json([
-                'success' => true,
-                'message' => '✅ Báo cáo đã được nộp thành công!',
-                'file_name' => $uploadedFile->name,
-                'drive_url' => $uploadedFile->webViewLink,
-                'download_url' => $uploadedFile->webContentLink,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Drive upload error: ' . $e->getMessage());
-            return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
-        }
-    }
+    //         return response()->json([
+    //             'success' => true,
+    //             'message' => '✅ Báo cáo đã được nộp thành công!',
+    //             'file_name' => $uploadedFile->name,
+    //             'drive_url' => $uploadedFile->webViewLink,
+    //             'download_url' => $uploadedFile->webContentLink,
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         Log::error('Drive upload error: ' . $e->getMessage());
+    //         return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
+    //     }
+    // }
 
-    /** 
-     * ⚙️ Hàm khởi tạo Google Client (sử dụng token đã lưu)
-     */
+    // /** 
+    //  * ⚙️ Hàm khởi tạo Google Client (sử dụng token đã lưu)
+    //  */
+    // private function getGoogleClient()
+    // {
+    //     $client = new Client();
+    //     $client->setClientId(env('GOOGLE_CLIENT_ID'));
+    //     $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
+    //     $client->setRedirectUri(env('GOOGLE_REDIRECT_URI'));
+    //     $client->addScope(Drive::DRIVE_FILE);
+    //     $client->setAccessType('offline');
+
+    //     $tokenPath = storage_path('app/token.json');
+    //     if (!file_exists($tokenPath)) {
+    //         throw new \Exception("❌ Chưa xác thực Google Drive. Hãy gọi /api/drive-auth trước.");
+    //     }
+
+    //     $accessToken = json_decode(file_get_contents($tokenPath), true);
+    //     $client->setAccessToken($accessToken);
+
+    //     if ($client->isAccessTokenExpired()) {
+    //         if (!empty($accessToken['refresh_token'])) {
+    //             $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
+    //             file_put_contents($tokenPath, json_encode($client->getAccessToken()));
+    //         } else {
+    //             throw new \Exception("❌ Refresh token không tồn tại. Cần xác thực lại!");
+    //         }
+    //     }
+
+    //     return $client;
+    // }
+
+    // /** 
+    //  * 📂 Tạo hoặc lấy thư mục
+    //  */
+    // private function getOrCreateFolder($driveService, $folderName, $parentId = null)
+    // {
+    //     $query = "mimeType='application/vnd.google-apps.folder' and name='$folderName'";
+    //     if ($parentId) {
+    //         $query .= " and '$parentId' in parents";
+    //     }
+
+    //     $folders = $driveService->files->listFiles([
+    //         'q' => $query,
+    //         'fields' => 'files(id, name)'
+    //     ])->getFiles();
+
+    //     if (count($folders) > 0) {
+    //         return $folders[0]->id;
+    //     }
+
+    //     $folderMetadata = new Drive\DriveFile([
+    //         'name' => $folderName,
+    //         'mimeType' => 'application/vnd.google-apps.folder',
+    //         'parents' => $parentId ? [$parentId] : []
+    //     ]);
+
+    //     $folder = $driveService->files->create($folderMetadata, ['fields' => 'id']);
+    //     return $folder->id;
+    // }
+
+
     private function getGoogleClient()
     {
         $client = new Client();
@@ -142,6 +202,7 @@ class ReportController extends Controller
         $accessToken = json_decode(file_get_contents($tokenPath), true);
         $client->setAccessToken($accessToken);
 
+        // Refresh token nếu hết hạn
         if ($client->isAccessTokenExpired()) {
             if (!empty($accessToken['refresh_token'])) {
                 $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
@@ -154,9 +215,95 @@ class ReportController extends Controller
         return $client;
     }
 
-    /** 
-     * 📂 Tạo hoặc lấy thư mục
-     */
+    // ✅ Upload báo cáo
+    public function uploadReport(Request $request)
+    {
+        try {
+            // if (!$request->hasFile('file')) {
+            //     return response()->json(['error' => '❌ Không nhận được file!'], 400);
+            // }
+
+            $file = $request->file('file');
+            $email = $request->input('email');
+
+            if (!$email) {
+                return response()->json(['error' => 'Thiếu email!'], 400);
+            }
+
+            // if (!$file->isValid()) {
+            //     return response()->json(['error' => '❌ File upload không hợp lệ!'], 400);
+            // }
+
+            // ✅ Chỉ cho phép docx, pdf, zip
+            $allowedExtensions = ['docx', 'pdf', 'zip'];
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            if (!in_array($ext, $allowedExtensions)) {
+                return response()->json(['error' => '❌ Chỉ chấp nhận file DOCX, PDF hoặc ZIP!'], 400);
+            }
+
+            $client = $this->getGoogleClient();
+            $driveService = new Drive($client);
+
+            // 🗂️ Tạo folder
+            $rootFolderId = $this->getOrCreateFolder($driveService, 'StudentReports');
+            $studentFolderId = $this->getOrCreateFolder($driveService, $email, $rootFolderId);
+
+            // 🧩 Đảm bảo đọc được file
+            $realPath = $file->getRealPath();
+            if (!$realPath || !is_readable($realPath)) {
+                $tmpPath = storage_path('app/tmp');
+                if (!file_exists($tmpPath)) mkdir($tmpPath, 0777, true);
+                $file->move($tmpPath, $file->getClientOriginalName());
+                $realPath = $tmpPath . '/' . $file->getClientOriginalName();
+            }
+
+            if (!file_exists($realPath)) {
+                throw new \Exception('❌ File không tồn tại hoặc không thể đọc.');
+            }
+
+            // 🧠 MIME chính xác theo loại file
+            $mimeMap = [
+                'pdf'  => 'application/pdf',
+                'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                'zip'  => 'application/zip',
+            ];
+            $mimeType = $mimeMap[$ext];
+
+            // 🚀 Upload lên Google Drive
+            $fileMetadata = new Drive\DriveFile([
+                'name' => 'BaoCao_' . time() . '_' . $file->getClientOriginalName(),
+                'parents' => [$studentFolderId],
+            ]);
+
+            $uploadedFile = $driveService->files->create($fileMetadata, [
+                'data' => file_get_contents($realPath),
+                'mimeType' => $mimeType,
+                'uploadType' => 'multipart',
+                'fields' => 'id, name, webViewLink, webContentLink'
+            ]);
+
+            // 🌍 Cấp quyền xem công khai
+            $driveService->permissions->create($uploadedFile->id, new Drive\Permission([
+                'type' => 'anyone',
+                'role' => 'reader',
+            ]));
+
+            return response()->json([
+                'success' => true,
+                'message' => '✅ Báo cáo đã được nộp thành công!',
+                'file_name' => $uploadedFile->name,
+                'drive_url' => $uploadedFile->webViewLink,
+                'download_url' => $uploadedFile->webContentLink,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('❌ Drive upload error: ' . $e->getMessage());
+            return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
+        }
+    }
+
+
+    // 🔧 Tạo hoặc lấy folder
     private function getOrCreateFolder($driveService, $folderName, $parentId = null)
     {
         $query = "mimeType='application/vnd.google-apps.folder' and name='$folderName'";
