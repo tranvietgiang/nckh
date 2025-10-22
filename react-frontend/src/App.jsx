@@ -13,7 +13,7 @@ import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Teacher/Features/ClassShowManager";
-// import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
+import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 function App() {
   return (
     <>
@@ -41,7 +41,7 @@ function App() {
             {/* Trang import ds nhóm */}
             <Route path="/nckh-import-group" element={<ImportGroups />} />
             {/* Trang import ds nhóm */}
-            {/* <Route path="/nckh-import-major" element={<MajorImportPage />} /> */}
+            <Route path="/nckh-import-major" element={<MajorImportPage />} />
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
             /*===============================================END============================================

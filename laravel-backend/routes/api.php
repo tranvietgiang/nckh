@@ -51,7 +51,6 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 /**xóa sinh viên */
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
-// Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->get('/classes', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'insertClassNew']);
 
