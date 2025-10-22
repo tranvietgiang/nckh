@@ -78,59 +78,91 @@ class ClassController extends Controller
 
 
 
-    public function inertsClassNew(Request $request)
+    public function insertClassNew(Request $request)
     {
         $userId = AuthHelper::isLogin();
 
-        $data = $request->all() ?? [];
+        $data = $request->all();
 
-        if (!is_array($data)) {
-            response()->json([
-                "message_error" => "Lỗi dữ liệu vui lòng tải lại trang!"
+        if (
+            empty($data["class_name"]) ||
+            empty($data["class_code"]) ||
+            empty($data["major_id"]) ||
+            empty($data["semester"]) ||
+            empty($data["academic_year"])
+        ) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Vui lòng nhập đầy đủ thông tin lớp học!"
             ], 402);
         }
 
-        $check = Classe::where("class_name", $data["class_name"])->where("class_code", $data["class_code"])
-            ->where("teacher_id", $userId)->exists();
-
-        $major = Major::where("major_id", $data["major_id"])->exists();
-
-        if (!$major) {
-            return response()->json(["message_error" => "Ngành này không tồn tại!"], 402);
+        // 🔹 Kiểm tra ngành tồn tại
+        $majorExists = Major::where("major_id", $data["major_id"])->exists();
+        if (!$majorExists) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Ngành học không tồn tại!"
+            ]);
         }
 
-        if ($check) {
-            return response()->json(["message_error" => "Lớp này đã tồn tai!"], 402);
+        // 1️⃣ Cùng giảng viên + trùng tên lớp
+        $sameTeacherAndName = Classe::where("teacher_id", $userId)
+            ->where("class_name", $data["class_name"])
+            ->exists();
+
+        if ($sameTeacherAndName) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Tên lớp này đã được bạn tạo trước đó!"
+            ]);
         }
 
-        $class = Classe::create([
-            "class_name" => $data["class_name"],
-            "class_code" => $data["class_code"],
-            "teacher_id" => $userId,
-            "semester" => $data["semester"],
-            "academic_year" => $data["academic_year"],
-            "major_id" => $data["major_id"]
-        ]);
+        // 2️⃣ Cùng giảng viên + trùng mã lớp
+        $sameTeacherAndCode = Classe::where("teacher_id", $userId)
+            ->where("class_code", $data["class_code"])
+            ->exists();
 
-        if ($class) {
-            return response()->json(
-                [
-                    "success" => true,
-                    "data_classes" => $class
-                ],
-                200
-            );
-        } else {
-            return response()->json(
-                [
-                    "message_error" => "Tạo lớp mới không thành công!",
-                ],
-                402
-            );
+        if ($sameTeacherAndCode) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Mã lớp này đã tồn tại trong danh sách lớp của bạn!"
+            ]);
         }
 
-        return response()->json([
-            "message_error" => "Lỗi server vui lòng tải lại trang!"
-        ], 500);
+        // 3️⃣ Cùng ngành + trùng mã lớp
+        $sameMajorAndCode = Classe::where("major_id", $data["major_id"])
+            ->where("class_code", $data["class_code"])
+            ->exists();
+
+        if ($sameMajorAndCode) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Mã lớp này đã tồn tại trong cùng ngành!"
+            ]);
+        }
+
+        // ✅ Nếu mọi thứ hợp lệ → tiến hành tạo lớp
+        try {
+            $class = Classe::create([
+                "class_name" => $data["class_name"],
+                "class_code" => $data["class_code"],
+                "teacher_id" => $userId,
+                "semester" => $data["semester"],
+                "academic_year" => $data["academic_year"],
+                "major_id" => $data["major_id"]
+            ]);
+
+            return response()->json([
+                "status" => true,
+                "message" => "Tạo lớp học thành công!",
+                "data_classes" => $class
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Lỗi server: " . $e->getMessage()
+            ]);
+        }
     }
 }

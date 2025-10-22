@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
-
+import { useNavigate } from "react-router-dom";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { getAuth } from "../../../Constants/INFO_USER";
 export default function CreateClass({ stateOpen, onClose }) {
+  const { user, token } = getAuth();
+  IsLogin(user, token);
+
   const [majors, setMajors] = useState([]);
   const [classes, setClasses] = useState([]);
   const [loadingMajors, setLoadingMajors] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     class_name: "",
@@ -15,7 +21,6 @@ export default function CreateClass({ stateOpen, onClose }) {
     academic_year: "",
   });
 
-  // ✅ Lấy danh sách ngành
   useEffect(() => {
     setLoadingMajors(true);
     axios
@@ -32,18 +37,16 @@ export default function CreateClass({ stateOpen, onClose }) {
       .finally(() => setLoadingMajors(false));
   }, []);
 
-  // ✅ Lấy danh sách lớp để kiểm tra trùng mã lớp
   useEffect(() => {
     axios
       .get("/classes")
-      .then((res) => setClasses(Array.isArray(res.data) ? res.data : []))
+      .then((res) => setClasses(res.data))
       .catch((err) => {
         console.warn("Không thể tải danh sách lớp:", err);
         setClasses([]);
       });
   }, []);
 
-  // ✅ Xử lý thay đổi input
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -51,7 +54,6 @@ export default function CreateClass({ stateOpen, onClose }) {
     });
   };
 
-  // ✅ Hàm kiểm tra hợp lệ trước khi gửi
   const validateForm = () => {
     const { class_name, class_code, major_id, semester, academic_year } =
       formData;
@@ -86,7 +88,6 @@ export default function CreateClass({ stateOpen, onClose }) {
     return true;
   };
 
-  // ✅ Gửi form
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -94,15 +95,14 @@ export default function CreateClass({ stateOpen, onClose }) {
     setLoading(true);
     try {
       const res = await axios.post("/classes", formData);
-      console.log(res);
 
       if (res.status === 401) {
         alert("⚠️ Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
-        window.location.href = "/login";
+        navigate("/nckh-login");
         return;
       }
 
-      if (res.data.success) {
+      if (res.data.status) {
         alert("✅ Tạo lớp học thành công!");
         setFormData({
           class_name: "",
@@ -118,17 +118,12 @@ export default function CreateClass({ stateOpen, onClose }) {
       }
     } catch (error) {
       console.error("Lỗi tạo lớp học:", error);
-
       if (!error.response) {
         alert("⚠️ Không thể kết nối đến máy chủ. Kiểm tra lại mạng!");
       } else if (error.response.status === 401) {
         alert("⚠️ Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
         window.location.href = "/login";
-      } else if (error.response.status === 404) {
-        alert("❌ API không tồn tại hoặc đường dẫn sai!");
-      } else if (error.response.status === 500) {
-        alert("💥 Lỗi hệ thống. Vui lòng liên hệ quản trị viên!");
-      } else {
+      } else if (error.response.status === 402) {
         alert(
           `❌ ${error.response.data?.message_error || "Lỗi không xác định"}`
         );

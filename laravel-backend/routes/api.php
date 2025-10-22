@@ -53,7 +53,7 @@ Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
 // Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->get('/classes', [ClassController::class, 'getClassByTeacher']);
-Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'inertsClassNew']);
+Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'insertClassNew']);
 
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
