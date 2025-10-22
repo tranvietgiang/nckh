@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Google\Client;
 use Google\Service\Drive;
@@ -187,5 +188,17 @@ class ReportController extends Controller
             Log::error('❌ Drive upload error: ' . $e->getMessage());
             return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
         }
+    }
+
+
+
+
+    public function getReport()
+    {
+        $getReport = Report::select("reports.*", "classes.*")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->where("reports.status", "submitted")->get();
+
+        return response()->json($getReport);
     }
 }

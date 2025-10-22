@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
 
 export default function CreateClass({ stateOpen, onClose }) {
+  const [getMajor, setMajor] = useState({});
+
   const [formData, setFormData] = useState({
     class_name: "",
     class_code: "",
+    major_id: "",
     semester: "",
     academic_year: "",
   });
@@ -16,6 +19,27 @@ export default function CreateClass({ stateOpen, onClose }) {
       [e.target.name]: e.target.value,
     });
   };
+
+  useEffect(() => {
+    if (getMajor?.major_id) {
+      setFormData((prev) => ({
+        ...prev,
+        major_id: getMajor.major_id,
+      }));
+    }
+  }, [getMajor?.major_id]);
+
+  useEffect(() => {
+    axios
+      .get("/get-majors")
+      .then((res) => {
+        setMajor(res.data);
+      })
+      .catch((error) => {
+        setMajor({});
+        console.log(error);
+      });
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +56,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           class_name: "",
           class_code: "",
           semester: "",
+          major_id: "",
           academic_year: "",
         });
 
@@ -115,6 +140,20 @@ export default function CreateClass({ stateOpen, onClose }) {
                 required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
                 placeholder="VD: CT101.1"
+              />
+            </div>
+
+            {/* nganh */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🔤 Mã lớp *
+              </label>
+              <input
+                type="text"
+                name="major_id"
+                readOnly
+                value={getMajor?.major_id}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               />
             </div>
 

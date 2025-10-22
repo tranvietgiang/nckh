@@ -12,18 +12,18 @@ use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class StudentsImport implements ToCollection, WithHeadingRow
+class GroupController implements ToCollection, WithHeadingRow
 {
     public $success = 0;
     public $failed = 0;
     public $totalStudent = 0;
 
-    protected ?int $classId;
+    protected ?int $report;
     protected ?string $teacherId;
 
-    public function __construct(?int $classId = null, ?string $teacherId = null)
+    public function __construct(?int $report = null, ?string $teacherId = null)
     {
-        $this->classId   = $classId;
+        $this->report = $report;
         $this->teacherId = $teacherId;
     }
 
@@ -33,18 +33,14 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $this->totalStudent++;
 
             $msv       = trim((string)($row['msv'] ?? ''));
-            $class       = trim((string)($row['lop_sv'] ?? ''));
+            $lop       = trim((string)($row['lop_sv'] ?? ''));
             $ten       = trim((string)($row['ten'] ?? ''));
             $birthdate = trim((string)($row['ngay_sinh'] ?? ''));
             $phone     = trim((string)($row['phone'] ?? ''));
             $email     = trim((string)($row['email'] ?? ''));
-            $major     = trim((string)($row['nganh'] ?? ''));
 
             if (is_numeric($birthdate)) {
                 $birthdate = Date::excelToDateTimeObject($birthdate)->format('d/m/Y');
-            }
-
-            if (!$msv . contains("TT")) {
             }
 
             // ❌ Trường hợp thiếu dữ liệu
@@ -55,7 +51,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'name'       => $ten,
                     'email'      => $email,
                     'reason'     => 'Thiếu thông tin bắt buộc (MSV / Tên / Email)',
-                    'class_id'   => $this->classId,
+                    'class_id'   => $this->report,
                     'teacher_id' => $this->teacherId,
                 ]);
                 continue;
@@ -73,14 +69,14 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'name'       => $ten,
                     'email'      => $email,
                     'reason'     => 'Trùng MSSV hoặc Email',
-                    'class_id'   => $this->classId,
+                    'class_id'   => $this->report,
                     'teacher_id' => $this->teacherId,
                 ]);
                 continue;
             }
 
             // ✅ Tạo sinh viên mới
-            DB::transaction(function () use ($msv, $ten, $email, $phone, $major, $class, $birthdate) {
+            DB::transaction(function () use ($msv, $ten, $email, $phone, $lop, $birthdate) {
                 User::create([
                     'user_id'  => $msv,
                     'email'    => $email,
@@ -92,9 +88,8 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'fullname'      => $ten,
                     'birthdate'     => $birthdate,
                     'phone'         => $phone,
-                    'major'         => $major,
-                    'class_student' => $class,
-                    'class_id'      => $this->classId,
+                    'class_student' => $lop,
+                    'class_id'      => $this->report,
                     'user_id'       => $msv,
                 ]);
             });

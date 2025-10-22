@@ -13,9 +13,10 @@ return new class extends Migration
             $table->string('fullname', 100);
             $table->string('birthdate', 10)->nullable();
             $table->string('phone', 20)->nullable();
+            $table->foreignId("major_id")->constrained('majors', "major_id")->onDelete("cascade");
             $table->string('user_id', 15);
-            $table->string('class_student', 15)->nullable();
             $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->string('class_student', 15)->nullable();
             $table->foreignId('class_id')->constrained('classes', 'class_id')->onDelete('cascade');
             $table->timestamps();
         });

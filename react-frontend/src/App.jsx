@@ -11,6 +11,7 @@ import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
+import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
             {/* Trang chủ sinh viên */}
             <Route path="/nckh-home" element={<StudentDashboard />} />
             {/* Trang import danh sách sinh viên */}
-            <Route path="/nckh-teacher-import" element={<ImportStudents />} />
+            <Route path="/nckh-import-class" element={<ImportStudents />} />
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
             {/* Trang profile */}
@@ -36,6 +37,7 @@ function App() {
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
+            <Route path="/nckh-import-group" element={<ImportGroups />} />
             /*===============================================END============================================
             */
           </Routes>

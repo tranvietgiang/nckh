@@ -14,6 +14,7 @@ return new class extends Migration
             $table->string('class_code', 20);
             $table->string('teacher_id', 15); // FK tới users.user_id
             $table->foreign('teacher_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreignId("major_id")->constrained('majors', "major_id")->onDelete("cascade");
             $table->string('semester', 10);
             $table->string('academic_year', 9);
             $table->timestamps();

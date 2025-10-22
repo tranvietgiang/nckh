@@ -10,6 +10,7 @@ use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GoogleOAuthController;
+use App\Http\Controllers\MajorsController;
 use App\Http\Controllers\SimpleDriveController;
 use Illuminate\Support\Facades\Request;
 
@@ -68,3 +69,8 @@ Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [S
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
 Route::post('/drive-upload', [ReportController::class, 'uploadReport']);
+
+
+Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 'getReport']);
+
+Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getMajors']);
