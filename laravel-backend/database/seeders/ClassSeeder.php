@@ -16,13 +16,37 @@ class ClassSeeder extends Seeder
             'major_abbreviate' => 'CNTT',
         ]);
 
+        Major::create([
+            'major_name' => 'Dồ hoạ',
+            'major_abbreviate' => 'DH',
+        ]);
+
         Classe::create([
             'class_name' => 'Chuyên đề web 1',
-            'class_code' => '20',
+            'class_code' => '1',
             'teacher_id' => 'gv001',
             'semester' => '1',
             'academic_year' => '2025-2026',
             "major_id" => "1"
+        ]);
+
+        Classe::create([
+            'class_name' => 'Đồ họa 1',
+            'class_code' => '2',
+            'teacher_id' => 'gv002',
+            'semester' => '1',
+            'academic_year' => '2025-2026',
+            "major_id" => "1"
+        ]);
+
+
+        Classe::create([
+            'class_name' => 'Đồ họa 1',
+            'class_code' => '3',
+            'teacher_id' => 'gv001',
+            'semester' => '1',
+            'academic_year' => '2025-2026',
+            "major_id" => "2"
         ]);
 
         user_profile::create([
@@ -32,6 +56,24 @@ class ClassSeeder extends Seeder
             'user_id' => 'gv001',
             'class_id' => 1,
             "major_id" => 1
+        ]);
+
+        user_profile::create([
+            'fullname' => 'Phan Thanh Nhuần',
+            'birthdate' => '15/10/2025',
+            'phone' => '012345678',
+            'user_id' => 'gv001',
+            'class_id' => 1,
+            "major_id" => 2
+        ]);
+
+        user_profile::create([
+            'fullname' => 'Nguyễn văn A',
+            'birthdate' => '15/10/2025',
+            'phone' => '012345678',
+            'user_id' => 'gv002',
+            'class_id' => 2,
+            "major_id" => 2
         ]);
     }
 }

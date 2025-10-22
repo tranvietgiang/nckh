@@ -12,8 +12,21 @@ import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
-
+import { getAuth } from "./Components/Constants/INFO_USER";
+import { useEffect } from "react";
+import { removeSafeJSON } from "./Components/ReUse/LocalStorage/LocalStorageSafeJSON";
+import ClassShowManager from "./Components/Pages/Teacher/Features/ClassShowManager";
+// import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 function App() {
+  const { user, token } = getAuth();
+  useEffect(() => {
+    if (!user || !token) {
+      window.location.href = "/nckh-login";
+      removeSafeJSON("user");
+      removeSafeJSON("token");
+    }
+  }, []);
+
   return (
     <>
       <Router>
@@ -37,7 +50,12 @@ function App() {
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
+            {/* Trang import ds nhóm */}
             <Route path="/nckh-import-group" element={<ImportGroups />} />
+            {/* Trang import ds nhóm */}
+            {/* <Route path="/nckh-import-major" element={<MajorImportPage />} /> */}
+            {/* Trang xem các lớp đang dạy */}
+            <Route path="/nckh-show-classes" element={<ClassShowManager />} />
             /*===============================================END============================================
             */
           </Routes>

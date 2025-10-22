@@ -33,7 +33,7 @@ Route::middleware('auth:sanctum')->get('/get-class-teacher', [NotificationContro
 /**Tạo thông báo gửi đến sinh viên */
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
 
-Route::get('/get-profile', [StudentController::class, 'getProfile']);
+Route::get('/profiles', [StudentController::class, 'getProfile']);
 
 /**Lấy danh sách ở trong phần admin */
 Route::get('/users', [AdminController::class, 'getUser']);
@@ -51,7 +51,9 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 /**xóa sinh viên */
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
-Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
+// Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
+Route::middleware('auth:sanctum')->get('/classes', [ClassController::class, 'getClassByTeacher']);
+Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'inertsClassNew']);
 
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
@@ -60,7 +62,6 @@ Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudents
 Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify']);
 
 /**Tạo lớp học mới */
-Route::middleware('auth:sanctum')->post('/classes/inerts-class-new', [ClassController::class, 'inertsClassNew']);
 
 /**lấy ra lỗi sau khi import ds sinh viên */
 Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);
@@ -73,4 +74,4 @@ Route::post('/drive-upload', [ReportController::class, 'uploadReport']);
 
 Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 'getReport']);
 
-Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getMajors']);
+Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);

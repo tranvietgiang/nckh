@@ -107,9 +107,10 @@ class StudentController extends Controller
 
 
         if ($role === "student") {
-            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*")
+            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
                 ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
                 ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
+                ->leftJoin("majors", "user_profiles.major_id", "=", "majors.major_id")
                 ->where("users.user_id", $user_id)
                 ->where('users.role', $role)
                 ->first();
@@ -119,9 +120,10 @@ class StudentController extends Controller
             }
             return response()->json($dataProfile, 200);
         } else if ($role === "teacher") {
-            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*")
+            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
                 ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->join("classes", "users.user_id", "=", "classes.teacher_id")
+                ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
+                ->leftJoin("majors", "user_profiles.major_id", "=", "majors.major_id")
                 ->where("users.user_id", $user_id)
                 ->where('users.role', $role)
                 ->get();
@@ -137,7 +139,7 @@ class StudentController extends Controller
                 "phone" => $dataProfile[0]->phone,
                 "birthdate" => $dataProfile[0]->birthdate,
                 "role" => $dataProfile[0]->role,
-                // "nganh" => $dataProfile[0]->nganh,
+                "major" => $dataProfile->pluck('major_name')->unique()->values(),
                 "classes" => $dataProfile->pluck('class_name')->unique()->values(),
             ];
             return response()->json($Info, 200);

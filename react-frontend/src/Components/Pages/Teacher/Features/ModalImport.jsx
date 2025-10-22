@@ -5,7 +5,7 @@ export default function ModalImport({ stateOpen, onClose }) {
   if (!stateOpen) return null;
 
   const handleImportClass = () => {
-    navigate("/nckh-import-class");
+    navigate("/nckh-show-classes");
   };
 
   const handleImportGroup = () => {

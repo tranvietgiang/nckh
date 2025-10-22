@@ -15,6 +15,7 @@ class User extends Authenticatable
     protected $table = 'users'; // tên bảng (nếu bạn không đổi)
     protected $primaryKey = 'user_id'; // KHÓA CHÍNH trong bảng của bạn
     protected $keyType = 'string'; // 🔹 Bắt buộc giữ nguyên dạng chuỗi
+    public $incrementing = false;
 
     /**
      * The attributes that are mass assignable.

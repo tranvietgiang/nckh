@@ -29,7 +29,7 @@ class AuthController extends Controller
         $token = $user->createToken('api-token')->plainTextToken;
         // get info
         $userProfile = User::select("users.*", "user_profiles.*")
-            ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
+            ->leftJoin("user_profiles", "users.user_id", "=", "user_profiles.user_id")
             ->where('users.user_id', $username)->first();
 
 
