@@ -24,7 +24,7 @@ export default function ClassManagement() {
   // 🧠 Lấy danh sách lớp mà giảng viên phụ trách
   useEffect(() => {
     axios
-      .get(`/classes/teacher/${teacherId}`)
+      .get(`/classes`)
       .then((res) => {
         setClasses(res.data);
         setLoading(false);

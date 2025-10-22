@@ -13,6 +13,7 @@ use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MajorsController;
 use App\Http\Controllers\SimpleDriveController;
 use Illuminate\Support\Facades\Request;
+use App\Http\Controllers\UserController;
 
 Route::post("/test", function () {
     return "test";
@@ -80,3 +81,6 @@ Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsBy
 Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 'getReport']);
 /**Láy ra ds ngành */
 Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
+
+// đổi mật khẩu 
+Route::middleware('auth:sanctum')->post('/change-password', [UserController::class, 'changePassword']);
