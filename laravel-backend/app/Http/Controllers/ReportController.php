@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Report;
 use Illuminate\Http\Request;
 
 use Google\Client;
@@ -203,4 +204,15 @@ class ReportController extends Controller
         ]);
     }
 
+
+
+
+    public function getReport()
+    {
+        $getReport = Report::select("reports.*", "classes.*")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->where("reports.status", "submitted")->get();
+
+        return response()->json($getReport);
+    }
 }

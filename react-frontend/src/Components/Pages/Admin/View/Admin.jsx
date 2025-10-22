@@ -128,6 +128,7 @@ export default function AdminManagement() {
     { id: "teachers", label: "Giảng Viên", icon: Users },
     { id: "reports", label: "Báo Cáo", icon: FileText },
     { id: "notifications", label: "Thông Báo", icon: Bell },
+    { id: "import", label: "import", icon: Bell },
     { id: "settings", label: "Cài Đặt", icon: Settings },
   ];
 

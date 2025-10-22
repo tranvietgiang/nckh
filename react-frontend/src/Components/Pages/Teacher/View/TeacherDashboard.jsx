@@ -5,8 +5,11 @@ import RouterHome from "../../../ReUse/Router/RouterHome";
 import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
+import ModalImport from "../Features/ModalImport";
+
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
+  const [openImports, setOpenImports] = useState(false);
   const { user, token } = getAuth();
   RouterHome(user, token);
 
@@ -16,12 +19,10 @@ export default function TeacherDashboard() {
 
   // Hàm xử lý click button đơn giản
   const handleButtonClick = (buttonName) => {
-    console.log("Button clicked:", buttonName);
-
     // Xử lý theo từng button
     switch (buttonName) {
-      case "Import Lớp":
-        handleImportClass();
+      case "Import":
+        handleImport();
         break;
       case "Quản Lý Lớp":
         handleManageClass();
@@ -42,9 +43,11 @@ export default function TeacherDashboard() {
 
   const navigate = useNavigate();
   // Các hàm xử lý đơn giản
-  const handleImportClass = () => {
+
+  const handleImport = () => {
     console.log("Xử lý Import Lớp...");
-    navigate("/nckh-teacher-import");
+    // navigate("/nckh-teacher-import");
+    setOpenImports(true);
   };
 
   const handleManageClass = () => {
@@ -60,7 +63,6 @@ export default function TeacherDashboard() {
   };
 
   const handleCreateNotification = () => {
-    console.log("Xử lý Tạo Thông Báo...");
     setOpenNotification(true);
   };
 
@@ -112,7 +114,7 @@ export default function TeacherDashboard() {
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              "Import Lớp",
+              "Import",
               "Quản Lý Lớp",
               "Tạo Báo Cáo",
               "Chấm Điểm",
@@ -172,6 +174,9 @@ export default function TeacherDashboard() {
         stateOpen={openNotification}
         onClose={setOpenNotification}
       />
+
+      <ModalImport stateOpen={openImports} onClose={setOpenImports} />
+
       <Footer />
     </div>
   );

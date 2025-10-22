@@ -1,53 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
 import { getUser } from "../../../Constants/INFO_USER";
 export default function PendingReports() {
   const user = getUser();
-  console.log(user?.email);
-  const reports = [
-    {
-      title: "Báo cáo cuối kỳ: Hệ thống nộp đồ án trực tuyến",
-      mon: "Chuyên đề web 1",
-      hanNop: "15/12/2024 (3 ngày nữa)",
-      yeuCau: "PDF / DOCX / ZIP",
-      trangThai: "✅ Chưa nộp",
-      nam: "2025",
-    },
-  ];
-
+  const [getReport, setReports] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [link, setLink] = useState("");
 
-  // const handleSubmit = async (file) => {
-  //   if (!file) return alert("Vui lòng chọn file!");
-
-  //   setMessage("");
-  //   setUploading(true);
-  //   setLink("");
-
-  //   const formData = new FormData();
-  //   formData.append("file", file);
-  //   formData.append("email", user?.email); // email thật
-
-  //   try {
-  //     const res = await axios.post("/drive-upload", formData, {
-  //       headers: {
-  //         "Content-Type": "multipart/form-data",
-  //       },
-  //     });
-
-  //     setMessage(res.data.message);
-  //     setLink(res.data.drive_url);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setMessage("❌ Upload thất bại!");
-  //   } finally {
-  //     setUploading(false);
-  //   }
-  // };
+  useEffect(() => {
+    axios
+      .get("/get-report")
+      .then((res) => {
+        setReports(res.data);
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
 
   const handleSubmit = async (file) => {
     if (!file) {
@@ -81,7 +54,7 @@ export default function PendingReports() {
         DANH SÁCH BÁO CÁO CHƯA NỘP
       </h1>
 
-      {reports.map((report, index) => (
+      {getReport?.map((report, index) => (
         <div key={index} className="mb-6">
           <div className="border border-gray-300 rounded-lg p-4 bg-white hover:shadow-md transition">
             <h2 className="font-semibold text-lg mb-2 text-gray-800">
@@ -90,10 +63,10 @@ export default function PendingReports() {
 
             <div className="space-y-1 text-sm text-gray-600">
               <p>
-                <strong>Môn:</strong> {report.mon}
+                <strong>Môn:</strong> {report.report_name}
               </p>
               <p>
-                <strong>Hạn nộp:</strong> {report.hanNop}
+                <strong>Hạn nộp:</strong> {report.end_date}
               </p>
               <p>
                 <strong>Yêu cầu:</strong> {report.yeuCau}

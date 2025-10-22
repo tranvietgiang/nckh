@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Classe;
-use App\Models\user_profile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\AuthHelper;
+use App\Models\Major;
 
 class ClassController extends Controller
 {
@@ -21,9 +22,19 @@ class ClassController extends Controller
     }
 
     //lấy lớp  học thấy  id giảng viên 
-    public function getClassByTeacher($id)
+    public function getClassByTeacher()
     {
-        $classes = Classe::where('teacher_id', $id)->get();
+
+        if (!Auth::check()) {
+            return response()->json(["login" => "Bạn chưa login"], 401);
+        }
+
+        $teacherId = Auth::id();
+        if (!$teacherId) {
+            return response()->json(["message_error" => "Lỗi dữ  liệu"], 401);
+        }
+
+        $classes = Classe::where('teacher_id', $teacherId)->get();
 
         return response()->json($classes);
     }
@@ -95,12 +106,9 @@ class ClassController extends Controller
 
     public function inertsClassNew(Request $request)
     {
-        if (!Auth::check()) {
-            return response()->json(["message_error" => "Vui lòng đăng nhập tài khoản!"], 401);
-        }
+        $userId = AuthHelper::isLogin();
 
         $data = $request->all() ?? [];
-        $userId = Auth::id() ?? null;
 
         if (!is_array($data)) {
             response()->json([
@@ -108,9 +116,14 @@ class ClassController extends Controller
             ], 402);
         }
 
-        $check = Classe::where("class_name", $data["class_name"])
+        $check = Classe::where("class_name", $data["class_name"])->where("class_code", $data["class_code"])
             ->where("teacher_id", $userId)->exists();
 
+        $major = Major::where("major_id", $data["major_id"])->exists();
+
+        if (!$major) {
+            return response()->json(["message_error" => "Ngành này không tồn tại!"], 402);
+        }
 
         if ($check) {
             return response()->json(["message_error" => "Lớp này đã tồn tai!"], 402);
@@ -122,6 +135,7 @@ class ClassController extends Controller
             "teacher_id" => $userId,
             "semester" => $data["semester"],
             "academic_year" => $data["academic_year"],
+            "major_id" => $data["major_id"]
         ]);
 
         if ($class) {

@@ -30,17 +30,18 @@ export default function ProfilePage() {
 
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;
-    const data_user_profile = getSafeJSON("user_profile");
+    const data_user_profile = getSafeJSON("user_profiles");
     if (data_user_profile) {
       setProfile(data_user_profile);
     }
 
     try {
-      const res = await axios.get("/get-profile", {
+      const res = await axios.get("/profiles", {
         params: { role, user_id },
       });
       setProfile(res.data);
-      setSafeJSON("user_profile", JSON.stringify(res.data));
+      console.log(res.data);
+      setSafeJSON("user_profiles", JSON.stringify(res.data));
     } catch (error) {
       console.log(error);
     }
@@ -111,10 +112,20 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {role === "student" ? "Ngành học" : "Ngành"}
+                        {role === "student" ? "Ngành" : "Các ngành đang dạy"}
                       </label>
                       <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {getProfile?.major ?? "?"}
+                        {role === "student" ? (
+                          <span>{getProfile?.major_name ?? "lỗi"}</span>
+                        ) : getProfile?.major?.length > 0 ? (
+                          getProfile.major.map((cls, index) => (
+                            <p key={index} className="mb-1">
+                              {cls}
+                            </p>
+                          ))
+                        ) : (
+                          <p>Lỗi</p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -131,7 +142,7 @@ export default function ProfilePage() {
                             </p>
                           ))
                         ) : (
-                          <p>Không có lớp nào</p>
+                          <p>Lỗi</p>
                         )}
                       </div>
                     </div>

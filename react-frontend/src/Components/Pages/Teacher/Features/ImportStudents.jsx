@@ -6,7 +6,6 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { getAuth } from "../../../Constants/INFO_USER";
-import ModalCreateClass from "./ModalCreateClass";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import {
   getSafeJSON,
@@ -24,7 +23,6 @@ function ImportStudents() {
   const navigate = useNavigate();
   const { user, token } = getAuth();
   const idTeacher = user?.user_id ?? null;
-  const [isCreateClassOpen, setIsCreateClassOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [classes, setClasses] = useState([]);
   useEffect(() => {
@@ -211,18 +209,6 @@ function ImportStudents() {
                     )}
                   </select>
                 )}
-              </div>
-              <div>
-                <button
-                  onClick={() => setIsCreateClassOpen(true)}
-                  className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition"
-                >
-                  🏫 Tạo Lớp Học Mới
-                </button>
-                <ModalCreateClass
-                  stateOpen={isCreateClassOpen}
-                  onClose={setIsCreateClassOpen}
-                />
               </div>
             </div>
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">

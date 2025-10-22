@@ -23,5 +23,11 @@ class UserSeeder extends Seeder
             'password' => Hash::make('gv001'),
             'role' => 'teacher',
         ]);
+        User::create([
+            'user_id' => 'gv002',
+            'email' => 'gv002@tdc.edu.vn',
+            'password' => Hash::make('gv002'),
+            'role' => 'teacher',
+        ]);
     }
 }
