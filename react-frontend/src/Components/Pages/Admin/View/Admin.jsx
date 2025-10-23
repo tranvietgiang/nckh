@@ -19,6 +19,10 @@ import {
 import axios from "../../../../config/axios";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import Dashboard from "./components/Dashboard";
+import StudentsTeachersTab from "./components/StudentsTeachersTab";
+import ReportsManagement from "./components/Reports";
+import MajorImportPage from "./components/MajorImportPage";
 
 export default function AdminManagement() {
   const [activeTab, setActiveTab] = useState("students");
@@ -45,7 +49,7 @@ export default function AdminManagement() {
       const response = await axios.get("/submissions");
       const data = response.data; // 
 
-      
+
       const validReports = data.filter(
         (item) => item.status === "submitted" || item.status === "graded"
       );
@@ -55,7 +59,6 @@ export default function AdminManagement() {
       console.error("Lỗi khi tải báo cáo:", error);
     }
   };
-
 
   /**Thông báo ẩn hiện */
   const showSuccessToast = (msg) => {
@@ -127,6 +130,7 @@ export default function AdminManagement() {
     { id: "students", label: "Sinh Viên", icon: GraduationCap },
     { id: "teachers", label: "Giảng Viên", icon: Users },
     { id: "reports", label: "Báo Cáo", icon: FileText },
+    { id: "Major", label: "Ngành", icon: BookOpen },
     { id: "notifications", label: "Thông Báo", icon: Bell },
     { id: "import", label: "import", icon: Bell },
     { id: "settings", label: "Cài Đặt", icon: Settings },
@@ -236,447 +240,77 @@ export default function AdminManagement() {
   const filteredTeachers = filterData(teachers);
 
   const renderContent = () => {
-    if (activeMenu === "dashboard") {
-      return (
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-            Tổng Quan Hệ Thống
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-xs sm:text-sm font-medium">
-                    Tổng Sinh Viên
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1 sm:mt-2">
-                    {students.length}
-                  </p>
-                </div>
-                <div className="bg-blue-100 p-2 sm:p-3 rounded-full">
-                  <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-green-500 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-xs sm:text-sm font-medium">
-                    Tổng Giảng Viên
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1 sm:mt-2">
-                    {teachers.length}
-                  </p>
-                </div>
-                <div className="bg-green-100 p-2 sm:p-3 rounded-full">
-                  <Users className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-purple-500 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-xs sm:text-sm font-medium">
-                    Tổng Báo Cáo
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1 sm:mt-2">
-                    {totalReports}
-                  </p>
-                </div>
-                <div className="bg-purple-100 p-2 sm:p-3 rounded-full">
-                  <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 border-l-4 border-red-500 hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-xs sm:text-sm font-medium">
-                    Báo Cáo Lỗi
-                  </p>
-                  <p className="text-2xl sm:text-3xl font-bold text-gray-800 mt-1 sm:mt-2">
-                    {errorReports}
-                  </p>
-                </div>
-                <div className="bg-red-100 p-2 sm:p-3 rounded-full">
-                  <AlertTriangle className="w-6 h-6 sm:w-8 sm:h-8 text-red-600" />
-                </div>
-              </div>
-            </div>
-          </div>
+    switch (activeMenu) {
+      case "dashboard":
+        return (
+          <Dashboard
+            students={students}
+            teachers={teachers}
+            totalReports={totalReports}
+            errorReports={errorReports}
+          />
+        );
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      case "students":
+      case "teachers":
+        return (
+          <StudentsTeachersTab
+            activeMenu={activeMenu}
+            activeTab={activeTab}
+            setActiveMenu={setActiveMenu}
+            setActiveTab={setActiveTab}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            openModal={openModal}
+            showToast={showToast}
+            toastMessage={toastMessage}
+            filteredStudents={filteredStudents}
+            filteredTeachers={filteredTeachers}
+            handleDelete={handleDelete}
+          />
+        );
+
+      case "reports":
+        return <ReportsManagement reports={reports} />;
+      case "majors": // 🆕 Thêm phần này
+        return <MajorImportPage />;
+      case "notifications":
+        return (
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
+              Thông Báo
+            </h2>
             <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
-                Hoạt Động Gần Đây
-              </h3>
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center p-2 sm:p-3 bg-blue-50 rounded-lg">
-                  <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mr-2 sm:mr-3 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">
-                      Sinh viên mới được thêm
-                    </p>
-                    <p className="text-xs text-gray-600">5 phút trước</p>
-                  </div>
-                </div>
-                <div className="flex items-center p-2 sm:p-3 bg-green-50 rounded-lg">
-                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 mr-2 sm:mr-3 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">
-                      Báo cáo mới được nộp
-                    </p>
-                    <p className="text-xs text-gray-600">15 phút trước</p>
-                  </div>
-                </div>
-                <div className="flex items-center p-2 sm:p-3 bg-red-50 rounded-lg">
-                  <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600 mr-2 sm:mr-3 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-medium text-gray-800 truncate">
-                      Phát hiện báo cáo lỗi
-                    </p>
-                    <p className="text-xs text-gray-600">1 giờ trước</p>
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm sm:text-base text-gray-600">
+                Chức năng thông báo đang được phát triển...
+              </p>
             </div>
+          </div>
+        );
 
+      case "settings":
+        return (
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
+              Cài Đặt Hệ Thống
+            </h2>
             <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-              <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
-                Thống Kê Báo Cáo
-              </h3>
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-medium text-gray-700">
-                      Hoàn Thành
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-green-600">
-                      60%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-green-600 h-2 rounded-full"
-                      style={{ width: "60%" }}
-                    ></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-medium text-gray-700">
-                      Đang Chờ
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-yellow-600">
-                      20%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-yellow-600 h-2 rounded-full"
-                      style={{ width: "20%" }}
-                    ></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="text-xs sm:text-sm font-medium text-gray-700">
-                      Lỗi
-                    </span>
-                    <span className="text-xs sm:text-sm font-medium text-red-600">
-                      20%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-red-600 h-2 rounded-full"
-                      style={{ width: "20%" }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
+              <p className="text-sm sm:text-base text-gray-600">
+                Chức năng cài đặt đang được phát triển...
+              </p>
             </div>
           </div>
-        </div>
-      );
-    }
+        );
 
-    if (activeMenu === "students" || activeMenu === "teachers") {
-      return (
-        <div>
-          <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6">
-            <div className="border-b border-gray-200 overflow-x-auto">
-              <nav className="flex -mb-px whitespace-nowrap">
-                <button
-                  onClick={() => {
-                    setActiveTab("students");
-                    setActiveMenu("students");
-                  }}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "students"
-                    ? "border-indigo-600 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                >
-                  <div className="flex items-center space-x-1 sm:space-x-2">
-                    <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>Sinh Viên</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveTab("teachers");
-                    setActiveMenu("teachers");
-                  }}
-                  className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "teachers"
-                    ? "border-indigo-600 text-indigo-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                    }`}
-                >
-                  <div className="flex items-center space-x-1 sm:space-x-2">
-                    <Users className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span>Giảng Viên</span>
-                  </div>
-                </button>
-              </nav>
-            </div>
-
-            <div className="p-3 sm:p-6 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 sm:gap-4">
-              <div className="relative w-full sm:w-64 lg:w-96">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                />
-              </div>
-              <button
-                onClick={() => openModal("add")}
-                className="flex items-center justify-center space-x-2 bg-indigo-600 text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors shadow-md text-sm"
-              >
-                <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span className="whitespace-nowrap">
-                  Thêm {activeTab === "students" ? "SV" : "GV"}
-                </span>
-              </button>
-            </div>
+      default:
+        return (
+          <div className="text-center text-gray-500">
+            Vui lòng chọn một mục trong menu bên trái.
           </div>
-          {showToast && (
-            <div className="{`fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500 ${showToast ? 'opacity-100' : 'opacity-0'}">
-              {toastMessage}
-            </div>
-          )}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {activeTab === "students" ? (
-                      <>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Mã SV
-                        </th>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Role
-                        </th>
-                        <th className="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Chuyên Ngành
-                        </th>
-                        <th className="hidden xl:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Lớp
-                        </th>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Thao Tác
-                        </th>
-                      </>
-                    ) : (
-                      <>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Mã GV
-                        </th>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Họ Tên
-                        </th>
-                        <th className="hidden md:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th className="hidden lg:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Khoa
-                        </th>
-                        <th className="hidden xl:table-cell px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Chức Vụ
-                        </th>
-                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Thao Tác
-                        </th>
-                      </>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {activeTab === "students"
-                    ? filteredStudents.map((student) => (
-                      <tr
-                        key={student.id || student.studentId}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                          {student.user_id}
-                        </td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                          {student.role}
-                        </td>
-                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                          {student.email}
-                        </td>
-                        <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
-                        <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600"></td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                          <div className="flex items-center space-x-2 sm:space-x-4">
-                            <button
-                              onClick={() => openModal("edit", student)}
-                              className="text-indigo-600 hover:text-indigo-900"
-                            >
-                              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(student.user_id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                    : filteredTeachers.map((teacher) => (
-                      <tr
-                        key={teacher.id}
-                        className="hover:bg-gray-50 transition-colors"
-                      >
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium text-gray-900">
-                          {teacher.user_id}
-                        </td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
-                          {teacher.role}
-                        </td>
-                        <td className="hidden md:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                          {teacher.email}
-                        </td>
-                        <td className="hidden lg:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                          {teacher.department}
-                        </td>
-                        <td className="hidden xl:table-cell px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-600">
-                          {teacher.position}
-                        </td>
-                        <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm font-medium">
-                          <div className="flex items-center space-x-2 sm:space-x-4">
-                            <button
-                              onClick={() => openModal("edit", teacher)}
-                              className="text-indigo-600 hover:text-indigo-900"
-                            >
-                              <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(teacher.id)}
-                              className="text-red-600 hover:text-red-900"
-                            >
-                              <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    if (activeMenu === "reports") {
-      return (
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-            Quản Lý Báo Cáo
-          </h2>
-
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 overflow-x-auto">
-            {reports.length === 0 ? (
-              <p className="text-gray-500 text-sm">Chưa có báo cáo hợp lệ.</p>
-            ) : (
-              <table className="w-full border-collapse text-sm sm:text-base">
-                <thead>
-                  <tr className="bg-gray-100 text-gray-700">
-                    <th className="p-2 text-left">Mã báo cáo</th>
-                    <th className="p-2 text-left">Mã sinh viên</th>
-                    <th className="p-2 text-left">Tên sinh viên</th>
-                    <th className="p-2 text-left">Trạng thái</th>
-                    <th className="p-2 text-left">Ngày nộp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reports.map((report) => (
-                    <tr key={report.submission_id} className="border-b hover:bg-gray-50">
-                      <td className="p-2">{report.submission_id}</td>
-                      <td className="p-2">{report.student_id}</td>
-                      <td className="p-2">{report.student_name}</td>
-                      <td className="p-2 capitalize">
-                        {report.status === "graded"
-                          ? "✅ Đã chấm"
-                          : report.status === "submitted"
-                            ? "📄 Đã nộp"
-                            : "❌ Lỗi"}
-                      </td>
-                      <td className="p-2">
-                        {new Date(report.submission_time).toLocaleDateString("vi-VN")}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </div>
-      );
-    }
-
-
-    if (activeMenu === "notifications") {
-      return (
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-            Thông Báo
-          </h2>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <p className="text-sm sm:text-base text-gray-600">
-              Chức năng thông báo đang được phát triển...
-            </p>
-          </div>
-        </div>
-      );
-    }
-
-    if (activeMenu === "settings") {
-      return (
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
-            Cài Đặt Hệ Thống
-          </h2>
-          <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <p className="text-sm sm:text-base text-gray-600">
-              Chức năng cài đặt đang được phát triển...
-            </p>
-          </div>
-        </div>
-      );
+        );
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
@@ -932,3 +566,5 @@ export default function AdminManagement() {
     </div>
   );
 }
+
+
