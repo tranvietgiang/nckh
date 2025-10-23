@@ -51,19 +51,45 @@ export default function ProfilePage() {
     fetchDataProfile();
   }, []);
 
-  const handlePasswordChange = (e) => {
-    e.preventDefault();
-    // Xử lý đổi mật khẩu ở đây
-    if (newPassword !== confirmPassword) {
-      alert("Mật khẩu xác nhận không khớp!");
-      return;
-    }
-    alert("Đổi mật khẩu thành công!");
+const handlePasswordChange = async (e) => {
+  e.preventDefault();
+
+  // Kiểm tra xác nhận mật khẩu mới
+  if (newPassword !== confirmPassword) {
+    alert("❌ Mật khẩu xác nhận không khớp!");
+    return;
+  }
+
+  try {
+    const res = await axios.post(
+      "/change-password", // ✅ API đổi mật khẩu trong Laravel
+      {
+        current_password: currentPassword,
+        new_password: newPassword,
+        new_password_confirmation: confirmPassword,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`, // ✅ Token Sanctum
+        },
+      }
+    );
+
+    alert("✅ " + res.data.message);
+
+    // Reset form
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
     setShowPasswordForm(false);
-  };
+  } catch (error) {
+    console.log(error);
+    const msg =
+      error.response?.data?.message || "⚠️ Có lỗi xảy ra khi đổi mật khẩu!";
+    alert(msg);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-50">
