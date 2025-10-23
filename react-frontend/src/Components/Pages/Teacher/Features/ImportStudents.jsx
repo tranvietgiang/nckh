@@ -31,6 +31,7 @@ function ImportStudents() {
   IsLogin(user, token);
   const location = useLocation();
   const class_id = location.state?.class_id;
+  const major_id = location.state?.major_id;
 
   useEffect(() => {
     axios
@@ -43,7 +44,7 @@ function ImportStudents() {
       });
   }, []);
 
-  console.log(class_id); // Kiểm tra giá trị
+  console.log(class_id, major_id); // Kiểm tra giá trị
 
   // Xử lý chọn file
   const handleFileChange = (e) => {
@@ -61,6 +62,7 @@ function ImportStudents() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("class_id", class_id);
+    formData.append("major_id", major_id);
 
     try {
       // Gửi file tới Laravel API

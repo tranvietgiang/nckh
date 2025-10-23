@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\User;
 use App\Models\user_profile;
 use App\Models\ImportError;
+use App\Models\Major;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,15 +21,39 @@ class StudentsImport implements ToCollection, WithHeadingRow
 
     protected ?int $classId;
     protected ?string $teacherId;
+    protected ?string $majorId;
 
-    public function __construct(?int $classId = null, ?string $teacherId = null)
+    public function __construct(?int $classId = null, ?string $teacherId = null, ?string $majorId = null)
     {
         $this->classId   = $classId;
         $this->teacherId = $teacherId;
+        $this->majorId = $majorId;
     }
 
     public function collection(Collection $rows)
     {
+        $majorExist = Major::where("major_id", $this->majorId)->exists();
+        $teacherExist = user_profile::where("user_id", $this->teacherId)->exists();
+        $classExist = Major::where("class_id", $this->classId)->exists();
+
+        if (!$majorExist || !$teacherExist || !$classExist) {
+            throw new \Exception("❌ Lỗi server!");
+        }
+
+        $teacherValid = user_profile::select("user_profiles.user_id")
+            ->join("classes", "classes.teacher_id", "=", "user_profiles.user_id")
+            ->join("majors", "classes.major_id", "=", "majors.major_id")
+            ->where("user_profiles.user_id", $this->teacherId)
+            ->where("classes.class_id", $this->classId)
+            ->where("majors.major_id", $this->majorId)
+            ->exists();
+
+        if (!$teacherValid) {
+            throw new \Exception("❌ Giáo viên không dạy lớp này hoặc lớp không thuộc ngành đã chọn!");
+        }
+
+
+
         foreach ($rows as $row) {
             $this->totalStudent++;
 
@@ -39,7 +64,6 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $birthdate = trim((string)($row['ngay_sinh'] ?? ''));
             $phone     = trim((string)($row['phone'] ?? ''));
             $email     = strtolower(trim((string)($row['email'] ?? '')));
-            $major     = strtolower(trim((string)($row['nganh'] ?? '')));
 
             // --- Chuẩn hóa ngày ---
             if (is_numeric($birthdate)) {
@@ -64,16 +88,19 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // --- Kiểm tra ngành & mã SV ---
+
+
+
+            // --- Kiểm tra ngành & mã SV --- sửa kiểm tra dựa trên cái majors mà trên kia tôi lấy ra
             $mapMajor = [
                 'cntt' => 'TT',
                 'dh'   => 'DH',
-                'kt'   => 'KT',
             ];
 
-            $expectedPrefix = $mapMajor[$major] ?? null;
 
-            if ($expectedPrefix && !str_contains($msv, $expectedPrefix)) {
+
+
+            if (!str_contains($msv, 'TT')) {
                 $this->failed++;
                 ImportError::create([
                     'user_id'    => $msv,
@@ -106,7 +133,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
 
             // --- Tạo sinh viên ---
             try {
-                DB::transaction(function () use ($msv, $ten, $email, $phone, $major, $class, $birthdate) {
+                DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
                     User::create([
                         'user_id'  => $msv,
                         'email'    => $email,
@@ -118,7 +145,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                         'fullname'      => $ten,
                         'birthdate'     => $birthdate,
                         'phone'         => $phone,
-                        'major'         => $major,
+                        'major_id'      => $this->majorId,
                         'class_student' => $class,
                         'class_id'      => $this->classId,
                         'user_id'       => $msv,

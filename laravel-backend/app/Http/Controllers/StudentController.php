@@ -22,6 +22,7 @@ class StudentController extends Controller
 
         $validated = $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv',
+            'major_id' => 'required|integer',
             'class_id' => [
                 'required',
                 'integer',
@@ -32,9 +33,10 @@ class StudentController extends Controller
         ]);
 
         $classId = (int) $validated['class_id'];
+        $majorId = (int) $validated['major_id'];
 
         // Tạo instance để lấy thống kê sau import
-        $import = new StudentsImport(classId: $classId, teacherId: $teacherId);
+        $import = new StudentsImport(classId: $classId, teacherId: $teacherId, majorId: $majorId);
 
         // Chỉ import 1 lần
         Excel::import($import, $validated['file']);

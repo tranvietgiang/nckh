@@ -183,7 +183,10 @@ export default function ClassShowManager() {
                               <button
                                 onClick={() =>
                                   navigate("/nckh-import-class", {
-                                    state: { class_id: classItem.class_id },
+                                    state: {
+                                      class_id: classItem.class_id,
+                                      major_id: classItem.major_id,
+                                    },
                                   })
                                 }
                                 className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center space-x-1"
