@@ -85,11 +85,6 @@ export default function ClassShowManager() {
     }
   };
 
-  // Xử lý import cho từng lớp - THÊM HÀM NÀY
-  const handleImportForClass = (classId) => {
-    navigate(`/nckh-import-class/class_id=${classId}`);
-  };
-
   // Lọc classes theo major_id
   const getClassesByMajor = (majorId) => {
     return getClasses.filter((classItem) => classItem.major_id === majorId);
@@ -187,7 +182,9 @@ export default function ClassShowManager() {
                               </button>
                               <button
                                 onClick={() =>
-                                  handleImportForClass(classItem.class_id)
+                                  navigate("/nckh-import-class", {
+                                    state: { class_id: classItem.class_id },
+                                  })
                                 }
                                 className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center space-x-1"
                               >

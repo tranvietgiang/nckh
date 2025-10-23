@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
@@ -28,8 +29,21 @@ function ImportStudents() {
   }, []);
 
   IsLogin(user, token);
+  const location = useLocation();
+  const class_id = location.state?.class_id;
 
-  const { class_id } = useParams();
+  useEffect(() => {
+    axios
+      .get("/classes")
+      .then((res) => {
+        console.log(res.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, []);
+
+  console.log(class_id); // Kiểm tra giá trị
 
   // Xử lý chọn file
   const handleFileChange = (e) => {
@@ -166,6 +180,9 @@ function ImportStudents() {
             <p className="text-gray-600">
               Tải lên file Excel để import danh sách sinh viên vào hệ thống
             </p>
+          </div>
+          <div className="text-center m-5 text-2xl font-bold">
+            Lớp id demo: {class_id}
           </div>
           <RouterBack navigate={navigate} />
           <div className="bg-white rounded-xl shadow-md p-6 mb-8">

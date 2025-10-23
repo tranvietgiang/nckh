@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('user_id', 15)->nullable();
             $table->string('fullname', 50)->nullable();
             $table->string('email')->nullable();
-            $table->string('reason')->nullable();
+            $table->string('reason', 225)->nullable();
             $table->foreignId('class_id')->constrained("classes", "class_id")->nullable();
             $table->string('teacher_id', 15)->nullable();
             $table->foreign('teacher_id')

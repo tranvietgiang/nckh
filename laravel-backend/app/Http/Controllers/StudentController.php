@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuthHelper;
 use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
@@ -16,19 +17,21 @@ class StudentController extends Controller
     //
     public function import(Request $request)
     {
+
+        $teacherId = AuthHelper::isLogin();
+
         $validated = $request->validate([
             'file' => 'required|file|mimes:xlsx,xls,csv',
             'class_id' => [
                 'required',
                 'integer',
-                Rule::exists('classes', 'class_id')->where(function ($q) {
-                    $q->where('teacher_id', Auth::id());
+                Rule::exists('classes', 'class_id')->where(function ($q) use ($teacherId) {
+                    $q->where('teacher_id', $teacherId);
                 }),
             ],
         ]);
 
-        $classId   = (int) $validated['class_id'];
-        $teacherId = Auth::id();
+        $classId = (int) $validated['class_id'];
 
         // Tạo instance để lấy thống kê sau import
         $import = new StudentsImport(classId: $classId, teacherId: $teacherId);
@@ -61,18 +64,18 @@ class StudentController extends Controller
 
     public function getStudent($selectedClass)
     {
-        $userId = Auth::id();
-        if (!Auth::check()) {
-            return response()->json(["message_error" => "Vui lòng đăng nhâp"], 401);
-        }
+        $userId = AuthHelper::isLogin();
+
 
         $students = User::select(
             'users.*',
             'user_profiles.*',
-            'classes.*'
+            'classes.*',
+            "majors.*"
         )
             ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
+            ->join('majors', "user_profiles.major_id", "=", "majors.major_id")
             ->where('users.role', 'student')
             ->where("user_profiles.class_id", $selectedClass)
             ->where("classes.teacher_id", $userId)

@@ -25,10 +25,7 @@ function App() {
             {/* Trang chủ sinh viên */}
             <Route path="/nckh-home" element={<StudentDashboard />} />
             {/* Trang import danh sách sinh viên */}
-            <Route
-              path="/nckh-import-class/:class_id"
-              element={<ImportStudents />}
-            />
+            <Route path="/nckh-import-class" element={<ImportStudents />} />
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
             {/* Trang profile */}

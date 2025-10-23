@@ -32,31 +32,30 @@ class StudentsImport implements ToCollection, WithHeadingRow
         foreach ($rows as $row) {
             $this->totalStudent++;
 
-            $msv       = trim((string)($row['msv'] ?? ''));
-            $class       = trim((string)($row['lop_sv'] ?? ''));
+            // --- Lấy dữ liệu ---
+            $msv       = strtoupper(trim((string)($row['msv'] ?? '')));
+            $class     = strtoupper(trim((string)($row['lop_sv'] ?? '')));
             $ten       = trim((string)($row['ten'] ?? ''));
             $birthdate = trim((string)($row['ngay_sinh'] ?? ''));
             $phone     = trim((string)($row['phone'] ?? ''));
-            $email     = trim((string)($row['email'] ?? ''));
-            $major     = trim((string)($row['nganh'] ?? ''));
-            if ($major === "cntt") {
+            $email     = strtolower(trim((string)($row['email'] ?? '')));
+            $major     = strtolower(trim((string)($row['nganh'] ?? '')));
 
-                if (is_numeric($birthdate)) {
+            // --- Chuẩn hóa ngày ---
+            if (is_numeric($birthdate)) {
+                try {
                     $birthdate = Date::excelToDateTimeObject($birthdate)->format('d/m/Y');
-                }
-
-                if (!str_contains($msv, 'TT')) {
-                    $this->failed++;
-                    continue;
+                } catch (\Throwable $e) {
+                    $birthdate = null;
                 }
             }
 
-            // ❌ Trường hợp thiếu dữ liệu
+            // --- Thiếu dữ liệu cơ bản ---
             if (empty($msv) || empty($email) || empty($ten)) {
                 $this->failed++;
                 ImportError::create([
                     'user_id'    => $msv,
-                    'name'       => $ten,
+                    'fullname'       => $ten,
                     'email'      => $email,
                     'reason'     => 'Thiếu thông tin bắt buộc (MSV / Tên / Email)',
                     'class_id'   => $this->classId,
@@ -65,7 +64,29 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // ❌ Trường hợp trùng MSSV hoặc email
+            // --- Kiểm tra ngành & mã SV ---
+            $mapMajor = [
+                'cntt' => 'TT',
+                'dh'   => 'DH',
+                'kt'   => 'KT',
+            ];
+
+            $expectedPrefix = $mapMajor[$major] ?? null;
+
+            if ($expectedPrefix && !str_contains($msv, $expectedPrefix)) {
+                $this->failed++;
+                ImportError::create([
+                    'user_id'    => $msv,
+                    'name'       => $ten,
+                    'email'      => $email,
+                    'reason'     => "MSSV không khớp ngành (MSSV: $msv - Ngành: $major)",
+                    'class_id'   => $this->classId,
+                    'teacher_id' => $this->teacherId,
+                ]);
+                continue;
+            }
+
+            // --- Kiểm tra trùng MSSV hoặc email ---
             $exists = User::where('user_id', $msv)
                 ->orWhere('email', $email)
                 ->exists();
@@ -83,27 +104,39 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // ✅ Tạo sinh viên mới
-            DB::transaction(function () use ($msv, $ten, $email, $phone, $major, $class, $birthdate) {
-                User::create([
-                    'user_id'  => $msv,
-                    'email'    => $email,
-                    'password' => Hash::make($msv),
-                    'role'     => 'student',
-                ]);
+            // --- Tạo sinh viên ---
+            try {
+                DB::transaction(function () use ($msv, $ten, $email, $phone, $major, $class, $birthdate) {
+                    User::create([
+                        'user_id'  => $msv,
+                        'email'    => $email,
+                        'password' => Hash::make($msv),
+                        'role'     => 'student',
+                    ]);
 
-                user_profile::create([
-                    'fullname'      => $ten,
-                    'birthdate'     => $birthdate,
-                    'phone'         => $phone,
-                    'major'         => $major,
-                    'class_student' => $class,
-                    'class_id'      => $this->classId,
-                    'user_id'       => $msv,
-                ]);
-            });
+                    user_profile::create([
+                        'fullname'      => $ten,
+                        'birthdate'     => $birthdate,
+                        'phone'         => $phone,
+                        'major'         => $major,
+                        'class_student' => $class,
+                        'class_id'      => $this->classId,
+                        'user_id'       => $msv,
+                    ]);
+                });
 
-            $this->success++;
+                $this->success++;
+            } catch (\Throwable $e) {
+                $this->failed++;
+                ImportError::create([
+                    'user_id'    => $msv,
+                    'name'       => $ten,
+                    'email'      => $email,
+                    'reason'     => 'Lỗi hệ thống khi lưu DB: ' . $e->getMessage(),
+                    'class_id'   => $this->classId,
+                    'teacher_id' => $this->teacherId,
+                ]);
+            }
         }
     }
 }
