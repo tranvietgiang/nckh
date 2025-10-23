@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use Illuminate\Http\Request;
-use App\Models\Report;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;

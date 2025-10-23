@@ -12,6 +12,7 @@ import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback";
+import GradingResults from "./Components/Pages/Student/Features/GradingResults"
 
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import { getAuth } from "./Components/Constants/INFO_USER";
@@ -63,6 +64,8 @@ function App() {
             {/* <Route path="/nckh-import-major" element={<MajorImportPage />} /> */}
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
+            {/**Trang xem điểm của sinh viên */}
+             <Route path="/nckh-home-gradingresults" element={<GradingResults />} />
             /*===============================================END============================================
             */
           </Routes>

@@ -14,6 +14,7 @@ use App\Http\Controllers\MajorsController;
 use App\Http\Controllers\SimpleDriveController;
 use Illuminate\Support\Facades\Request;
 
+
 Route::post("/test", function () {
     return "test";
 });
@@ -52,7 +53,7 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
 // Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
-Route::middleware('auth:sanctum')->get('/classes', [ClassController::class, 'getClassByTeacher']);
+Route::middleware('auth:sanctum')->get('/classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'inertsClassNew']);
 
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
@@ -80,3 +81,11 @@ Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsBy
 Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 'getReport']);
 /**Láy ra ds ngành */
 Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
+
+/**xem điểm sau khi chấm */
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/student/grades', [GradeController::class, 'gradingindex']);
+    Route::get('/student/grades/{id}', [GradeController::class, 'gradingshow']);
+});
+/**Lấy lớp học */
+Route::get('/student/classes', [ClassController::class, 'getStudentClasses']);

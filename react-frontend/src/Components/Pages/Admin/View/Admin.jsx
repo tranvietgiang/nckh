@@ -23,6 +23,7 @@ import Dashboard from "./components/Dashboard";
 import StudentsTeachersTab from "./components/StudentsTeachersTab";
 import ReportsManagement from "./components/Reports";
 import MajorImportPage from "./components/MajorImportPage";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminManagement() {
   const [activeTab, setActiveTab] = useState("students");
@@ -37,6 +38,16 @@ export default function AdminManagement() {
   const [toastMessage, setToastMessage] = React.useState("");
   const [showToast, setShowToast] = React.useState(false);
   const [reports, setReports] = useState([]);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Xóa thông tin đăng nhập (nếu có)
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    // Điều hướng về trang login
+    navigate("/nckh-login");
+  };
   /**Thông kế báo cáo */
   useEffect(() => {
     if (activeMenu === "reports") {
@@ -365,7 +376,10 @@ export default function AdminManagement() {
         </nav>
 
         <div className="p-3 sm:p-4 border-t border-gray-200">
-          <button className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-sm sm:text-base">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors text-sm sm:text-base"
+          >
             <LogOut className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             <span className="font-medium">Đăng Xuất</span>
           </button>

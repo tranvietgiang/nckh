@@ -7,6 +7,8 @@ use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class GradeController extends Controller
 {
@@ -86,5 +88,86 @@ class GradeController extends Controller
             'status' => 'success',
             'data' => $grade
         ]);
+    }
+
+    public function gradingindex(Request $request)
+    {
+        $studentId = Auth::id();
+        $classCode = $request->query('class');
+
+        try {
+            $query = DB::table('submissions as s')
+                ->join('reports as r', 's.report_id', '=', 'r.report_id')
+                ->leftJoin('grades as g', 's.submission_id', '=', 'g.submission_id') // ✅ SỬA Ở ĐÂY
+                ->leftJoin('users as u', 'g.teacher_id', '=', 'u.user_id')
+                ->leftJoin('user_profiles as up', 'u.user_id', '=', 'up.user_id')
+                ->leftJoin('classes as c', 'r.class_id', '=', 'c.class_id') // ✅ Lớp gắn với báo cáo
+                ->select(
+                    'r.report_id',
+                    'r.report_name as report_title',
+                    's.submission_time as submission_date',
+                    's.status',
+                    'g.score',
+                    'g.feedback',
+                    'up.fullname as teacher_name',
+                    'g.updated_at as graded_at',
+                    'c.class_name'
+                )
+                ->where('s.student_id', $studentId);
+
+            if (!empty($classCode)) {
+                $query->where('c.class_name', $classCode);
+            }
+
+            $results = $query->orderBy('s.submission_time', 'desc')->get();
+
+            if ($results->isEmpty()) {
+                return response()->json(['error' => 'Không tìm thấy kết quả chấm điểm.'], 404);
+            }
+
+            return response()->json($results);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Lỗi truy xuất dữ liệu, vui lòng thử lại sau.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
+    /**
+     * Xem chi tiết 1 bài / báo cáo cụ thể
+     */
+    public function gradingshow($reportId)
+    {
+        $studentId = Auth::user()->user_id;
+
+        try {
+            $result = DB::table('reports as r')
+                ->leftJoin('grades as g', 'r.report_id', '=', 'g.report_id')
+                ->leftJoin('teachers as t', 'g.teacher_id', '=', 't.teacher_id')
+                ->select(
+                    'r.report_id',
+                    'r.report_title',
+                    'r.submission_date',
+                    'r.status',
+                    'g.score',
+                    'g.feedback',
+                    't.teacher_name',
+                    'g.updated_at as graded_at'
+                )
+                ->where('r.student_id', $studentId)
+                ->where('r.report_id', $reportId)
+                ->first();
+
+            if (!$result) {
+                return response()->json(['error' => 'Không tìm thấy kết quả chấm điểm.'], 404);
+            }
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Lỗi truy xuất dữ liệu, vui lòng thử lại sau.'], 500);
+        }
     }
 }

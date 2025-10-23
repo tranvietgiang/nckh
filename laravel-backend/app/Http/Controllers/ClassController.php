@@ -80,6 +80,33 @@ class ClassController extends Controller
     }
 
 
+    public function getStudentClasses()
+    {
+        $studentId = Auth::id();
+
+        try {
+            $classes = DB::table('submissions as s')
+                ->join('reports as r', 's.report_id', '=', 'r.report_id')
+                ->join('classes as c', 'r.class_id', '=', 'c.class_id')
+                ->where('s.student_id', $studentId)
+                ->select('c.class_id', 'c.class_name', 'c.class_code', 'c.semester', 'c.academic_year')
+                ->distinct()
+                ->orderBy('c.class_name', 'asc')
+                ->get();
+
+            if ($classes->isEmpty()) {
+                return response()->json(['error' => 'Không tìm thấy lớp nào cho sinh viên này.'], 404);
+            }
+
+            return response()->json($classes);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Lỗi truy xuất dữ liệu lớp.',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
 
     public function inertsClassNew(Request $request)
     {

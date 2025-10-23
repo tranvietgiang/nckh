@@ -13,7 +13,8 @@ services:
       - mysql_data:/var/lib/mysql
 
   backend:
-    build: ./laravel-backend
+    build:
+      context: ./laravel-backend
     container_name: project-backend
     ports:
       - "8000:80"
@@ -23,7 +24,8 @@ services:
       - mysql
 
   frontend:
-    build: ./react-frontend
+    build:
+      context: ./react-frontend
     container_name: project-frontend
     ports:
       - "5173:5173"
@@ -33,7 +35,7 @@ services:
     working_dir: /app
     command: ["npm", "run", "dev", "--", "--host"]
     environment:
-      - CHOKIDAR_USEPOLLING=true # 👈 giúp Vite theo dõi file trong môi trường ảo hóa
+      - CHOKIDAR_USEPOLLING=false
     depends_on:
       - backend
 

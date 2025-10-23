@@ -5,10 +5,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: "0.0.0.0",
-    port: 5173, // nên đồng nhất với port trong Docker
+    port: 5173,
     watch: {
-      usePolling: true, // 👈 giúp Vite detect thay đổi khi chạy trong Docker / Vagrant
+      usePolling: true,
+      interval: 100, 
     },
+    hmr: false, // 🚫 tắt hot reload hoàn toàn
     proxy: {
       "/api": {
         target: "http://backend:8000",
