@@ -39,12 +39,16 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $phone     = trim((string)($row['phone'] ?? ''));
             $email     = trim((string)($row['email'] ?? ''));
             $major     = trim((string)($row['nganh'] ?? ''));
+            if ($major === "cntt") {
 
-            if (is_numeric($birthdate)) {
-                $birthdate = Date::excelToDateTimeObject($birthdate)->format('d/m/Y');
-            }
+                if (is_numeric($birthdate)) {
+                    $birthdate = Date::excelToDateTimeObject($birthdate)->format('d/m/Y');
+                }
 
-            if (!$msv . contains("TT")) {
+                if (!str_contains($msv, 'TT')) {
+                    $this->failed++;
+                    continue;
+                }
             }
 
             // ❌ Trường hợp thiếu dữ liệu

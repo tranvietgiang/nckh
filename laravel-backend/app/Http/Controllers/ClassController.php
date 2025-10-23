@@ -4,15 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Classe;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\AuthHelper;
 use App\Models\Major;
+use App\Http\Controllers\MajorsController;
 
 class ClassController extends Controller
 {
-    //
-
     public function getClass()
     {
         $classes = Classe::all();
@@ -22,19 +20,15 @@ class ClassController extends Controller
     //lấy lớp  học thấy  id giảng viên 
     public function getClassByTeacher()
     {
-
-        if (!Auth::check()) {
-            return response()->json(["login" => "Bạn chưa login"], 401);
-        }
-
-        $teacherId = Auth::id();
-        if (!$teacherId) {
-            return response()->json(["message_error" => "Lỗi dữ  liệu"], 401);
-        }
+        $teacherId = AuthHelper::isLogin();
 
         $classes = Classe::where('teacher_id', $teacherId)->get();
 
-        return response()->json($classes);
+        if ($classes->count() > 0) {
+            return response()->json($classes);
+        }
+
+        return response()->json([], 500);
     }
 
     public function getStudentsByClass($classId)
@@ -97,7 +91,6 @@ class ClassController extends Controller
             ], 402);
         }
 
-        // 🔹 Kiểm tra ngành tồn tại
         $majorExists = Major::where("major_id", $data["major_id"])->exists();
         if (!$majorExists) {
             return response()->json([
@@ -106,7 +99,6 @@ class ClassController extends Controller
             ]);
         }
 
-        // 1️⃣ Cùng giảng viên + trùng tên lớp
         $sameTeacherAndName = Classe::where("teacher_id", $userId)
             ->where("class_name", $data["class_name"])
             ->exists();
@@ -118,7 +110,6 @@ class ClassController extends Controller
             ]);
         }
 
-        // 2️⃣ Cùng giảng viên + trùng mã lớp
         $sameTeacherAndCode = Classe::where("teacher_id", $userId)
             ->where("class_code", $data["class_code"])
             ->exists();
@@ -130,7 +121,6 @@ class ClassController extends Controller
             ]);
         }
 
-        // 3️⃣ Cùng ngành + trùng mã lớp
         $sameMajorAndCode = Classe::where("major_id", $data["major_id"])
             ->where("class_code", $data["class_code"])
             ->exists();
@@ -142,7 +132,6 @@ class ClassController extends Controller
             ]);
         }
 
-        // ✅ Nếu mọi thứ hợp lệ → tiến hành tạo lớp
         try {
             $class = Classe::create([
                 "class_name" => $data["class_name"],
@@ -163,6 +152,18 @@ class ClassController extends Controller
                 "status" => false,
                 "message_error" => "Lỗi server: " . $e->getMessage()
             ]);
+        }
+    }
+
+    public function deleteClassNew($class_id)
+    {
+        $teacherId = AuthHelper::isLogin();
+
+        $delete = Classe::where("class_id", $class_id)->where("teacher_id", $teacherId)->delete();
+        if ($delete) {
+            return response()->json([
+                "status" => true,
+            ], 200);
         }
     }
 }

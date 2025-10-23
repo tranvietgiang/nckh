@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
@@ -23,13 +23,13 @@ function ImportStudents() {
   const navigate = useNavigate();
   const { user, token } = getAuth();
   const idTeacher = user?.user_id ?? null;
-  const [selectedClass, setSelectedClass] = useState(null);
-  const [classes, setClasses] = useState([]);
   useEffect(() => {
     document.title = "Trang import";
   }, []);
 
   IsLogin(user, token);
+
+  const { class_id } = useParams();
 
   // Xử lý chọn file
   const handleFileChange = (e) => {
@@ -46,7 +46,7 @@ function ImportStudents() {
     setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("class_id", selectedClass);
+    formData.append("class_id", class_id);
 
     try {
       // Gửi file tới Laravel API
@@ -60,10 +60,7 @@ function ImportStudents() {
 
       if (failed > 0) {
         setStudentErrors(list_import_error);
-        setSafeJSON(
-          `cache_student_import_error_${selectedClass}`,
-          JSON.stringify()
-        );
+        setSafeJSON(`cache_student_import_error_${class_id}`, JSON.stringify());
       }
 
       alert(
@@ -85,7 +82,7 @@ function ImportStudents() {
   useEffect(() => {}, []);
 
   const FetchDataStudentByClass = () => {
-    if (!selectedClass) {
+    if (!class_id) {
       setStudents([]);
       return;
     }
@@ -105,9 +102,7 @@ function ImportStudents() {
       setTotalStudent(total_student_current);
     }
 
-    const get_student_error = getSafeJSON(
-      `student_import_error_${selectedClass}`
-    );
+    const get_student_error = getSafeJSON(`student_import_error_${class_id}`);
 
     if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
       setStateDeleteStudentError(false);
@@ -115,11 +110,11 @@ function ImportStudents() {
     }
 
     axios
-      .get(`/get-student-errors/${selectedClass}`)
+      .get(`/get-student-errors/${class_id}`)
       .then((res) => {
         setStudentErrors(res.data);
         setSafeJSON(
-          `student_import_error_${selectedClass}`,
+          `student_import_error_${class_id}`,
           JSON.stringify(res.data)
         );
       })
@@ -129,7 +124,7 @@ function ImportStudents() {
       });
 
     axios
-      .get(`/get-students/${selectedClass}`)
+      .get(`/get-students/${class_id}`)
       .then((res) => {
         setStudents(res.data.list_student);
         setTotalStudent(res.data.total_student);
@@ -149,7 +144,7 @@ function ImportStudents() {
 
   useEffect(() => {
     FetchDataStudentByClass();
-  }, [selectedClass]);
+  }, [class_id]);
 
   const handleDeleteStudent = () => {
     if (!idTeacher) return;
@@ -157,19 +152,6 @@ function ImportStudents() {
     setStateDeleteStudentError(true);
     window.location.reload();
   };
-
-  useEffect(() => {
-    axios
-      .get(`/classes/teacher/${idTeacher}`)
-      .then((res) => {
-        setClasses(res.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("❌ Lỗi khi tải danh sách lớp:", err);
-        setLoading(false);
-      });
-  }, [idTeacher]);
 
   return (
     <>
@@ -188,28 +170,7 @@ function ImportStudents() {
           <RouterBack navigate={navigate} />
           <div className="bg-white rounded-xl shadow-md p-6 mb-8">
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
-              <div className="flex-1">
-                {loading ? (
-                  <p className="text-gray-500">⏳ Đang tải danh sách lớp...</p>
-                ) : (
-                  <select
-                    className="border border-gray-300 rounded-lg px-4 py-2 w-full md:w-1/2 focus:ring focus:ring-blue-300 mb-4"
-                    onChange={(e) => setSelectedClass(e.target.value)}
-                    value={selectedClass}
-                  >
-                    <option value="">-- Chọn lớp --</option>
-                    {classes.length > 0 ? (
-                      classes.map((cls) => (
-                        <option key={cls.class_id} value={cls.class_id}>
-                          {cls.class_name} ({cls.semester}/{cls.academic_year})
-                        </option>
-                      ))
-                    ) : (
-                      <option disabled>Không có lớp nào</option>
-                    )}
-                  </select>
-                )}
-              </div>
+              <div className="flex-1"></div>
             </div>
             <div className="flex flex-col lg:flex-row gap-6 items-start lg:items-center">
               <div className="flex-1">
@@ -220,7 +181,7 @@ function ImportStudents() {
                   type="file"
                   onChange={handleFileChange}
                   accept=".xlsx,.xls,.csv"
-                  disabled={selectedClass === null}
+                  disabled={class_id === null}
                   className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
                 {file && (
@@ -228,8 +189,8 @@ function ImportStudents() {
                     ✅ Đã chọn: {file.name}
                   </p>
                 )}
-                {selectedClass === null
-                  ? "vui lòng chọn lớp or tạo một lớp mới"
+                {class_id === null
+                  ? "Lỗi dữ liệu lớp vui lòng quay lại trang trước"
                   : ""}
               </div>
 
