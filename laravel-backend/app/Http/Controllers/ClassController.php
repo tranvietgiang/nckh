@@ -4,16 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Classe;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\AuthHelper;
 use App\Models\Major;
+use App\Http\Controllers\MajorsController;
 
 class ClassController extends Controller
 {
-
-
-    //
 
     public function getClass()
     {
@@ -24,19 +21,15 @@ class ClassController extends Controller
     //lấy lớp  học thấy  id giảng viên 
     public function getClassByTeacher()
     {
-
-        if (!Auth::check()) {
-            return response()->json(["login" => "Bạn chưa login"], 401);
-        }
-
-        $teacherId = Auth::id();
-        if (!$teacherId) {
-            return response()->json(["message_error" => "Lỗi dữ  liệu"], 401);
-        }
+        $teacherId = AuthHelper::isLogin();
 
         $classes = Classe::where('teacher_id', $teacherId)->get();
 
-        return response()->json($classes);
+        if ($classes->count() > 0) {
+            return response()->json($classes);
+        }
+
+        return response()->json([], 500);
     }
 
     public function getStudentsByClass($classId)
@@ -81,59 +74,98 @@ class ClassController extends Controller
 
 
 
-    public function inertsClassNew(Request $request)
+    public function insertClassNew(Request $request)
     {
         $userId = AuthHelper::isLogin();
 
-        $data = $request->all() ?? [];
+        $data = $request->all();
 
-        if (!is_array($data)) {
-            response()->json([
-                "message_error" => "Lỗi dữ liệu vui lòng tải lại trang!"
+        if (
+            empty($data["class_name"]) ||
+            empty($data["class_code"]) ||
+            empty($data["major_id"]) ||
+            empty($data["semester"]) ||
+            empty($data["academic_year"])
+        ) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Vui lòng nhập đầy đủ thông tin lớp học!"
             ], 402);
         }
 
-        $check = Classe::where("class_name", $data["class_name"])->where("class_code", $data["class_code"])
-            ->where("teacher_id", $userId)->exists();
-
-        $major = Major::where("major_id", $data["major_id"])->exists();
-
-        if (!$major) {
-            return response()->json(["message_error" => "Ngành này không tồn tại!"], 402);
+        $majorExists = Major::where("major_id", $data["major_id"])->exists();
+        if (!$majorExists) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Ngành học không tồn tại!"
+            ]);
         }
 
-        if ($check) {
-            return response()->json(["message_error" => "Lớp này đã tồn tai!"], 402);
+        $sameTeacherAndName = Classe::where("teacher_id", $userId)
+            ->where("class_name", $data["class_name"])
+            ->exists();
+
+        if ($sameTeacherAndName) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Tên lớp này đã được bạn tạo trước đó!"
+            ]);
         }
 
-        $class = Classe::create([
-            "class_name" => $data["class_name"],
-            "class_code" => $data["class_code"],
-            "teacher_id" => $userId,
-            "semester" => $data["semester"],
-            "academic_year" => $data["academic_year"],
-            "major_id" => $data["major_id"]
-        ]);
+        $sameTeacherAndCode = Classe::where("teacher_id", $userId)
+            ->where("class_code", $data["class_code"])
+            ->exists();
 
-        if ($class) {
-            return response()->json(
-                [
-                    "success" => true,
-                    "data_classes" => $class
-                ],
-                200
-            );
-        } else {
-            return response()->json(
-                [
-                    "message_error" => "Tạo lớp mới không thành công!",
-                ],
-                402
-            );
+        if ($sameTeacherAndCode) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Mã lớp này đã tồn tại trong danh sách lớp của bạn!"
+            ]);
         }
 
-        return response()->json([
-            "message_error" => "Lỗi server vui lòng tải lại trang!"
-        ], 500);
+        $sameMajorAndCode = Classe::where("major_id", $data["major_id"])
+            ->where("class_code", $data["class_code"])
+            ->exists();
+
+        if ($sameMajorAndCode) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Mã lớp này đã tồn tại trong cùng ngành!"
+            ]);
+        }
+
+        try {
+            $class = Classe::create([
+                "class_name" => $data["class_name"],
+                "class_code" => $data["class_code"],
+                "teacher_id" => $userId,
+                "semester" => $data["semester"],
+                "academic_year" => $data["academic_year"],
+                "major_id" => $data["major_id"]
+            ]);
+
+            return response()->json([
+                "status" => true,
+                "message" => "Tạo lớp học thành công!",
+                "data_classes" => $class
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Lỗi server: " . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function deleteClassNew($class_id)
+    {
+        $teacherId = AuthHelper::isLogin();
+
+        $delete = Classe::where("class_id", $class_id)->where("teacher_id", $teacherId)->delete();
+        if ($delete) {
+            return response()->json([
+                "status" => true,
+            ], 200);
+        }
     }
 }

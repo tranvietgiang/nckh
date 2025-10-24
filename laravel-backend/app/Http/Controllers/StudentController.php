@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuthHelper;
 use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -16,63 +18,73 @@ class StudentController extends Controller
     //
     public function import(Request $request)
     {
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
-            'class_id' => [
-                'required',
-                'integer',
-                Rule::exists('classes', 'class_id')->where(function ($q) {
-                    $q->where('teacher_id', Auth::id());
-                }),
-            ],
-        ]);
+        try {
+            $teacherId = AuthHelper::isLogin();
 
-        $classId   = (int) $validated['class_id'];
-        $teacherId = Auth::id();
+            $validated = $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv',
+                'major_id' => 'required|integer',
+                'class_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('classes', 'class_id')->where(function ($q) use ($teacherId) {
+                        $q->where('teacher_id', $teacherId);
+                    }),
+                ],
+            ]);
 
-        // Tạo instance để lấy thống kê sau import
-        $import = new StudentsImport(classId: $classId, teacherId: $teacherId);
+            $classId = (int) $validated['class_id'];
+            $majorId = (int) $validated['major_id'];
 
-        // Chỉ import 1 lần
-        Excel::import($import, $validated['file']);
+            // Tạo instance để lấy thống kê sau import
+            $import = new StudentsImport(classId: $classId, teacherId: $teacherId, majorId: $majorId);
 
-        $list_import_error = ImportError::where("class_id", $classId)
-            ->where("teacher_id", $teacherId)->get();
+            // Chỉ import 1 lần
+            Excel::import($import, $validated['file']);
 
-        if ($list_import_error->count() > 0) {
+            $list_import_error = ImportError::where("class_id", $classId)
+                ->where("teacher_id", $teacherId)->get();
+
+            if ($list_import_error->count() > 0) {
+                return response()->json([
+                    'message' => 'Import hoàn tất!',
+                    'total_student' => $import->totalStudent,
+                    'success' => $import->success ?? 0,
+                    'failed'  => $import->failed ?? 0,
+                    'list_import_error' => $list_import_error,
+                ]);
+            }
+
             return response()->json([
                 'message' => 'Import hoàn tất!',
                 'total_student' => $import->totalStudent,
                 'success' => $import->success ?? 0,
                 'failed'  => $import->failed ?? 0,
-                'list_import_error' => $list_import_error,
             ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error'   => '❌ Import thất bại!',
+                'message' => $e->getMessage(), // lấy nội dung lỗi cụ thể
+            ], 400);
         }
-
-        return response()->json([
-            'message' => 'Import hoàn tất!',
-            'total_student' => $import->totalStudent,
-            'success' => $import->success ?? 0,
-            'failed'  => $import->failed ?? 0,
-        ]);
     }
 
 
 
     public function getStudent($selectedClass)
     {
-        $userId = Auth::id();
-        if (!Auth::check()) {
-            return response()->json(["message_error" => "Vui lòng đăng nhâp"], 401);
-        }
+        $userId = AuthHelper::isLogin();
+
 
         $students = User::select(
             'users.*',
             'user_profiles.*',
-            'classes.*'
+            'classes.*',
+            "majors.*"
         )
             ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
+            ->join('majors', "user_profiles.major_id", "=", "majors.major_id")
             ->where('users.role', 'student')
             ->where("user_profiles.class_id", $selectedClass)
             ->where("classes.teacher_id", $userId)

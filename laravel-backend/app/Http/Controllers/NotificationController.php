@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuthHelper;
 use App\Mail\StudentNotificationMail;
 use App\Models\Classe;
 use App\Models\Notification;
@@ -105,9 +106,11 @@ class NotificationController extends Controller
 
     public function getClassOfTeacher()
     {
-        $useId = Auth::id() ?? null;
+        $useId = AuthHelper::isLogin();
 
-        $getClasses = Classe::select('classes.class_id as class_id_teacher', 'classes.class_name', 'user_profiles.*',)
+        $getClasses =
+            Classe::select('classes.class_id as class_id_teacher', 'classes.class_name', 'user_profiles.*', "majors.*")
+            ->join("majors", "classes.major_id", "=", "majors.major_id")
             ->join('user_profiles', 'user_profiles.user_id', '=', 'classes.teacher_id')
             ->where('classes.teacher_id', $useId)
             ->get();
@@ -122,7 +125,8 @@ class NotificationController extends Controller
 
     public function getNotify()
     {
-        $useId = Auth::id() ?? null;
+        $useId = AuthHelper::isLogin();
+
         if (!$useId) {
             return response()->json(["message_error" => "Người dùng chưa đăng nhâp!"], 401);
         }

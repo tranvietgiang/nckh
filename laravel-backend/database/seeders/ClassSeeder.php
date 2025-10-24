@@ -11,21 +11,20 @@ class ClassSeeder extends Seeder
 {
     public function run(): void
     {
-<<<<<<< HEAD
-          $class = Classe::create([
-=======
+
+        $class = Classe::create([]);
+
         Major::create([
             'major_name' => 'Công nghệ thông tin',
-            'major_abbreviate' => 'CNTT',
+            'major_abbreviate' => 'cntt',
         ]);
 
         Major::create([
             'major_name' => 'Dồ hoạ',
-            'major_abbreviate' => 'DH',
+            'major_abbreviate' => 'dh',
         ]);
 
         Classe::create([
->>>>>>> 7-Feature-import_group-tvg
             'class_name' => 'Chuyên đề web 1',
             'class_code' => '1',
             'teacher_id' => 'gv001',
@@ -59,9 +58,6 @@ class ClassSeeder extends Seeder
             'birthdate' => '2025-10-15',
             'phone' => '012345678',
             'user_id' => 'gv001',
-<<<<<<< HEAD
-            'class_id' => $class->class_id, // sử dụng id lớp vừa tạo
-=======
             'class_id' => 1,
             "major_id" => 1
         ]);
@@ -82,7 +78,6 @@ class ClassSeeder extends Seeder
             'user_id' => 'gv002',
             'class_id' => 2,
             "major_id" => 2
->>>>>>> 7-Feature-import_group-tvg
         ]);
 
         // Danh sách 10 lớp học
