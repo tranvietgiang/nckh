@@ -7,9 +7,9 @@ import {
   FaClock,
   FaGraduationCap,
   FaUniversity,
-  FaFileImport, // Thêm icon import
+  FaFileImport,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom"; // Thêm useNavigate
+import { useNavigate } from "react-router-dom";
 import ModalCreateClass from "./ModalCreateClass";
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
@@ -20,7 +20,7 @@ import {
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function ClassShowManager() {
-  const navigate = useNavigate(); // Thêm useNavigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     document.title = "Xem lớp học";
@@ -159,7 +159,7 @@ export default function ClassShowManager() {
                                 {classItem.class_name}
                               </h3>
                               <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                {classItem.class_code}
+                                Mã lớp: {classItem.class_code}
                               </span>
                             </div>
 
@@ -177,7 +177,18 @@ export default function ClassShowManager() {
 
                             {/* THÊM BUTTON IMPORT VÀO ĐÂY */}
                             <div className="flex justify-end space-x-3 mt-6">
-                              <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                              <button
+                                onClick={() =>
+                                  navigate("/nckh-import-class", {
+                                    state: {
+                                      class_id: classItem.class_id,
+                                      view: 1,
+                                      name_class: classItem.class_name,
+                                    },
+                                  })
+                                }
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              >
                                 Xem chi tiết
                               </button>
                               <button
@@ -186,6 +197,8 @@ export default function ClassShowManager() {
                                     state: {
                                       class_id: classItem.class_id,
                                       major_id: classItem.major_id,
+                                      view: 2,
+                                      name_class: classItem.class_name,
                                     },
                                   })
                                 }
