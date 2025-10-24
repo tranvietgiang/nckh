@@ -283,7 +283,7 @@ export default function AdminManagement() {
 
       case "reports":
         return <ReportsManagement reports={reports} />;
-      case "majors": // 🆕 Thêm phần này
+      case "Major": 
         return <MajorImportPage />;
       case "notifications":
         return (
