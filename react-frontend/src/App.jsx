@@ -16,6 +16,10 @@ import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Teacher/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
+
+import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
+// import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
+
 function App() {
   return (
     <>
@@ -54,6 +58,10 @@ function App() {
             <Route path="/nckh-import-major" element={<MajorImportPage />} />
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
+
+            {/* Tạo báo cáo */}
+            <Route path="/nckh-create-reports" element={<CreateReports />} />
+
             /*===============================================END============================================
             */
           </Routes>
