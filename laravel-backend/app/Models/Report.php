@@ -20,4 +20,10 @@ class Report extends Model
         'end_date',
         'status'
     ];
+    public function submissions()
+    {
+        return $this->hasMany(Submission::class, 'report_id', 'report_id');
+        // Submission::class là model Submission
+        // 'report_id' (cột ở bảng submissions) liên kết tới 'report_id' (cột ở bảng reports)
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Report;
 use Illuminate\Http\Request;
+use App\Models\Report;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
@@ -188,6 +189,19 @@ class ReportController extends Controller
             Log::error('❌ Drive upload error: ' . $e->getMessage());
             return response()->json(['error' => '❌ Lỗi upload: ' . $e->getMessage()], 500);
         }
+    }
+
+    public function getReportsByClass(Request $request)
+    {
+        $classId = $request->query('class_id');
+
+        $reports = Report::where('class_id', $classId)
+            ->withCount('submissions') // số lượng bài nộp
+            ->get(['id as report_id', 'name as report_name']); // đổi theo tên field bạn muốn trả
+
+        return response()->json([
+            'data' => $reports
+        ]);
     }
 
 

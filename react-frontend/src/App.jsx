@@ -11,6 +11,8 @@ import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
+import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback";
+
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Teacher/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
@@ -36,6 +38,11 @@ function App() {
             <Route path="/nckh-class-manager" element={<ClassManager />} />
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            {/**Trang chấm điểm GV */}
+            <Route
+              path="/nckh-teacher-scoringfeedback"
+              element={<ScoringFeedback />}
+            />
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
             {/* Trang import ds nhóm */}

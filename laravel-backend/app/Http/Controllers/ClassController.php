@@ -11,6 +11,7 @@ use App\Http\Controllers\MajorsController;
 
 class ClassController extends Controller
 {
+
     public function getClass()
     {
         $classes = Classe::all();
@@ -34,6 +35,7 @@ class ClassController extends Controller
     public function getStudentsByClass($classId)
     {
         $students = DB::table('user_profiles')
+
             ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
             ->join('classes', 'classes.class_id', '=', 'user_profiles.class_id') // ✅ thêm dòng này
             ->leftJoin('reports', 'reports.class_id', '=', 'user_profiles.class_id')
