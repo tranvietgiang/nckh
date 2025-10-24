@@ -10,7 +10,7 @@ import {
   FaFileImport,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import ModalCreateClass from "./ModalCreateClass";
+import ModalCreateClass from "../../Teacher/Features/ModalCreateClass";
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";

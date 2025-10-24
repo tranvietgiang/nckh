@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 
 export default function MajorImportPage() {
   const [majors, setMajors] = useState([

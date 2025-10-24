@@ -6,7 +6,7 @@ import TeacherDashboard from "./Components/Pages/Teacher/View/TeacherDashboard";
 import Admin from "./Components/Pages/Admin/View/Admin";
 
 /**page Feature */
-import ImportAndDetailStudents from "./Components/Pages/Teacher/Features/ImportAndDetailStudents";
+import ImportAndDetailStudents from "./Components/Pages/Admin/Features/ImportAndDetailStudents";
 import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
 import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
@@ -14,7 +14,7 @@ import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback";
 
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
-import ClassShowManager from "./Components/Pages/Teacher/Features/ClassShowManager";
+import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 
 import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
@@ -58,10 +58,8 @@ function App() {
             <Route path="/nckh-import-major" element={<MajorImportPage />} />
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
-
             {/* Tạo báo cáo */}
             <Route path="/nckh-create-reports" element={<CreateReports />} />
-
             /*===============================================END============================================
             */
           </Routes>

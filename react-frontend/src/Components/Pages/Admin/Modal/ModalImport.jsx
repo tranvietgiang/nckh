@@ -17,7 +17,7 @@ export default function ModalImport({ stateOpen, onClose }) {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center">
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[999] flex items-center justify-center">
         <div className="bg-white rounded-lg p-6 w-80">
           {/* Header */}
           <div className="flex justify-between items-center mb-4">
@@ -44,16 +44,6 @@ export default function ModalImport({ stateOpen, onClose }) {
               className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
             >
               Import nhóm
-            </button>
-          </div>
-
-          {/* Footer */}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 text-1xl"
-            >
-              Hủy
             </button>
           </div>
         </div>
