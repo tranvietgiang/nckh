@@ -3,6 +3,7 @@ import axios from "../../../../config/axios";
 import { useNavigate } from "react-router-dom";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
+
 export default function CreateClass({ stateOpen, onClose }) {
   const { user, token } = getAuth();
   IsLogin(user, token);
@@ -40,7 +41,7 @@ export default function CreateClass({ stateOpen, onClose }) {
   useEffect(() => {
     axios
       .get("/classes")
-      .then((res) => setClasses(res.data))
+      .then((res) => setClasses(res.data || []))
       .catch((err) => {
         console.warn("Không thể tải danh sách lớp:", err);
         setClasses([]);
@@ -50,7 +51,7 @@ export default function CreateClass({ stateOpen, onClose }) {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value.trim(),
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -58,6 +59,7 @@ export default function CreateClass({ stateOpen, onClose }) {
     const { class_name, class_code, major_id, semester, academic_year } =
       formData;
 
+    // Kiểm tra trường bắt buộc
     if (
       !class_name ||
       !class_code ||
@@ -69,9 +71,15 @@ export default function CreateClass({ stateOpen, onClose }) {
       return false;
     }
 
+    // Kiểm tra mã lớp không chứa khoảng trắng
+    if (class_code.includes(" ")) {
+      alert("❌ Mã lớp không được chứa khoảng trắng!");
+      return false;
+    }
+
     // Kiểm tra ngành tồn tại
     const validMajor = majors.some((m) => m.major_id == major_id);
-    if (!validMajor) {
+    if (!validMajor && majors.length > 0) {
       alert("❌ Ngành học không tồn tại. Vui lòng chọn lại!");
       return false;
     }
@@ -82,6 +90,13 @@ export default function CreateClass({ stateOpen, onClose }) {
     );
     if (duplicate) {
       alert("❌ Mã lớp này đã tồn tại trong hệ thống!");
+      return false;
+    }
+
+    // Kiểm tra định dạng năm học
+    const yearRegex = /^\d{4}-\d{4}$/;
+    if (!yearRegex.test(academic_year)) {
+      alert("❌ Năm học phải có định dạng: YYYY-YYYY (VD: 2024-2025)");
       return false;
     }
 
@@ -102,7 +117,7 @@ export default function CreateClass({ stateOpen, onClose }) {
         return;
       }
 
-      if (res.data.status) {
+      if (res.data && res.data.status) {
         alert("✅ Tạo lớp học thành công!");
         setFormData({
           class_name: "",
@@ -112,9 +127,14 @@ export default function CreateClass({ stateOpen, onClose }) {
           academic_year: "",
         });
         onClose(false);
-        window.location.reload();
+        // Thay vì reload toàn bộ trang, có thể gọi callback để refresh danh sách
+        if (window.onCreateClassSuccess) {
+          window.onCreateClassSuccess();
+        } else {
+          window.location.reload();
+        }
       } else {
-        alert(`❌ Lỗi: ${res.data.message_error || "Không rõ nguyên nhân"}`);
+        alert(`❌ Lỗi: ${res.data?.message_error || "Không rõ nguyên nhân"}`);
       }
     } catch (error) {
       console.error("Lỗi tạo lớp học:", error);
@@ -122,10 +142,14 @@ export default function CreateClass({ stateOpen, onClose }) {
         alert("⚠️ Không thể kết nối đến máy chủ. Kiểm tra lại mạng!");
       } else if (error.response.status === 401) {
         alert("⚠️ Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
-        window.location.href = "/login";
-      } else if (error.response.status === 402) {
+        navigate("/login");
+      } else if (error.response.status === 409) {
+        alert("❌ Mã lớp đã tồn tại trong hệ thống!");
+      } else {
         alert(
-          `❌ ${error.response.data?.message_error || "Lỗi không xác định"}`
+          `❌ Lỗi: ${
+            error.response.data?.message_error || "Lỗi không xác định"
+          }`
         );
       }
     } finally {
@@ -148,7 +172,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           <h3 className="text-2xl font-bold">🏫 Tạo Lớp Học Mới</h3>
           <button
             onClick={() => onClose(false)}
-            className="text-white hover:text-gray-200 text-2xl font-bold"
+            className="text-white hover:text-gray-200 text-2xl font-bold transition-colors"
           >
             ×
           </button>
@@ -170,7 +194,7 @@ export default function CreateClass({ stateOpen, onClose }) {
               value={formData.class_name}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder="VD: Lập trình Cơ bản - Nhóm 1"
             />
           </div>
@@ -186,8 +210,8 @@ export default function CreateClass({ stateOpen, onClose }) {
               value={formData.class_code}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
-              placeholder="VD: CT101.1"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              placeholder="VD: CT101.1 (không chứa khoảng trắng)"
             />
           </div>
 
@@ -197,14 +221,16 @@ export default function CreateClass({ stateOpen, onClose }) {
               🧑‍💻 Ngành học *
             </label>
             {loadingMajors ? (
-              <p>⏳ Đang tải danh sách ngành...</p>
+              <p className="text-gray-500">⏳ Đang tải danh sách ngành...</p>
+            ) : majors.length === 0 ? (
+              <p className="text-red-500">❌ Không có ngành học nào</p>
             ) : (
               <select
                 name="major_id"
                 value={formData.major_id}
                 onChange={handleChange}
                 required
-                className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               >
                 <option value="">-- Chọn ngành --</option>
                 {majors.map((mj) => (
@@ -226,11 +252,12 @@ export default function CreateClass({ stateOpen, onClose }) {
               value={formData.semester}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             >
               <option value="">Chọn học kỳ</option>
               <option value="1">Học kỳ 1</option>
               <option value="2">Học kỳ 2</option>
+              <option value="3">Học kỳ Hè</option>
             </select>
           </div>
 
@@ -245,9 +272,10 @@ export default function CreateClass({ stateOpen, onClose }) {
               value={formData.academic_year}
               onChange={handleChange}
               required
-              className="w-full border rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
               placeholder="VD: 2024-2025"
             />
+            <p className="text-sm text-gray-500 mt-1">Định dạng: YYYY-YYYY</p>
           </div>
 
           {/* Buttons */}
@@ -255,14 +283,15 @@ export default function CreateClass({ stateOpen, onClose }) {
             <button
               type="button"
               onClick={() => onClose(false)}
-              className="flex-1 border border-gray-300 rounded-lg py-3 hover:bg-gray-50"
+              className="flex-1 border border-gray-300 rounded-lg py-3 hover:bg-gray-50 transition-colors"
+              disabled={loading}
             >
               ❌ Hủy bỏ
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 bg-blue-500 text-white rounded-lg py-3 hover:bg-blue-600 disabled:opacity-50"
+              className="flex-1 bg-blue-500 text-white rounded-lg py-3 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading ? "⏳ Đang tạo..." : "✅ Tạo lớp học"}
             </button>

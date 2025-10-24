@@ -16,7 +16,7 @@ export default function ClassManagement() {
   const [studentLoading, setStudentLoading] = useState(false);
   const navigate = useNavigate();
   const { user, token } = getAuth();
-  const teacherId = user?.user_id ?? null;
+  // const teacherId = user?.user_id ?? null;
 
   IsLogin(user, token);
 

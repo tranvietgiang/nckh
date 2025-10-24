@@ -5,11 +5,9 @@ import RouterHome from "../../../ReUse/Router/RouterHome";
 import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
-import ModalImport from "../Features/ModalImport";
 
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
-  const [openImports, setOpenImports] = useState(false);
   const { user, token } = getAuth();
   RouterHome(user, token);
 
@@ -21,9 +19,6 @@ export default function TeacherDashboard() {
   const handleButtonClick = (buttonName) => {
     // Xử lý theo từng button
     switch (buttonName) {
-      case "Import":
-        handleImport();
-        break;
       case "Quản Lý Lớp":
         handleManageClass();
         break;
@@ -44,12 +39,6 @@ export default function TeacherDashboard() {
   const navigate = useNavigate();
   // Các hàm xử lý đơn giản
 
-  const handleImport = () => {
-    console.log("Xử lý Import Lớp...");
-    // navigate("/nckh-teacher-import");
-    setOpenImports(true);
-  };
-
   const handleManageClass = () => {
     navigate("/nckh-class-manager");
   };
@@ -59,7 +48,7 @@ export default function TeacherDashboard() {
   };
 
   const handleGrading = () => {
-     navigate("/nckh-teacher-scoringfeedback");
+    navigate("/nckh-teacher-scoringfeedback");
   };
 
   const handleCreateNotification = () => {
@@ -113,21 +102,17 @@ export default function TeacherDashboard() {
             ⚡ THAO TÁC NHANH
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {[
-              "Import",
-              "Quản Lý Lớp",
-              "Tạo Báo Cáo",
-              "Chấm Điểm",
-              "Tạo Thông Báo",
-            ].map((item, i) => (
-              <button
-                key={i}
-                onClick={() => handleButtonClick(item)}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
-              >
-                {item}
-              </button>
-            ))}
+            {["Quản Lý Lớp", "Tạo Báo Cáo", "Chấm Điểm", "Tạo Thông Báo"].map(
+              (item, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleButtonClick(item)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
+                >
+                  {item}
+                </button>
+              )
+            )}
           </div>
         </div>
 
@@ -174,8 +159,6 @@ export default function TeacherDashboard() {
         stateOpen={openNotification}
         onClose={setOpenNotification}
       />
-
-      <ModalImport stateOpen={openImports} onClose={setOpenImports} />
 
       <Footer />
     </div>
