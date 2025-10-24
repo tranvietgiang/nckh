@@ -7,6 +7,7 @@ use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
@@ -17,49 +18,55 @@ class StudentController extends Controller
     //
     public function import(Request $request)
     {
+        try {
+            $teacherId = AuthHelper::isLogin();
 
-        $teacherId = AuthHelper::isLogin();
+            $validated = $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv',
+                'major_id' => 'required|integer',
+                'class_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists('classes', 'class_id')->where(function ($q) use ($teacherId) {
+                        $q->where('teacher_id', $teacherId);
+                    }),
+                ],
+            ]);
 
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
-            'major_id' => 'required|integer',
-            'class_id' => [
-                'required',
-                'integer',
-                Rule::exists('classes', 'class_id')->where(function ($q) use ($teacherId) {
-                    $q->where('teacher_id', $teacherId);
-                }),
-            ],
-        ]);
+            $classId = (int) $validated['class_id'];
+            $majorId = (int) $validated['major_id'];
 
-        $classId = (int) $validated['class_id'];
-        $majorId = (int) $validated['major_id'];
+            // Tạo instance để lấy thống kê sau import
+            $import = new StudentsImport(classId: $classId, teacherId: $teacherId, majorId: $majorId);
 
-        // Tạo instance để lấy thống kê sau import
-        $import = new StudentsImport(classId: $classId, teacherId: $teacherId, majorId: $majorId);
+            // Chỉ import 1 lần
+            Excel::import($import, $validated['file']);
 
-        // Chỉ import 1 lần
-        Excel::import($import, $validated['file']);
+            $list_import_error = ImportError::where("class_id", $classId)
+                ->where("teacher_id", $teacherId)->get();
 
-        $list_import_error = ImportError::where("class_id", $classId)
-            ->where("teacher_id", $teacherId)->get();
+            if ($list_import_error->count() > 0) {
+                return response()->json([
+                    'message' => 'Import hoàn tất!',
+                    'total_student' => $import->totalStudent,
+                    'success' => $import->success ?? 0,
+                    'failed'  => $import->failed ?? 0,
+                    'list_import_error' => $list_import_error,
+                ]);
+            }
 
-        if ($list_import_error->count() > 0) {
             return response()->json([
                 'message' => 'Import hoàn tất!',
                 'total_student' => $import->totalStudent,
                 'success' => $import->success ?? 0,
                 'failed'  => $import->failed ?? 0,
-                'list_import_error' => $list_import_error,
             ]);
+        } catch (Exception $e) {
+            return response()->json([
+                'error'   => '❌ Import thất bại!',
+                'message' => $e->getMessage(), // lấy nội dung lỗi cụ thể
+            ], 400);
         }
-
-        return response()->json([
-            'message' => 'Import hoàn tất!',
-            'total_student' => $import->totalStudent,
-            'success' => $import->success ?? 0,
-            'failed'  => $import->failed ?? 0,
-        ]);
     }
 
 

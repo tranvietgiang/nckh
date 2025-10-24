@@ -87,9 +87,12 @@ function ImportStudents() {
       );
 
       FetchDataStudentByClass();
-    } catch (error) {
-      console.error(error);
-      alert("❌ Lỗi khi import file!");
+    } catch (err) {
+      if (err.response && err.response.data) {
+        alert(err.response.data.message);
+      } else {
+        alert("Lỗi kết nối server!");
+      }
     } finally {
       setLoading(false);
     }
