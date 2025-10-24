@@ -16,7 +16,6 @@ import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
-
 import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
 // import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 
