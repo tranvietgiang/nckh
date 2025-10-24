@@ -18,6 +18,7 @@ import { getAuth } from "./Components/Constants/INFO_USER";
 import { useEffect } from "react";
 import { removeSafeJSON } from "./Components/ReUse/LocalStorage/LocalStorageSafeJSON";
 import ClassShowManager from "./Components/Pages/Teacher/Features/ClassShowManager";
+import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
 // import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 function App() {
   const { user, token } = getAuth();
@@ -63,6 +64,10 @@ function App() {
             {/* <Route path="/nckh-import-major" element={<MajorImportPage />} /> */}
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
+
+            {/* Tạo báo cáo */}
+            <Route path="/nckh-create-reports" element={<CreateReports />} />
+
             /*===============================================END============================================
             */
           </Routes>

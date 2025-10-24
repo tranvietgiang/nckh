@@ -1,10 +1,11 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
+use Illuminate\Support\Facades\DB;
 use App\Models\Report;
 use Illuminate\Http\Request;
-
+use App\Models\ReportMember;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
@@ -98,8 +99,6 @@ class ReportController extends Controller
 
         return $client;
     }
-
-
     // 🔧 Tạo hoặc lấy folder
     private function getOrCreateFolder($driveService, $folderName, $parentId = null)
     {
@@ -204,9 +203,6 @@ class ReportController extends Controller
         ]);
     }
 
-
-
-
     public function getReport()
     {
         $getReport = Report::select("reports.*", "classes.*")
@@ -215,4 +211,45 @@ class ReportController extends Controller
 
         return response()->json($getReport);
     }
+
+
+   public function createReport(Request $request)
+{
+    // Validate đầu vào
+    $request->validate([
+        'report_name' => 'required|string|max:255',
+        'class_id'    => 'required|numeric|exists:classes,class_id',
+        'start_date'  => 'required|date',
+        'end_date'    => 'required|date|after_or_equal:start_date',
+        'description' => 'nullable|string|max:1000',
+    ]);
+
+    // (tuỳ chọn) tránh trùng tên report trong cùng lớp
+    $dup = Report::where('class_id', $request->class_id)
+        ->where('report_name', $request->report_name)
+        ->exists();
+    if ($dup) {
+        return response()->json([
+            'success' => false,
+            'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
+        ], 422);
+    }
+
+    // Tạo report (KHÔNG tạo report_members)
+    $report = Report::create([
+        'report_name' => $request->report_name,
+        'description' => $request->description,
+        'class_id'    => $request->class_id,
+        'status'      => 'submitted', // phải khớp enum: submitted|graded|rejected
+        'start_date'  => $request->start_date,
+        'end_date'    => $request->end_date,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => '✅ Tạo báo cáo thành công!',
+        'report'  => $report,
+    ], 201);
+}
+
 }

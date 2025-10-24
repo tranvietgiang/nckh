@@ -84,3 +84,6 @@ Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'get
 
 // đổi mật khẩu 
 Route::middleware('auth:sanctum')->post('/change-password', [UserController::class, 'changePassword']);
+
+//  tạo báo cáo
+Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);

@@ -8,12 +8,12 @@ class Report extends Model
 {
     //
     protected $table = "reports";
-    protected $primaryKey = 'Report_id';
+    protected $primaryKey = 'report_id';
     protected $keyType = "int";
     public $incrementing = true;
 
     protected $fillable = [
-        'Report_name',
+        'report_name',
         'description',
         'class_id',
         'start_date',
