@@ -51,9 +51,9 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 /**xóa sinh viên */
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
-// Route::get('classes/teacher/{id}', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->get('/classes', [ClassController::class, 'getClassByTeacher']);
-Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'inertsClassNew']);
+Route::middleware('auth:sanctum')->post('/classes', [ClassController::class, 'insertClassNew']);
+Route::middleware('auth:sanctum')->delete('/classes/{class_id}', [ClassController::class, 'deleteClassNew']);
 
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
@@ -78,5 +78,6 @@ Route::middleware('auth:sanctum')->get('/reports', [ReportController::class, 'ge
 Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsByReport']);
 
 Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 'getReport']);
+
 /**Láy ra ds ngành */
 Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);

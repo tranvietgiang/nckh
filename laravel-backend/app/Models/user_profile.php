@@ -17,6 +17,7 @@ class user_profile extends Model
         'birthdate',
         'phone',
         'user_id',
+        'major_id',
         'class_id',
         'class_student'
     ];

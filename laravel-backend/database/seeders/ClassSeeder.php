@@ -16,12 +16,12 @@ class ClassSeeder extends Seeder
 
         Major::create([
             'major_name' => 'Công nghệ thông tin',
-            'major_abbreviate' => 'CNTT',
+            'major_abbreviate' => 'cntt',
         ]);
 
         Major::create([
             'major_name' => 'Dồ hoạ',
-            'major_abbreviate' => 'DH',
+            'major_abbreviate' => 'dh',
         ]);
 
         Classe::create([

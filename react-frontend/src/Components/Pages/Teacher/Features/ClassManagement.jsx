@@ -16,7 +16,6 @@ export default function ClassManagement() {
   const [studentLoading, setStudentLoading] = useState(false);
   const navigate = useNavigate();
   const { user, token } = getAuth();
-  // 🔑 Giảng viên đang đăng nhập
   const teacherId = user?.user_id ?? null;
 
   IsLogin(user, token);
@@ -179,16 +178,24 @@ export default function ClassManagement() {
                             </td>
                             <td className="px-4 py-2 border text-center">
                               {st.status === "Đã nộp" && (
-                                <span className="text-blue-600 font-semibold">Đã nộp</span>
+                                <span className="text-blue-600 font-semibold">
+                                  Đã nộp
+                                </span>
                               )}
                               {st.status === "Đã chấm" && (
-                                <span className="text-green-600 font-semibold">Đã chấm</span>
+                                <span className="text-green-600 font-semibold">
+                                  Đã chấm
+                                </span>
                               )}
                               {st.status === "Bị từ chối" && (
-                                <span className="text-red-600 font-semibold">Bị từ chối</span>
+                                <span className="text-red-600 font-semibold">
+                                  Bị từ chối
+                                </span>
                               )}
                               {st.status === "Chưa nộp" && (
-                                <span className="text-gray-500 font-semibold">Chưa nộp</span>
+                                <span className="text-gray-500 font-semibold">
+                                  Chưa nộp
+                                </span>
                               )}
                             </td>
                           </tr>

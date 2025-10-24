@@ -16,6 +16,7 @@ class Classe extends Model
         'class_name',
         'class_code',
         'teacher_id',
+        'major_id',
         'semester',
         'academic_year'
     ];

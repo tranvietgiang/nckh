@@ -7,13 +7,21 @@ import {
   FaClock,
   FaGraduationCap,
   FaUniversity,
+  FaFileImport, // Thêm icon import
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom"; // Thêm useNavigate
 import ModalCreateClass from "./ModalCreateClass";
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
+import {
+  setSafeJSON,
+  getSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function ClassShowManager() {
+  const navigate = useNavigate(); // Thêm useNavigate
+
   useEffect(() => {
     document.title = "Xem lớp học";
   }, []);
@@ -23,7 +31,6 @@ export default function ClassShowManager() {
   const [getMajors, setMajors] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
 
-  // Lấy danh sách majors
   useEffect(() => {
     axios
       .get("/majors")
@@ -40,11 +47,17 @@ export default function ClassShowManager() {
 
   // Lấy danh sách classes
   useEffect(() => {
+    const data_class = getSafeJSON("data_classes");
+    if (data_class) {
+      setClasses(data_class);
+    }
+
     axios
       .get("/classes")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setClasses(res.data);
+          setSafeJSON("data_classes", res.data);
         }
       })
       .catch((error) => {
@@ -53,17 +66,13 @@ export default function ClassShowManager() {
       });
   }, []);
 
-  // Lọc classes theo major_id
-  const getClassesByMajor = (majorId) => {
-    return getClasses.filter((classItem) => classItem.major_id === majorId);
-  };
-
   // Xử lý xóa lớp
   const handleDeleteClass = (classId) => {
     if (window.confirm("Bạn có chắc muốn xóa lớp học này?")) {
       axios
         .delete(`/classes/${classId}`)
-        .then(() => {
+        .then((res) => {
+          console.log(res.data);
           setClasses(
             getClasses.filter((classItem) => classItem.class_id !== classId)
           );
@@ -74,6 +83,11 @@ export default function ClassShowManager() {
           alert("Lỗi khi xóa lớp học!");
         });
     }
+  };
+
+  // Lọc classes theo major_id
+  const getClassesByMajor = (majorId) => {
+    return getClasses.filter((classItem) => classItem.major_id === majorId);
   };
 
   return (
@@ -120,7 +134,10 @@ export default function ClassShowManager() {
             getMajors.map((major) => {
               const majorClasses = getClassesByMajor(major.major_id);
               return (
-                <div key={major.id} className="bg-white rounded-lg shadow-sm">
+                <div
+                  key={major.major_id}
+                  className="bg-white rounded-lg shadow-sm"
+                >
                   <div className="border-b border-gray-200 p-6">
                     <h2 className="text-xl font-semibold text-gray-900 flex items-center">
                       <FaUniversity className="w-6 h-6 text-blue-600 mr-3" />
@@ -128,7 +145,7 @@ export default function ClassShowManager() {
                     </h2>
                   </div>
 
-                  {/* Classes List - CHỈ HIỂN THỊ CLASSES CỦA MAJOR NÀY */}
+                  {/* Classes List */}
                   <div className="p-6">
                     {majorClasses.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -158,9 +175,24 @@ export default function ClassShowManager() {
                               </div>
                             </div>
 
+                            {/* THÊM BUTTON IMPORT VÀO ĐÂY */}
                             <div className="flex justify-end space-x-3 mt-6">
                               <button className="text-blue-600 hover:text-blue-800 text-sm font-medium">
                                 Xem chi tiết
+                              </button>
+                              <button
+                                onClick={() =>
+                                  navigate("/nckh-import-class", {
+                                    state: {
+                                      class_id: classItem.class_id,
+                                      major_id: classItem.major_id,
+                                    },
+                                  })
+                                }
+                                className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center space-x-1"
+                              >
+                                <FaFileImport className="w-4 h-4" />
+                                <span>Import</span>
                               </button>
                               <button
                                 onClick={() =>
@@ -197,7 +229,7 @@ export default function ClassShowManager() {
           )}
         </div>
 
-        {/* Import Modal - Cũng dùng React Icons */}
+        {/* Import Modal */}
         {showImportModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full">
