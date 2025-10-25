@@ -52,7 +52,10 @@ export default function CreateClass({ stateOpen, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (!formData.major_id) return; // tránh gọi khi chưa có ngành
+    if (!formData.major_id) {
+      setTeacher([]);
+      return; // tránh gọi khi chưa có ngành
+    }
     setLoadingTeacher(true);
     axios
       .get("/teachers", {
