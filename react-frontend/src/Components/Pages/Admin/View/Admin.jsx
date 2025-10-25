@@ -34,11 +34,31 @@ export default function AdminManagement() {
     document.title = "Trang Admin";
   }, []);
 
+  //Xóa nngười dùng
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm("Bạn có chắc muốn xóa người dùng này không?")) return;
 
+    try {
+      await axios.delete(`/delete/${userId}`);
+      // Cập nhật state sau khi xóa
+      setStudents(prev => prev.filter(u => u.user_id !== userId));
+      setTeachers(prev => prev.filter(u => u.user_id !== userId));
+      setToastMessage("Xóa thành công!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("❌ Lỗi khi xóa:", error);
+      setToastMessage("Xóa thất bại!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+  // lấy báo cáo đã nộp 
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await axios.get("/reports");
+        const res = await axios.get("/submissions");
         setReports(res.data);
       } catch (error) {
         console.error("❌ Lỗi tải báo cáo:", error);
@@ -124,11 +144,12 @@ export default function AdminManagement() {
                   setActiveMenu={setActiveMenu}
                   activeTab="students"
                   setActiveTab={setActiveTab}
-                  filteredStudents={[]}
+                  filteredStudents={students}
                   filteredTeachers={teachers}
                   openModal={setOpenImports}
                   showToast={showToast}
                   toastMessage={toastMessage}
+                  handleDelete={handleDeleteUser}
                 />
               }
             />
@@ -143,9 +164,9 @@ export default function AdminManagement() {
                   openModal={setOpenImports}
                   showToast={showToast}
                   toastMessage={toastMessage}
-                  filteredStudents={[]}
+                  filteredStudents={students}
                   filteredTeachers={teachers}
-                  handleDelete={(id) => console.log("Xóa GV", id)}
+                  handleDelete={handleDeleteUser}
                 />
               }
             />

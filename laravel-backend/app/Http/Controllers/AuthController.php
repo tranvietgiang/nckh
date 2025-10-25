@@ -38,4 +38,20 @@ class AuthController extends Controller
             'token' => $token
         ]);
     }
+    public function logout(Request $request)
+    {
+        try {
+            // Xóa token hiện tại (token được gửi qua header Authorization: Bearer <token>)
+            $request->user()->currentAccessToken()->delete();
+
+            return response()->json([
+                'message' => 'Đăng xuất thành công',
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Đăng xuất thất bại',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

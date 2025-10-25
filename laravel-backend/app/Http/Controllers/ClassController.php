@@ -37,7 +37,7 @@ class ClassController extends Controller
         $students = DB::table('user_profiles')
 
             ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
-            ->join('classes', 'classes.class_id', '=', 'user_profiles.class_id') // ✅ thêm dòng này
+            ->join('classes', 'classes.class_id', '=', 'user_profiles.class_id')
             ->leftJoin('reports', 'reports.class_id', '=', 'user_profiles.class_id')
             ->leftJoin('submissions', function ($join) {
                 $join->on('submissions.student_id', '=', 'user_profiles.user_id')
@@ -48,7 +48,7 @@ class ClassController extends Controller
                 'user_profiles.user_id',
                 'user_profiles.fullname',
                 'users.email',
-                'classes.class_name', // ✅ thêm dòng này
+                'classes.class_name', 
                 DB::raw('
                 CASE
                     WHEN submissions.submission_id IS NULL THEN "Chưa nộp"

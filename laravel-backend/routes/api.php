@@ -74,7 +74,7 @@ Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
 Route::post('/drive-upload', [ReportController::class, 'uploadReport']);
 
 /**Lấy báo cáo  */
-Route::get('/submissions', [AdminController::class, 'getReports']);
+Route::get('/submissions', [ReportController::class, 'getReportsadmin']);
 Route::middleware('auth:sanctum')->get('/reports', [ReportController::class, 'getReportsByClass']);
 Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsByReport']);
 
@@ -93,3 +93,7 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 Route::get('/majors', [MajorsController::class, 'index']);
 Route::post('/majors', [MajorsController::class, 'store']);
 Route::post('/majors/import', [MajorsController::class, 'import']);
+
+/**Logout */
+Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout']);
+

@@ -149,10 +149,10 @@ class ReportController extends Controller
             // ✅ MIME type chính xác
             $ext = strtolower($file->getClientOriginalExtension());
             $mimeMap = [
-                'pdf'  => 'application/pdf',
+                'pdf' => 'application/pdf',
                 'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                'doc'  => 'application/msword',
-                'zip'  => 'application/zip',
+                'doc' => 'application/msword',
+                'zip' => 'application/zip',
             ];
             $mimeType = $mimeMap[$ext] ?? $file->getMimeType() ?? 'application/octet-stream';
 
@@ -216,43 +216,67 @@ class ReportController extends Controller
     }
 
 
-   public function createReport(Request $request)
-{
-    // Validate đầu vào
-    $request->validate([
-        'report_name' => 'required|string|max:255',
-        'class_id'    => 'required|numeric|exists:classes,class_id',
-        'start_date'  => 'required|date',
-        'end_date'    => 'required|date|after_or_equal:start_date',
-        'description' => 'nullable|string|max:1000',
-    ]);
+    public function createReport(Request $request)
+    {
+        // Validate đầu vào
+        $request->validate([
+            'report_name' => 'required|string|max:255',
+            'class_id' => 'required|numeric|exists:classes,class_id',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
+            'description' => 'nullable|string|max:1000',
+        ]);
 
-    // (tuỳ chọn) tránh trùng tên report trong cùng lớp
-    $dup = Report::where('class_id', $request->class_id)
-        ->where('report_name', $request->report_name)
-        ->exists();
-    if ($dup) {
+        // (tuỳ chọn) tránh trùng tên report trong cùng lớp
+        $dup = Report::where('class_id', $request->class_id)
+            ->where('report_name', $request->report_name)
+            ->exists();
+        if ($dup) {
+            return response()->json([
+                'success' => false,
+                'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
+            ], 422);
+        }
+
+        // Tạo report (KHÔNG tạo report_members)
+        $report = Report::create([
+            'report_name' => $request->report_name,
+            'description' => $request->description,
+            'class_id' => $request->class_id,
+            'status' => 'submitted', // phải khớp enum: submitted|graded|rejected
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+        ]);
+
         return response()->json([
-            'success' => false,
-            'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
-        ], 422);
+            'success' => true,
+            'message' => '✅ Tạo báo cáo thành công!',
+            'report' => $report,
+        ], 201);
     }
+    public function getReportsadmin()
+    {
+        try {
+            $reports = DB::table('submissions')
+                ->join('users', 'submissions.student_id', '=', 'users.user_id')
+                ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
+                ->select(
+                    'submissions.submission_id',
+                    'submissions.status',
+                    'submissions.submission_time',
+                    'user_profiles.fullname as student_name',
+                    'users.user_id as student_id'
+                )
+                ->orderByDesc('submissions.submission_time')
+                ->get();
 
-    // Tạo report (KHÔNG tạo report_members)
-    $report = Report::create([
-        'report_name' => $request->report_name,
-        'description' => $request->description,
-        'class_id'    => $request->class_id,
-        'status'      => 'submitted', // phải khớp enum: submitted|graded|rejected
-        'start_date'  => $request->start_date,
-        'end_date'    => $request->end_date,
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => '✅ Tạo báo cáo thành công!',
-        'report'  => $report,
-    ], 201);
-}
+            return response()->json($reports);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Lỗi khi lấy danh sách báo cáo',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 
 }

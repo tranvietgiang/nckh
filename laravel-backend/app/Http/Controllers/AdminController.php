@@ -26,29 +26,5 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Xóa thành công']);
     }
-    public function getReports()
-    {
-        try {
-            $reports = DB::table('submissions')
-                ->join('users', 'submissions.student_id', '=', 'users.user_id')
-                ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-                ->select(
-                    'submissions.submission_id',
-                    'submissions.status',
-                    'submissions.submission_time',
-                    'user_profiles.fullname as student_name',
-                    'users.user_id as student_id'
-                )
-                ->orderByDesc('submissions.submission_time')
-                ->get();
-
-            return response()->json($reports);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'Lỗi khi lấy danh sách báo cáo',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
+    
 }

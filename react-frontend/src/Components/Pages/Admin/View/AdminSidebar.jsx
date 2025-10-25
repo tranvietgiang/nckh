@@ -17,6 +17,21 @@ export default function AdminSidebar({
   setSidebarOpen,
   handleButtonClick,
 }) {
+  const handleLogout = async () => {
+    try {
+      await axios.post("/logout", {}, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Xóa token localStorage
+      localStorage.removeItem("token");
+      navigate("/nckh-login");
+    }
+  };
   const navigate = useNavigate();
 
   const menuItems = [
@@ -32,9 +47,8 @@ export default function AdminSidebar({
 
   return (
     <aside
-      className={`${
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      } lg:translate-x-0 fixed lg:static w-64 bg-white shadow-xl transition-transform duration-300 h-full z-50 flex flex-col`}
+      className={`${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0 fixed lg:static w-64 bg-white shadow-xl transition-transform duration-300 h-full z-50 flex flex-col`}
     >
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2 font-bold text-indigo-600">
@@ -66,7 +80,7 @@ export default function AdminSidebar({
 
       <div className="p-4 border-t">
         <button
-          onClick={() => navigate("/nckh-login")}
+          onClick={handleLogout}
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="w-5 h-5" />
