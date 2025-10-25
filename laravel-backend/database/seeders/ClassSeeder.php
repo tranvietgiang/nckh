@@ -12,8 +12,6 @@ class ClassSeeder extends Seeder
     public function run(): void
     {
 
-        $class = Classe::create([]);
-
         Major::create([
             'major_name' => 'Công nghệ thông tin',
             'major_abbreviate' => 'cntt',
@@ -101,6 +99,7 @@ class ClassSeeder extends Seeder
                 'teacher_id' => 'gv001', 
                 'semester' => $class['semester'],
                 'academic_year' => '2025-2026',
+                'major_id' => 1,
             ]);
         }
     }
