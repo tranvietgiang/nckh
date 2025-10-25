@@ -67,7 +67,7 @@ function App() {
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
             {/* Tạo báo cáo */}
-            <Route path="/nckh-create-reports" element={<CreateReports />} />
+            <Route path="/nckh-create-report" element={<CreateReports />} />
             /*===============================================END============================================
             */
           </Routes>
