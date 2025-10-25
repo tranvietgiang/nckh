@@ -32,6 +32,20 @@ class ClassController extends Controller
         return response()->json([], 500);
     }
 
+    //lấy lớp  học thấy  id giảng viên 
+    public function getAllClassTeacher()
+    {
+        AuthHelper::isLogin();
+
+        $classes = Classe::all();
+
+        if ($classes->count() > 0) {
+            return response()->json($classes);
+        }
+
+        return response()->json([], 500);
+    }
+
     public function getStudentsByClass($classId)
     {
         $students = DB::table('user_profiles')

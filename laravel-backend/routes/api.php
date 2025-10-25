@@ -12,6 +12,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MajorsController;
 use App\Http\Controllers\SimpleDriveController;
+use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\UserController;
 
@@ -67,8 +68,6 @@ Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::c
 /**lấy ra lỗi sau khi import ds sinh viên */
 Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);
 
-
-
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
 Route::post('/drive-upload', [ReportController::class, 'uploadReport']);
@@ -93,3 +92,9 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 Route::get('/majors', [MajorsController::class, 'index']);
 Route::post('/majors', [MajorsController::class, 'store']);
 Route::post('/majors/import', [MajorsController::class, 'import']);
+
+
+/**Láy ra tất cả các lớp */
+Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+
+Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);

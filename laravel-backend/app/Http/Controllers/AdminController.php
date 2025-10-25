@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 class AdminController extends Controller
 {
     //
@@ -14,6 +15,7 @@ class AdminController extends Controller
         $getUser = User::all();
         return response()->json($getUser);
     }
+
     public function destroy($user_id)
     {
         $user = User::find($user_id);
@@ -26,6 +28,8 @@ class AdminController extends Controller
 
         return response()->json(['message' => 'Xóa thành công']);
     }
+
+
     public function getReports()
     {
         try {
@@ -50,5 +54,4 @@ class AdminController extends Controller
             ], 500);
         }
     }
-
 }

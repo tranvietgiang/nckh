@@ -105,7 +105,7 @@ class StudentController extends Controller
     public function  getProfile(Request $request)
     {
         $role = $request->input('role') ?? null;
-        $user_id = $request->input('user_id') ?? null;
+        $user_id = AuthHelper::isLogin();
 
         if (!$role || !$user_id) {
             return response()->json(["message_error" => "Thiếu dữ liệu role hoặc user_id"], 402);
@@ -121,8 +121,8 @@ class StudentController extends Controller
         if ($role === "student") {
             $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
                 ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
-                ->leftJoin("majors", "user_profiles.major_id", "=", "majors.major_id")
+                ->Join("classes", "user_profiles.class_id", "=", "classes.class_id")
+                ->Join("majors", "user_profiles.major_id", "=", "majors.major_id")
                 ->where("users.user_id", $user_id)
                 ->where('users.role', $role)
                 ->first();
@@ -135,7 +135,7 @@ class StudentController extends Controller
             $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
                 ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
                 ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
-                ->leftJoin("majors", "user_profiles.major_id", "=", "majors.major_id")
+                ->Join("majors", "user_profiles.major_id", "=", "majors.major_id")
                 ->where("users.user_id", $user_id)
                 ->where('users.role', $role)
                 ->get();
@@ -156,6 +156,17 @@ class StudentController extends Controller
             ];
             return response()->json($Info, 200);
         } else if ($role === "admin") {
+            $dataProfile = User::select("users.*", "user_profiles.*")
+                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
+                ->where("users.user_id", $user_id)
+                ->where('users.role', $role)
+                ->first();
+
+            if (!$dataProfile) {
+                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
+            }
+
+            return response()->json($dataProfile, 200);
         }
     }
 
