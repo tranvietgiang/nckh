@@ -88,3 +88,8 @@ Route::middleware('auth:sanctum')->post('/change-password', [UserController::cla
 
 //  tạo báo cáo
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
+
+
+Route::get('/majors', [MajorsController::class, 'index']);
+Route::post('/majors', [MajorsController::class, 'store']);
+Route::post('/majors/import', [MajorsController::class, 'import']);

@@ -10,6 +10,8 @@ export default function CreateClass({ stateOpen, onClose }) {
 
   const [majors, setMajors] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [Teacher, setTeacher] = useState([]);
+  const [loadingTeacher, setLoadingTeacher] = useState(false);
   const [loadingMajors, setLoadingMajors] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,6 +20,7 @@ export default function CreateClass({ stateOpen, onClose }) {
     class_name: "",
     class_code: "",
     major_id: "",
+    teacher_id: "",
     semester: "",
     academic_year: "",
   });
@@ -47,6 +50,23 @@ export default function CreateClass({ stateOpen, onClose }) {
         setClasses([]);
       });
   }, []);
+
+  useEffect(() => {
+    if (!formData.major_id) return; // tránh gọi khi chưa có ngành
+    setLoadingTeacher(true);
+    axios
+      .get("/teachers", {
+        params: { major_id: formData.major_id },
+      })
+      .then((res) => {
+        setTeacher(res.data);
+      })
+      .catch((err) => {
+        console.warn("Không thể tải danh sách lớp:", err);
+        setTeacher([]);
+      })
+      .finally(() => setLoadingTeacher(false));
+  }, [formData.major_id]);
 
   const handleChange = (e) => {
     setFormData({
@@ -123,6 +143,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           class_name: "",
           class_code: "",
           major_id: "",
+          teacher_id: "",
           semester: "",
           academic_year: "",
         });
@@ -236,6 +257,35 @@ export default function CreateClass({ stateOpen, onClose }) {
                 {majors.map((mj) => (
                   <option key={mj.major_id} value={mj.major_id}>
                     {mj.major_name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Giáo viên */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">
+              🧑 Giáo Viên *
+            </label>
+            {loadingTeacher ? (
+              <p className="text-gray-500">
+                ⏳ Đang tải danh sách giáo viên...
+              </p>
+            ) : Teacher.length === 0 ? (
+              <p className="text-red-500">❌ Vui lòng chọn ngành</p>
+            ) : (
+              <select
+                name="teacher_id"
+                value={formData.teacher_id}
+                onChange={handleChange}
+                required
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              >
+                <option value="">-- Chọn giáo viên --</option>
+                {Teacher.map((te) => (
+                  <option key={te.teacher_id} value={te.teacher_id}>
+                    {te.fullname}
                   </option>
                 ))}
               </select>

@@ -10,7 +10,7 @@ import {
   FaFileImport,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import ModalCreateClass from "../../Teacher/Features/ModalCreateClass";
+import ModalCreateClass from "./ModalCreateClass";
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
@@ -18,7 +18,6 @@ import {
   setSafeJSON,
   getSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
-
 export default function ClassShowManager() {
   const navigate = useNavigate();
 
@@ -87,7 +86,9 @@ export default function ClassShowManager() {
 
   // Lọc classes theo major_id
   const getClassesByMajor = (majorId) => {
-    return getClasses.filter((classItem) => classItem.major_id === majorId);
+    return getClasses.filter(
+      (classItem) => Number(classItem.major_id) === Number(majorId)
+    );
   };
 
   return (

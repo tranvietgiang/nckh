@@ -12,11 +12,13 @@ import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback";
+import StudentsTeachersTab from "./Components/Pages/Admin/Features/StudentsTeachersTab";
+import Reports from "./Components/Pages/Admin/Features/Reports";
+import Dashboard from "./Components/Pages/Admin/Features/Dashboard";
 
 import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
-
 import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
 // import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 
@@ -40,7 +42,7 @@ function App() {
             {/* Trang profile */}
             <Route path="/nckh-profile" element={<ProfilePage />} />
             {/* Trang admin */}
-            <Route path="/nckh-admin" element={<Admin />} />
+            <Route path="/nckh-admin/*" element={<Admin />} />
             {/* Trang quản lý lớp học */}
             <Route path="/nckh-class-manager" element={<ClassManager />} />
             {/* Trang giảng viên */}
@@ -50,6 +52,12 @@ function App() {
               path="/nckh-teacher-scoringfeedback"
               element={<ScoringFeedback />}
             />
+            {/**Trang quản lý sinh viên và giảng viên trong admin*/}
+            {/* <Route path="/nckh-admin-students" element={<StudentsTeachersTab />} /> */}
+            {/**Trang quản lý báo cáo của sinh viên */}
+            {/* <Route path="/nckh-admin-reports" element={<Reports />} /> */}
+            {/**Trang quản lý thống kê */}
+            {/* <Route path="/nckh-admin-dashboard" element={<Dashboard />} /> */}
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
             {/* Trang import ds nhóm */}
