@@ -20,6 +20,7 @@ import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
+import ClassStatistics from "./Components/Pages/Teacher/Features/ClassStatistics";
 // import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 
 function App() {
@@ -68,6 +69,8 @@ function App() {
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
             {/* Tạo báo cáo */}
             <Route path="/nckh-create-report" element={<CreateReports />} />
+            {/* Tạo báo cáo */}
+            <Route path="/nckh-class-stats/:classId" element={<ClassStatistics />} />
             /*===============================================END============================================
             */
           </Routes>
