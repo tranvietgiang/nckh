@@ -70,7 +70,15 @@ export default function AdminSidebar({
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="w-5 h-5" />
-          <span>Đăng Xuất</span>
+          <span
+            onClick={() => {
+              navigate("/nckh-login");
+              localStorage.removeItem("user");
+              localStorage.removeItem("token");
+            }}
+          >
+            Đăng Xuất
+          </span>
         </button>
       </div>
     </aside>

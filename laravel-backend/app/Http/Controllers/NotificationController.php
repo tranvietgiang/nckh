@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use app\Http\Controllers\ClassController;
+use App\Models\Major;
 
 class NotificationController extends Controller
 {
@@ -102,24 +103,6 @@ class NotificationController extends Controller
                 "message_success" => "Gửi thông báo thành công đến lớp '$check_class->class_name'"
             ], 200);
         }
-    }
-
-    public function getClassOfTeacher()
-    {
-        $useId = AuthHelper::isLogin();
-
-        $getClasses =
-            Classe::select('classes.class_id as class_id_teacher', 'classes.class_name', 'user_profiles.*', "majors.*")
-            ->join("majors", "classes.major_id", "=", "majors.major_id")
-            ->join('user_profiles', 'user_profiles.user_id', '=', 'classes.teacher_id')
-            ->where('classes.teacher_id', $useId)
-            ->get();
-
-        if ($getClasses->count() > 0) {
-            return response()->json($getClasses);
-        }
-
-        return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     }
 
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Models\Classe;
 use App\Models\Major;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -31,6 +32,24 @@ class MajorsController extends Controller
     // }
 
     // 🔹 Thêm 1 ngành thủ công
+
+    public function getMajorsByClass($idTeacher)
+    {
+        AuthHelper::isLogin();
+
+        $getMajors = Classe::select("majors.*", "classes.teacher_id", "classes.major_id")
+            ->join("majors", "classes.major_id", "=", "majors.major_id")
+            ->distinct()
+            ->where("classes.teacher_id", $idTeacher)
+            ->get();
+
+
+        if ($getMajors->count() > 0) {
+            return response()->json($getMajors);
+        }
+
+        return response()->json(['message_error' => 'Không tìm ngành bạn dạy'], 404);
+    }
 
     public function store(Request $request)
     {

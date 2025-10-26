@@ -28,7 +28,7 @@ Route::middleware('auth:sanctum')->post('/students/import', [StudentController::
 Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/students', [StudentController::class, 'getStudents']);
 
 /**lấy ra dữ liệu lớp giảng viên đang dạy */
-Route::middleware('auth:sanctum')->get('/get-class-teacher', [NotificationController::class, 'getClassOfTeacher']);
+Route::middleware('auth:sanctum')->get('/get-class-by-major/{selectedMajor}', [ClassController::class, 'getClassOfTeacher']);
 
 /**Tạo thông báo gửi đến sinh viên */
 Route::post('/create-notification', [NotificationController::class, 'createNotification']);
@@ -104,3 +104,6 @@ Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
 
 //thống kê cho giảng viên
 Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsByClass']);
+
+//lấy ra ngành theo teacher
+Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsController::class, 'getMajorsByClass']);
