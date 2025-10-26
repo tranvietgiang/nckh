@@ -18,11 +18,13 @@ export default function CreateNotification({ stateOpen, onClose }) {
     title: "",
     content: "",
     class_id: "",
-    teacher_id: idTeacher,
+    teacher_id: "",
+    major_id: "",
     sendEmail: true,
     showDashboard: true,
   });
 
+  console.log(formData);
   // --- Lấy danh sách ngành của giảng viên ---
   useEffect(() => {
     if (!idTeacher) return;
@@ -199,7 +201,34 @@ export default function CreateNotification({ stateOpen, onClose }) {
                 placeholder="Nhập nội dung thông báo..."
               />
             </div>
+            {/* 🧩 Tuỳ chọn gửi */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+              <h3 className="font-semibold text-gray-700">
+                Tuỳ chọn gửi thông báo:
+              </h3>
 
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="sendEmail"
+                  checked={formData.sendEmail}
+                  onChange={handleInputChange}
+                  className="w-5 h-5 text-blue-600"
+                />
+                <span>📧 Gửi qua email</span>
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="showDashboard"
+                  checked={formData.showDashboard}
+                  onChange={handleInputChange}
+                  className="w-5 h-5 text-blue-600"
+                />
+                <span>🖥️ Hiển thị trên dashboard</span>
+              </label>
+            </div>
             {/* Gửi */}
             <div className="flex justify-end gap-4">
               <button

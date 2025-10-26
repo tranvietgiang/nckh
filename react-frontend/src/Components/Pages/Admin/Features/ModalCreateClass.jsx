@@ -54,7 +54,7 @@ export default function CreateClass({ stateOpen, onClose }) {
   useEffect(() => {
     if (!formData.major_id) {
       setTeacher([]);
-      return; // tránh gọi khi chưa có ngành
+      return;
     }
     setLoadingTeacher(true);
     axios
@@ -79,8 +79,14 @@ export default function CreateClass({ stateOpen, onClose }) {
   };
 
   const validateForm = () => {
-    const { class_name, class_code, major_id, semester, academic_year } =
-      formData;
+    const {
+      class_name,
+      class_code,
+      major_id,
+      teacher_id,
+      semester,
+      academic_year,
+    } = formData;
 
     // Kiểm tra trường bắt buộc
     if (
@@ -88,6 +94,7 @@ export default function CreateClass({ stateOpen, onClose }) {
       !class_code ||
       !major_id ||
       !semester ||
+      !teacher_id ||
       !academic_year
     ) {
       alert("⚠️ Vui lòng nhập đầy đủ tất cả các trường!");
@@ -287,7 +294,7 @@ export default function CreateClass({ stateOpen, onClose }) {
               >
                 <option value="">-- Chọn giáo viên --</option>
                 {Teacher.map((te) => (
-                  <option key={te.teacher_id} value={te.teacher_id}>
+                  <option key={te.user_id} value={te.user_id}>
                     {te.fullname}
                   </option>
                 ))}

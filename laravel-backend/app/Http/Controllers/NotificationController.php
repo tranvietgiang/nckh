@@ -22,10 +22,16 @@ class NotificationController extends Controller
     {
         $data = $request->all();
 
-        if (!is_array($data)) {
+        if (($data)) {
             return response()->json([
                 "error" => "Dữ liệu gửi đi không tồn tại!"
             ], 403);
+        }
+
+        $major = Major::where("major_id", $data['major_id'])->exists();
+
+        if (!$major) {
+            return response()->json(['message_error' => 'Ngành này không tồn tại!'], 404);
         }
 
         $teacher = User::where('user_id', $data['teacher_id'])->exists();
@@ -54,7 +60,9 @@ class NotificationController extends Controller
 
         $check_teacher_class = Classe::where('teacher_id', $data['teacher_id'])
             ->where('class_id', $data['class_id'])
+            ->where("major_id", $data['major_id'])
             ->exists();
+
         if (!$check_teacher_class) {
             return response()->json(['message_error' => "Giảng viên không dạy lớp này!"], 402);
         }
@@ -64,6 +72,7 @@ class NotificationController extends Controller
             'content' => $data['content'],
             'teacher_id' => $data['teacher_id'],
             'class_id' => $data['class_id'],
+            'major_id' => $data['major_id'],
         ]);
 
 
@@ -71,6 +80,7 @@ class NotificationController extends Controller
             if ($data['sendEmail'] == true) {
                 $students = user_profile::select('users.*', 'user_profiles.*')
                     ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
+                    ->join('majors', 'user_profiles.major_id', '=', 'majors.major_id')
                     ->where('user_profiles.class_id', $data['class_id'])
                     ->where("users.role", "student")
                     ->get();

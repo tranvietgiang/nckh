@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Helpers\AuthHelper;
 use App\Models\Major;
 use App\Http\Controllers\MajorsController;
+use Illuminate\Support\Facades\Auth;
 
 class ClassController extends Controller
 {
@@ -96,15 +97,20 @@ class ClassController extends Controller
 
     public function insertClassNew(Request $request)
     {
-        $userId = AuthHelper::isLogin();
+        AuthHelper::isLogin();
+
+        if (Auth::user()->role != 'admin') {
+            return response()->json(['message_error' => 'Bạn không có quyền tạo lớp!'], 403);
+        }
 
         $data = $request->all();
 
         if (
             empty($data["class_name"]) ||
             empty($data["class_code"]) ||
-            empty($data["major_id"]) ||
-            empty($data["semester"]) ||
+            empty($data["major_id"])   ||
+            empty($data["teacher_id"]) ||
+            empty($data["semester"])   ||
             empty($data["academic_year"])
         ) {
             return response()->json([
@@ -121,7 +127,7 @@ class ClassController extends Controller
             ]);
         }
 
-        $sameTeacherAndName = Classe::where("teacher_id", $userId)
+        $sameTeacherAndName = Classe::where("teacher_id", $data["teacher_id"])
             ->where("class_name", $data["class_name"])
             ->exists();
 
@@ -132,7 +138,7 @@ class ClassController extends Controller
             ]);
         }
 
-        $sameTeacherAndCode = Classe::where("teacher_id", $userId)
+        $sameTeacherAndCode = Classe::where("teacher_id", $data["teacher_id"])
             ->where("class_code", $data["class_code"])
             ->exists();
 
@@ -158,7 +164,7 @@ class ClassController extends Controller
             $class = Classe::create([
                 "class_name" => $data["class_name"],
                 "class_code" => $data["class_code"],
-                "teacher_id" => $userId,
+                "teacher_id" => $data["teacher_id"],
                 "semester" => $data["semester"],
                 "academic_year" => $data["academic_year"],
                 "major_id" => $data["major_id"]
@@ -172,8 +178,8 @@ class ClassController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 "status" => false,
-                "message_error" => "Lỗi server: " . $e->getMessage()
-            ]);
+                "message_error" => "Lỗi server"
+            ], 500);
         }
     }
 
