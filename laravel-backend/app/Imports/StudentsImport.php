@@ -32,16 +32,28 @@ class StudentsImport implements ToCollection, WithHeadingRow
 
         // Gom các check vào 1 query mỗi bảng, tránh sai tên model
         $majorExist   = Major::where('major_id', $this->majorId)->exists();
+
         $teacherExist = user_profile::where('user_id', $this->teacherId)
             ->where('major_id', $this->majorId) // giáo viên thuộc ngành
             ->exists();
+
         $classExist   = Classe::where('class_id', $this->classId)
             ->where('teacher_id', $this->teacherId) // lớp thuộc gv
             ->where('major_id', $this->majorId)     // lớp thuộc ngành
             ->exists();
 
-        if (!$majorExist || !$teacherExist || !$classExist) {
-            throw new \Exception("❌ Lỗi server! Thiếu hoặc sai liên kết ngành/lớp/giảng viên.");
+
+        if (!$majorExist) {
+            throw new \Exception("❌ Lỗi server! ngành");
+        }
+
+        if (!$teacherExist) {
+
+            throw new \Exception("❌ Lỗi server! Giảng viên không dạy ngành này.");
+        }
+
+        if (!$classExist) {
+            throw new \Exception("❌ Lỗi server! lớp");
         }
     }
 
@@ -101,6 +113,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'fullname'   => $ten,
                     'email'      => $email,
                     'reason'     => 'Thiếu thông tin bắt buộc (MSV / Tên / Email)',
+                    'major_id'      => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
                 ]);
@@ -115,6 +128,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'fullname'   => $ten,
                     'email'      => $email,
                     'reason'     => "MSSV không khớp ngành ({$major->major_name} - yêu cầu chứa: {$abbr})",
+                    'major_id'      => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
                 ]);
@@ -131,6 +145,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'email'      => $email,
                     'reason'     => 'Trùng MSSV hoặc Email',
                     'class_id'   => $this->classId,
+                    'major_id'      => $this->majorId,
                     'teacher_id' => $this->teacherId,
                 ]);
                 continue;
@@ -139,7 +154,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             // Tạo sinh viên
             try {
                 DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
-                    $user = User::create([
+                    User::create([
                         'user_id'  => $msv,
                         'email'    => $email,
                         'password' => Hash::make($msv),
