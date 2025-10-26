@@ -27,9 +27,11 @@ export default function ImportAndDetailStudents() {
   const class_id = location.state?.class_id;
   const major_id = location.state?.major_id;
   const typeView = location.state?.view;
+  const teacher_id = location.state?.teacher_id;
   const name_class = location.state?.name_class;
   const checkPage = typeView === 1 ? true : false;
 
+  console.log(location);
   useEffect(() => {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
   }, [checkPage]);
@@ -88,12 +90,15 @@ export default function ImportAndDetailStudents() {
       return;
     }
 
+    if (!class_id || !major_id || !teacher_id)
+      return alert("Thiếu dữ liệu lớp hoặc giáo viên!");
+
     setLoading(true);
     const formData = new FormData();
     formData.append("file", file);
     formData.append("class_id", class_id);
     formData.append("major_id", major_id);
-
+    formData.append("teacher_id", String(teacher_id));
     try {
       // Gửi file tới Laravel API
       const res = await axios.post("/students/import", formData, {
@@ -151,18 +156,20 @@ export default function ImportAndDetailStudents() {
       setTotalStudent(total_student_current);
     }
 
-    const get_student_error = getSafeJSON(`student_import_error_${class_id}`);
+    const get_student_error = getSafeJSON(
+      `student_import_error_${class_id}_${teacher_id}`
+    );
 
     if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
       setStudentErrors(get_student_error);
     }
 
     axios
-      .get(`/get-student-errors/${class_id}`)
+      .get(`/classes/${class_id}/teachers/${teacher_id}/student-errors`)
       .then((res) => {
         setStudentErrors(res.data);
         setSafeJSON(
-          `student_import_error_${class_id}`,
+          `student_import_error_${class_id}_${teacher_id}`,
           JSON.stringify(res.data)
         );
       })
@@ -172,7 +179,7 @@ export default function ImportAndDetailStudents() {
       });
 
     axios
-      .get(`/get-students/${class_id}`)
+      .get(`/classes/${class_id}/teachers/${teacher_id}/students`)
       .then((res) => {
         setStudents(res.data.list_student);
         setTotalStudent(res.data.total_student);
@@ -214,18 +221,6 @@ export default function ImportAndDetailStudents() {
           </div>
 
           <RouterBack navigate={navigate} />
-
-          {/* Loading */}
-          {loading && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white rounded-lg p-6 flex items-center space-x-4">
-                <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <span className="text-gray-700 font-medium">
-                  Đang tải dữ liệu...
-                </span>
-              </div>
-            </div>
-          )}
 
           {/* Thống kê */}
           {!loading && totalStudent > 0 && (

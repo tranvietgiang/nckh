@@ -19,25 +19,31 @@ class StudentController extends Controller
     public function import(Request $request)
     {
         try {
-            $teacherId = AuthHelper::isLogin();
 
+            AuthHelper::isLogin();
             $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls,csv',
                 'major_id' => 'required|integer',
+                'teacher_id' => 'required|string',
                 'class_id' => [
                     'required',
                     'integer',
-                    Rule::exists('classes', 'class_id')->where(function ($q) use ($teacherId) {
-                        $q->where('teacher_id', $teacherId);
+                    Rule::exists('classes', 'class_id')->where(function ($q) use ($request) {
+                        $q->where('teacher_id', $request->input('teacher_id'));
                     }),
                 ],
             ]);
 
             $classId = (int) $validated['class_id'];
             $majorId = (int) $validated['major_id'];
+            $teacherId = (string) $validated['teacher_id'];
 
             // Tạo instance để lấy thống kê sau import
-            $import = new StudentsImport(classId: $classId, teacherId: $teacherId, majorId: $majorId);
+            $import = new StudentsImport(
+                classId: $classId,
+                teacherId: $teacherId,
+                majorId: $majorId
+            );
 
             // Chỉ import 1 lần
             Excel::import($import, $validated['file']);
@@ -71,10 +77,9 @@ class StudentController extends Controller
 
 
 
-    public function getStudent($selectedClass)
+    public function getStudents($class_id, $teacher_id)
     {
-        $userId = AuthHelper::isLogin();
-
+        AuthHelper::isLogin();
 
         $students = User::select(
             'users.*',
@@ -86,8 +91,8 @@ class StudentController extends Controller
             ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
             ->join('majors', "user_profiles.major_id", "=", "majors.major_id")
             ->where('users.role', 'student')
-            ->where("user_profiles.class_id", $selectedClass)
-            ->where("classes.teacher_id", $userId)
+            ->where("user_profiles.class_id", $class_id)
+            ->where("classes.teacher_id", $teacher_id)
             ->get();
 
         if ($students->count() > 0) {
@@ -170,22 +175,20 @@ class StudentController extends Controller
         }
     }
 
-    public function getStudentErrors($selectedClass)
+    public function getStudentErrors($class_id, $teacherId)
     {
-        if (!Auth::check()) {
-            return response()->json(["message_error" => "Vui lòng đăng nhập!"], 401);
+        if (!$class_id || !$teacherId) {
+            return response()->json(["message_error" => "Dữ liễu sai"], 402);
         }
 
-        $useId = Auth::id() ?? null;
-
-        if ($useId == null) {
-            return response()->json(["message_error" => "Dữ liệu bị lỗi, vui lòng tải lại trang!"], 402);
-        }
-        $list_import_error = ImportError::where("class_id", $selectedClass)
-            ->where("teacher_id", $useId)->get();
+        $list_import_error = ImportError::where('class_id', $class_id)
+            ->where('teacher_id', $teacherId)
+            ->get();
 
         if ($list_import_error->count() > 0) {
             return response()->json($list_import_error, 200);
         }
+
+        return response()->json(["message_error" => "Lỗi server"], 500);
     }
 }

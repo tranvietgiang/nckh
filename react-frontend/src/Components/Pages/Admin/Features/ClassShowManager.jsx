@@ -36,6 +36,7 @@ export default function ClassShowManager() {
       .then((res) => {
         if (Array.isArray(res.data)) {
           setMajors(res.data);
+          console.log(res.data);
         }
       })
       .catch((error) => {
@@ -167,6 +168,11 @@ export default function ClassShowManager() {
                             <div className="space-y-3">
                               <div className="flex items-center text-gray-600">
                                 <FaClock className="w-4 h-4 mr-2" />
+                                <span>Giáo viên: {major?.fullname ?? ""}</span>
+                              </div>
+
+                              <div className="flex items-center text-gray-600">
+                                <FaClock className="w-4 h-4 mr-2" />
                                 <span>Học kỳ: {classItem.semester}</span>
                               </div>
 
@@ -183,6 +189,7 @@ export default function ClassShowManager() {
                                   navigate("/nckh-import-class", {
                                     state: {
                                       class_id: classItem.class_id,
+                                      teacher_id: major.user_id,
                                       view: 1,
                                       name_class: classItem.class_name,
                                     },
@@ -198,6 +205,7 @@ export default function ClassShowManager() {
                                     state: {
                                       class_id: classItem.class_id,
                                       major_id: classItem.major_id,
+                                      teacher_id: major.user_id,
                                       view: 2,
                                       name_class: classItem.class_name,
                                     },

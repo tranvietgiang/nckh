@@ -16,18 +16,15 @@ use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\UserController;
 
-Route::post("/test", function () {
-    return "test";
-});
 
-/**X ác thực người dùng */
+/**Xác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
 
 /**Giảng viên import ds sinh viên vào db */
 Route::middleware('auth:sanctum')->post('/students/import', [StudentController::class, 'import']);
 
 /**lấy ra dữ liệu của sinh viên theo lớp */
-Route::middleware('auth:sanctum')->get('/get-students/{selectedClass}', [StudentController::class, 'getStudent']);
+Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/students', [StudentController::class, 'getStudents']);
 
 /**lấy ra dữ liệu lớp giảng viên đang dạy */
 Route::middleware('auth:sanctum')->get('/get-class-teacher', [NotificationController::class, 'getClassOfTeacher']);
@@ -42,6 +39,7 @@ Route::get('/users', [AdminController::class, 'getUser']);
 
 /**Xóa user trong admin */
 Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
+
 /**Chấm điểm và phản hồi */
 Route::get('/grades', [GradeController::class, 'index']);
 Route::post('/grades', [GradeController::class, 'store']);
@@ -63,10 +61,10 @@ Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudents
 /*lấy ra thông báo mà giảng viển gửi*/
 Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify']);
 
-/**Tạo lớp học mới */
 
 /**lấy ra lỗi sau khi import ds sinh viên */
-Route::middleware('auth:sanctum')->get('/get-student-errors/{selectedClass}', [StudentController::class, 'getStudentErrors']);
+
+Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/student-errors', [StudentController::class, 'getStudentErrors']);
 
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
@@ -79,8 +77,6 @@ Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsBy
 
 Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 'getReport']);
 
-/**Láy ra ds ngành */
-Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
 
 // đổi mật khẩu 
 Route::middleware('auth:sanctum')->post('/change-password', [UserController::class, 'changePassword']);
@@ -88,8 +84,10 @@ Route::middleware('auth:sanctum')->post('/change-password', [UserController::cla
 //  tạo báo cáo
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
 
+/**Láy ra ds ngành */
+Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
+// Route::get('/majors', [MajorsController::class, 'index2']);
 
-Route::get('/majors', [MajorsController::class, 'index']);
 Route::post('/majors', [MajorsController::class, 'store']);
 Route::post('/majors/import', [MajorsController::class, 'import']);
 

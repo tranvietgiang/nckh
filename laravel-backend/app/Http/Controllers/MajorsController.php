@@ -14,11 +14,12 @@ class MajorsController extends Controller
 
     public function getMajors()
     {
-        $teacherId = AuthHelper::isLogin();
+        AuthHelper::isLogin();
 
         $getMajor = Major::select("majors.*", "user_profiles.*")
             ->join("user_profiles", "majors.major_id", "=", "user_profiles.major_id")
-            ->where("user_profiles.user_id", $teacherId)
+            ->join("users", "user_profiles.user_id", "=", "users.user_id")
+            ->where("users.role", "teacher")
             ->get();
 
         if ($getMajor->count() > 0) {
@@ -28,12 +29,13 @@ class MajorsController extends Controller
         return response()->json(["message_error" => "Lỗi server"], 500);
     }
 
-    public function index()
-    {
-        return response()->json(Major::all());
-    }
+    // public function index()
+    // {
+    //     return response()->json(Major::all());
+    // }
 
     // 🔹 Thêm 1 ngành thủ công
+
     public function store(Request $request)
     {
         $request->validate([

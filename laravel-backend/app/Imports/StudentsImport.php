@@ -29,21 +29,33 @@ class StudentsImport implements ToCollection, WithHeadingRow
         $this->classId   = $classId;
         $this->teacherId = $teacherId;
         $this->majorId   = $majorId;
+
+        // Gom các check vào 1 query mỗi bảng, tránh sai tên model
+        $majorExist   = Major::where('major_id', $this->majorId)->exists();
+        $teacherExist = user_profile::where('user_id', $this->teacherId)
+            ->where('major_id', $this->majorId) // giáo viên thuộc ngành
+            ->exists();
+        $classExist   = Classe::where('class_id', $this->classId)
+            ->where('teacher_id', $this->teacherId) // lớp thuộc gv
+            ->where('major_id', $this->majorId)     // lớp thuộc ngành
+            ->exists();
+
+        if (!$majorExist || !$teacherExist || !$classExist) {
+            throw new \Exception("❌ Lỗi server! Thiếu hoặc sai liên kết ngành/lớp/giảng viên.");
+        }
     }
 
     public function collection(Collection $rows)
     {
-        $major = Major::find($this->majorId);
-        $majorExist   = !!$major;
-        $teacherExist = user_profile::where("user_id", $this->teacherId)->exists();
-        $classExist   = Classe::where("class_id", $this->classId)->exists();
-
-        if (!$majorExist || !$teacherExist || !$classExist) {
-            throw new \Exception("❌ Lỗi server!");
-            // throw new \Exception("❌ Lỗi server! Thiếu thông tin ngành/lớp/giảng viên.");
+        if ($rows->isEmpty()) {
+            throw new \Exception("❌ File Excel không có dữ liệu!");
         }
 
-        // Kiểm tra giáo viên có dạy lớp và ngành đó không
+        $major = Major::find($this->majorId);
+        if (!$major) {
+            throw new \Exception("❌ Không tìm thấy ngành học tương ứng!");
+        }
+
         $teacherValid = user_profile::select("user_profiles.user_id")
             ->join("classes", "classes.teacher_id", "=", "user_profiles.user_id")
             ->join("majors", "classes.major_id", "=", "majors.major_id")
@@ -56,12 +68,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             throw new \Exception("❌ Giáo viên không dạy lớp này hoặc lớp không thuộc ngành đã chọn!");
         }
 
-        // Xác định mã viết tắt ngành (VD: CNTT → TT, Đồ họa → DH)
-        $mapMajor = [
-            'cntt' => 'TT',
-            'dh'   => 'DH',
-        ];
-
+        $mapMajor = ['cntt' => 'TT', 'dh' => 'DH'];
         $abbr = $mapMajor[strtolower($major->major_abbreviate ?? '')] ?? null;
 
         if (!$abbr) {
@@ -78,7 +85,6 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $phone     = trim((string)($row['phone'] ?? ''));
             $email     = strtolower(trim((string)($row['email'] ?? '')));
 
-            // --- Chuẩn hóa ngày sinh ---
             if (is_numeric($birthdate)) {
                 try {
                     $birthdate = Date::excelToDateTimeObject($birthdate)->format('d/m/Y');
@@ -87,7 +93,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 }
             }
 
-            // --- Kiểm tra thiếu dữ liệu ---
+            // Kiểm tra thiếu dữ liệu
             if (empty($msv) || empty($email) || empty($ten)) {
                 $this->failed++;
                 ImportError::create([
@@ -101,25 +107,22 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // --- Kiểm tra MSSV khớp ngành ---
+            // Kiểm tra MSSV khớp ngành
             if (!str_contains($msv, $abbr)) {
                 $this->failed++;
                 ImportError::create([
                     'user_id'    => $msv,
                     'fullname'   => $ten,
                     'email'      => $email,
-                    'reason'     => "MSSV không khớp ngành (MSSV: $msv - Ngành: {$major->major_name}, yêu cầu chứa: {$abbr})",
+                    'reason'     => "MSSV không khớp ngành ({$major->major_name} - yêu cầu chứa: {$abbr})",
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
                 ]);
                 continue;
             }
 
-            // --- Kiểm tra trùng MSSV hoặc email ---
-            $exists = User::where('user_id', $msv)
-                ->orWhere('email', $email)
-                ->exists();
-
+            // Trùng MSSV hoặc email
+            $exists = User::where('user_id', $msv)->orWhere('email', $email)->exists();
             if ($exists) {
                 $this->failed++;
                 ImportError::create([
@@ -133,10 +136,10 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // --- Tạo sinh viên ---
+            // Tạo sinh viên
             try {
                 DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
-                    User::create([
+                    $user = User::create([
                         'user_id'  => $msv,
                         'email'    => $email,
                         'password' => Hash::make($msv),
