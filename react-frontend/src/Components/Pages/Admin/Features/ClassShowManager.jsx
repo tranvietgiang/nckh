@@ -57,6 +57,7 @@ export default function ClassShowManager() {
       .then((res) => {
         if (Array.isArray(res.data)) {
           setClasses(res.data);
+          console.log(res.data);
           setSafeJSON("data_classes", res.data);
         }
       })
@@ -96,7 +97,6 @@ export default function ClassShowManager() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 p-6">
-        {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex justify-between items-center">
             <div>
@@ -153,32 +153,34 @@ export default function ClassShowManager() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {majorClasses.map((classItem) => (
                           <div
-                            key={classItem.class_id}
+                            key={classItem?.class_id}
                             className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-200"
                           >
                             <div className="flex justify-between items-start mb-4">
                               <h3 className="text-lg font-semibold text-gray-900">
-                                {classItem.class_name}
+                                {classItem?.class_name}
                               </h3>
                               <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Mã lớp: {classItem.class_code}
+                                Mã lớp: {classItem?.class_code}
                               </span>
                             </div>
 
                             <div className="space-y-3">
                               <div className="flex items-center text-gray-600">
                                 <FaClock className="w-4 h-4 mr-2" />
-                                <span>Giáo viên: {major?.fullname ?? ""}</span>
+                                <span>
+                                  Giáo viên: {classItem?.fullname ?? ""}
+                                </span>
                               </div>
 
                               <div className="flex items-center text-gray-600">
                                 <FaClock className="w-4 h-4 mr-2" />
-                                <span>Học kỳ: {classItem.semester}</span>
+                                <span>Học kỳ: {classItem?.semester}</span>
                               </div>
 
                               <div className="flex items-center text-gray-600">
                                 <FaCalendarAlt className="w-4 h-4 mr-2" />
-                                <span>Năm học: {classItem.academic_year}</span>
+                                <span>Năm học: {classItem?.academic_year}</span>
                               </div>
                             </div>
 
@@ -186,12 +188,13 @@ export default function ClassShowManager() {
                             <div className="flex justify-end space-x-3 mt-6">
                               <button
                                 onClick={() =>
-                                  navigate("/nckh-import-class", {
+                                  navigate("/nckh-classes", {
                                     state: {
-                                      class_id: classItem.class_id,
-                                      teacher_id: major.user_id,
+                                      class_id: classItem?.class_id,
+                                      teacher_id: classItem?.teacher_id,
+                                      major_id: major?.major_id,
                                       view: 1,
-                                      name_class: classItem.class_name,
+                                      name_class: classItem?.class_name,
                                     },
                                   })
                                 }
@@ -201,13 +204,13 @@ export default function ClassShowManager() {
                               </button>
                               <button
                                 onClick={() =>
-                                  navigate("/nckh-import-class", {
+                                  navigate("/nckh-classes", {
                                     state: {
-                                      class_id: classItem.class_id,
-                                      major_id: classItem.major_id,
-                                      teacher_id: major.user_id,
+                                      class_id: classItem?.class_id,
+                                      major_id: major?.major_id,
+                                      teacher_id: classItem?.teacher_id,
                                       view: 2,
-                                      name_class: classItem.class_name,
+                                      name_class: classItem?.class_name,
                                     },
                                   })
                                 }
@@ -218,7 +221,7 @@ export default function ClassShowManager() {
                               </button>
                               <button
                                 onClick={() =>
-                                  handleDeleteClass(classItem.class_id)
+                                  handleDeleteClass(classItem?.class_id)
                                 }
                                 className="text-red-600 hover:text-red-800 text-sm font-medium"
                               >

@@ -12,10 +12,11 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MajorsController;
 use App\Http\Controllers\SimpleDriveController;
+use App\Http\Controllers\StudentErrorsController;
 use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\UserController;
-
+use App\Imports\StudentsImport;
 
 /**Xác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
@@ -64,7 +65,9 @@ Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::c
 
 /**lấy ra lỗi sau khi import ds sinh viên */
 
-Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/student-errors', [StudentController::class, 'getStudentErrors']);
+Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/major/{major_id}/student-errors', [StudentErrorsController::class, 'getStudentErrors']);
+/**Xóa lỗi */
+Route::middleware('auth:sanctum')->delete('/student-errors/classes/{class_id}/teacher/{teacher_id}/major/{major_id}', [StudentErrorsController::class, 'deleteByClass']);
 
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
@@ -93,7 +96,8 @@ Route::post('/majors/import', [MajorsController::class, 'import']);
 
 
 /**Láy ra tất cả các lớp */
-Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+// Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
 

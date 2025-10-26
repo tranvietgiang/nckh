@@ -19,6 +19,7 @@ class ImportError extends Model
         'email',
         'reason',
         'class_id',
+        'major_id',
         'teacher_id',
     ];
 }

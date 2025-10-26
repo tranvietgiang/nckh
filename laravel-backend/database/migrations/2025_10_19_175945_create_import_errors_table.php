@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->text('reason', 225)->nullable();
             $table->foreignId('class_id')->constrained("classes", "class_id")->nullable();
+            $table->foreignId('major_id')->constrained("majors", "major_id")->nullable();
             $table->string('teacher_id', 15)->nullable();
             $table->foreign('teacher_id')
                 ->references('user_id')->on('users')

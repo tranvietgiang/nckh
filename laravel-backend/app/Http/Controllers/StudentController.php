@@ -19,7 +19,6 @@ class StudentController extends Controller
     public function import(Request $request)
     {
         try {
-
             AuthHelper::isLogin();
             $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls,csv',
@@ -173,22 +172,5 @@ class StudentController extends Controller
 
             return response()->json($dataProfile, 200);
         }
-    }
-
-    public function getStudentErrors($class_id, $teacherId)
-    {
-        if (!$class_id || !$teacherId) {
-            return response()->json(["message_error" => "Dữ liễu sai"], 402);
-        }
-
-        $list_import_error = ImportError::where('class_id', $class_id)
-            ->where('teacher_id', $teacherId)
-            ->get();
-
-        if ($list_import_error->count() > 0) {
-            return response()->json($list_import_error, 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
     }
 }

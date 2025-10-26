@@ -12,9 +12,8 @@ class ClassSeeder extends Seeder
     public function run(): void
     {
 
-    
 
-  
+
         Major::create([
             'major_name' => 'Công nghệ thông tin',
             'major_abbreviate' => 'cntt',
@@ -63,7 +62,6 @@ class ClassSeeder extends Seeder
             "major_id" => 1
         ]);
 
-   
 
         user_profile::create([
             'fullname' => 'Nguyễn văn A',
@@ -73,7 +71,5 @@ class ClassSeeder extends Seeder
             'class_id' => 2,
             "major_id" => 2
         ]);
-
-       
     }
 }

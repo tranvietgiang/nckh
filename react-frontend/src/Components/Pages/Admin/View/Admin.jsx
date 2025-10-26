@@ -107,7 +107,7 @@ export default function AdminManagement() {
       {/* Phần nội dung chính */}
       <main className="flex-1 flex flex-col min-h-screen">
         {/* <AdminHeader setSidebarOpen={setSidebarOpen} /> */}
-        <Navbar />
+        <AdminHeader />
 
         <div className="p-6">
           {/* ⚡ Nội dung thay đổi theo route */}

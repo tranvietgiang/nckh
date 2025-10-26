@@ -16,11 +16,7 @@ class MajorsController extends Controller
     {
         AuthHelper::isLogin();
 
-        $getMajor = Major::select("majors.*", "user_profiles.*")
-            ->join("user_profiles", "majors.major_id", "=", "user_profiles.major_id")
-            ->join("users", "user_profiles.user_id", "=", "users.user_id")
-            ->where("users.role", "teacher")
-            ->get();
+        $getMajor = Major::all();
 
         if ($getMajor->count() > 0) {
             return response()->json($getMajor);
