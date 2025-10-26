@@ -98,3 +98,7 @@ Route::post('/majors/import', [MajorsController::class, 'import']);
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
+
+
+//thống kê cho giảng viên
+Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsByClass']);

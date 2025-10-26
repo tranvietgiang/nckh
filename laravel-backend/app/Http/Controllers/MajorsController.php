@@ -45,7 +45,7 @@ class MajorsController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => '✅ Thêm ngành thành công!',
+            'message' => ' Thêm ngành thành công!',
             'major' => $major
         ]);
     }
@@ -90,7 +90,7 @@ class MajorsController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => '📥 Import hoàn tất!',
+            'message' => ' Import hoàn tất!',
             'total_success' => $success,
             'total_failed' => $failed,
             'errors' => $errors,
