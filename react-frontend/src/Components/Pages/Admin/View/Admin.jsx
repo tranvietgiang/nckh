@@ -11,7 +11,7 @@ import axios from "../../../../config/axios";
 import Dashboard from "../Features/Dashboard";
 import StudentsTeachersTab from "../Features/StudentsTeachersTab";
 import ReportsManagement from "../Features/Reports";
-
+import Navbar from "../../../ReUse/Navbar/Navbar";
 
 export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,7 +33,6 @@ export default function AdminManagement() {
   useEffect(() => {
     document.title = "Trang Admin";
   }, []);
-
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -107,14 +106,22 @@ export default function AdminManagement() {
 
       {/* Phần nội dung chính */}
       <main className="flex-1 flex flex-col min-h-screen">
-        <AdminHeader setSidebarOpen={setSidebarOpen} />
+        {/* <AdminHeader setSidebarOpen={setSidebarOpen} /> */}
+        <Navbar />
 
         <div className="p-6">
           {/* ⚡ Nội dung thay đổi theo route */}
           <Routes>
             <Route
               path="/"
-              element={<Dashboard students={students} teachers={teachers} totalReports={0} errorReports={0} />}
+              element={
+                <Dashboard
+                  students={students}
+                  teachers={teachers}
+                  totalReports={0}
+                  errorReports={0}
+                />
+              }
             />
             <Route
               path="students"
@@ -139,7 +146,7 @@ export default function AdminManagement() {
                   activeMenu="teachers"
                   activeTab="teachers"
                   searchTerm=""
-                  setSearchTerm={() => { }}
+                  setSearchTerm={() => {}}
                   openModal={setOpenImports}
                   showToast={showToast}
                   toastMessage={toastMessage}
