@@ -107,3 +107,6 @@ Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsB
 
 //lấy ra ngành theo teacher
 Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsController::class, 'getMajorsByClass']);
+
+//lấy ra ngành theo teacher
+Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getAllMajors']);

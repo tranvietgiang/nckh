@@ -11,7 +11,7 @@ import axios from "../../../../config/axios";
 import Dashboard from "../Features/Dashboard";
 import StudentsTeachersTab from "../Features/StudentsTeachersTab";
 import ReportsManagement from "../Features/Reports";
-import Navbar from "../../../ReUse/Navbar/Navbar";
+import MajorImportPage from "../Features/MajorImportPage";
 
 export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function AdminManagement() {
         navigate("/nckh-admin/reports");
         break;
       case "Ngành":
-        navigate("/nckh-import-major");
+        navigate("/nckh-admin/majors");
         break;
       case "Import Dữ Liệu":
         setOpenImports(true);
@@ -156,11 +156,14 @@ export default function AdminManagement() {
                 />
               }
             />
+
             {/* 👇 Route cho Báo cáo */}
             <Route
               path="reports"
               element={<ReportsManagement reports={[]} />}
             />
+
+            <Route path="majors" element={<MajorImportPage />} />
           </Routes>
         </div>
       </main>

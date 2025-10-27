@@ -26,10 +26,16 @@ class MajorsController extends Controller
         return response()->json(["message_error" => "Lỗi server"], 500);
     }
 
-    // public function index()
-    // {
-    //     return response()->json(Major::all());
-    // }
+    public function getAllMajors()
+    {
+        $getMajor = Major::orderBy("major_name", "desc")->get();
+
+        if ($getMajor->count() > 0) {
+            return response()->json($getMajor, 200);
+        }
+
+        return response()->json(["message_error" => "Dữ dữ liệu"], 500);
+    }
 
     // 🔹 Thêm 1 ngành thủ công
 

@@ -1,147 +1,225 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "../../../../config/axios";
+import ModalMajor from "../Modal/ModalMajor";
 
 export default function MajorImportPage() {
-  const [majors, setMajors] = useState([
-    {
-      major_id: 1,
-      major_name: "Công nghệ thông tin",
-      major_abbreviate: "CNTT",
-      created_at: "2025-10-22 03:21:37",
-      updated_at: "2025-10-22 03:21:37",
-    },
-  ]);
+  const [getMajors, setMajors] = useState([]);
+  const [openModalMajor, setOpenModalMajor] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleEdit = (majorId) => {
-    console.log("Sửa ngành:", majorId);
-    // Logic sửa ngành
+  useEffect(() => {
+    fetchMajors();
+  }, []);
+
+  const fetchMajors = () => {
+    setLoading(true);
+    axios
+      .get("/get-majors")
+      .then((res) => {
+        setMajors(res.data || []);
+      })
+      .catch((error) => {
+        console.error("Lỗi tải danh sách ngành:", error);
+        setMajors([]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
-  const handleCopy = (major) => {
-    console.log("Chép ngành:", major);
-    // Logic copy ngành
-    navigator.clipboard.writeText(JSON.stringify(major));
-    alert("Đã copy thông tin ngành!");
+  const handleEdit = (major) => {
+    // Mở modal chỉnh sửa
+    console.log("Sửa ngành:", major);
   };
 
   const handleDelete = (majorId) => {
     if (window.confirm("Bạn có chắc muốn xóa ngành này?")) {
-      console.log("Xóa ngành:", majorId);
-      // Logic xóa ngành
-      setMajors(majors.filter((major) => major.major_id !== majorId));
+      axios
+        .delete(`/majors/${majorId}`)
+        .then((res) => {
+          if (res.data.status) {
+            alert("✅ Xóa ngành thành công!");
+            fetchMajors();
+          }
+        })
+        .catch((error) => {
+          console.error("Lỗi xóa ngành:", error);
+          alert("❌ Lỗi khi xóa ngành!");
+        });
     }
   };
 
   const handleImport = () => {
-    // Logic import file
     console.log("Import file ngành");
   };
 
+  const handleCloseModal = () => {
+    setOpenModalMajor(false);
+  };
+
+  const handleMajorSuccess = () => {
+    fetchMajors();
+  };
+
+  const handleButtonClick = (menuItem) => {
+    console.log("Menu clicked:", menuItem);
+  };
+
+  // Định dạng ngày tháng như trong hình (27/10/2025)
+  const formatDate = (dateString) => {
+    if (!dateString) return "27/10/2025"; // Default date as in image
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN");
+  };
+
+  useEffect(() => {
+    window.onMajorActionSuccess = handleMajorSuccess;
+    return () => {
+      delete window.onMajorActionSuccess;
+    };
+  }, []);
+
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Quản lý Ngành</h1>
-        <button
-          onClick={handleImport}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
-        >
-          📁 Import Ngành
-        </button>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="flex">
+        {/* Main Content - Chiếm toàn bộ chiều rộng */}
+        <div className="flex-1">
+          <div className="p-6">
+            {/* Tiêu đề giống hình ảnh */}
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">
+                Quản lý Ngành
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Quản lý danh sách các ngành học trong hệ thống
+              </p>
+            </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                major_id
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                major_name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                major_abbreviate
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                created_at
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                updated_at
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Thao tác
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {majors.map((major) => (
-              <tr key={major.major_id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {major.major_id}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {major.major_name}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {major.major_abbreviate}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {major.created_at}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {major.updated_at}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  <button
-                    onClick={() => handleEdit(major.major_id)}
-                    className="text-blue-600 hover:text-blue-900 transition duration-200"
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    onClick={() => handleCopy(major)}
-                    className="text-green-600 hover:text-green-900 transition duration-200"
-                  >
-                    Chép
-                  </button>
-                  <button
-                    onClick={() => handleDelete(major.major_id)}
-                    className="text-red-600 hover:text-red-900 transition duration-200"
-                  >
-                    Xóa bỏ
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            {/* Thống kê và nút bấm - Layout giống hình */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <div className="flex items-center gap-2">
+                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                  Tổng {getMajors?.length || 0} ngành
+                </span>
+              </div>
 
-      {/* Empty State */}
-      {majors.length === 0 && (
-        <div className="text-center py-12">
-          <svg
-            className="mx-auto h-12 w-12 text-gray-400"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
-            Không có ngành nào
-          </h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Bắt đầu bằng cách import file ngành.
-          </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleImport}
+                  className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition duration-200"
+                >
+                  <span>📁</span>
+                  Import Ngành
+                </button>
+
+                <button
+                  onClick={() => setOpenModalMajor(true)}
+                  className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200"
+                >
+                  <span>➕</span>
+                  Thêm Ngành
+                </button>
+              </div>
+            </div>
+
+            {/* Table - Giống thiết kế trong hình */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              {loading ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">
+                    Đang tải dữ liệu...
+                  </span>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          ID
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          TÊN NGÀNH
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          MÃ VIẾT TẮT
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          NGÀY TẠO
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          CẬP NHẬT
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          THAO TÁC
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {getMajors?.map((major) => (
+                        <tr key={major.major_id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                            {major.major_id.toString().padStart(2, "0")}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {major.major_name}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {major.major_abbreviate}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(major.created_at)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {formatDate(major.updated_at)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <button
+                              onClick={() => handleEdit(major)}
+                              className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition duration-200"
+                            >
+                              Sửa
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Empty State */}
+                  {getMajors?.length === 0 && (
+                    <div className="text-center py-12">
+                      <svg
+                        className="mx-auto h-16 w-16 text-gray-400 mb-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1.5}
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Không có ngành nào
+                      </h3>
+                      <p className="text-gray-500 mb-4">
+                        Bắt đầu bằng cách import file ngành.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-      )}
+      </div>
+
+      <ModalMajor stateOpen={openModalMajor} onClose={handleCloseModal} />
     </div>
   );
 }
