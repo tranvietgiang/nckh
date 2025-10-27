@@ -3,96 +3,121 @@ import axios from "../../../../config/axios";
 import { getUser } from "../../../Constants/INFO_USER";
 
 export default function CreateNotification({ stateOpen, onClose }) {
-  const [getClass, setClass] = useState([]);
-  const [getMajor, setMajor] = useState([]);
-  const user = getUser();
-  const idTeacher = user?.user_id ?? null;
-
+  const [majors, setMajors] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingClass, setLoadingClass] = useState(false);
   const [loadingMajor, setLoadingMajor] = useState(false);
+  const [loadingClass, setLoadingClass] = useState(false);
 
-  const [selectedMajor, setSelectedMajor] = useState(""); // 🆕 major được chọn
+  const user = getUser();
+  const teacherId = user?.user_id ?? null;
+  const [selectedMajor, setSelectedMajor] = useState("");
+
   const [formData, setFormData] = useState({
-    sendTo: "",
+    class_id: "",
+    major_id: "",
+    teacher_id: teacherId,
     title: "",
     content: "",
-    class_id: "",
-    teacher_id: "",
-    major_id: "",
     sendEmail: true,
     showDashboard: true,
   });
 
-  console.log(formData);
-  // --- Lấy danh sách ngành của giảng viên ---
+  // --- Lấy ngành của giảng viên ---
   useEffect(() => {
-    if (!idTeacher) return;
+    if (!teacherId) return;
     setLoadingMajor(true);
     axios
-      .get(`/major-by-teacher/${idTeacher}`)
+      .get(`/major-by-teacher/${teacherId}`)
       .then((res) => {
-        setMajor(res.data || []);
+        setMajors(res.data);
+        console.log(res.data);
       })
-      .catch((err) => console.error("❌ Lỗi tải ngành:", err))
+      .catch((err) => {
+        console.error("❌ Lỗi tải ngành:", err);
+        setMajors([]);
+      })
       .finally(() => setLoadingMajor(false));
-  }, [idTeacher]);
+  }, [teacherId]);
 
-  // --- Khi chọn ngành -> lấy danh sách lớp thuộc ngành ---
+  // --- Khi chọn ngành -> tải lớp ---
   useEffect(() => {
     if (!selectedMajor) return;
     setLoadingClass(true);
     axios
-      .get(`/get-class-by-major/${selectedMajor}`) // ✅ API lấy lớp theo ngành
+      .get(`/get-class-by-major/${selectedMajor}`)
       .then((res) => {
-        setClass(res.data || []);
+        setClasses(res.data);
+        console.log(res.data);
       })
-      .catch((err) => console.error("❌ Lỗi tải lớp:", err))
+      .catch((err) => {
+        console.error("❌ Lỗi tải lớp:", err);
+        setClasses([]);
+      })
       .finally(() => setLoadingClass(false));
   }, [selectedMajor]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-    // 🆕 Nếu chọn ngành thì cập nhật state ngành và reset lớp
+    // chọn ngành
     if (name === "major_id") {
       setSelectedMajor(value);
       setFormData((prev) => ({
         ...prev,
-        class_id: "",
+        major_id: value,
+        class_id: "", // reset lớp khi đổi ngành
       }));
       return;
     }
 
-    // 🆕 Nếu chọn lớp thì cập nhật class_id và sendTo
-    if (name === "sendTo") {
+    // chọn lớp
+    if (name === "class_id") {
       setFormData((prev) => ({
         ...prev,
-        sendTo: value,
         class_id: value,
       }));
       return;
     }
 
-    // Các input khác
+    // các input khác
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  // --- Gửi thông báo ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log(formData);
+
+    if (!formData.major_id) return alert("⚠️ Vui lòng chọn ngành!");
+    if (!formData.class_id) return alert("⚠️ Vui lòng chọn lớp!");
+    if (!formData.title.trim()) return alert("⚠️ Vui lòng nhập tiêu đề!");
+    if (!formData.content.trim()) return alert("⚠️ Vui lòng nhập nội dung!");
+
     try {
-      if (!formData.class_id) return alert("⚠️ Vui lòng chọn lớp!");
       setLoading(true);
+      console.log("📤 Gửi dữ liệu:", formData);
       const res = await axios.post("/create-notification", formData);
       alert(res.data.message_success || "✅ Gửi thông báo thành công!");
+
+      // reset form
+      setFormData({
+        class_id: "",
+        major_id: "",
+        teacher_id: teacherId,
+        title: "",
+        content: "",
+        sendEmail: true,
+        showDashboard: true,
+      });
+      setSelectedMajor("");
       onClose(false);
     } catch (err) {
-      console.error(err);
-      alert("❌ Lỗi khi gửi thông báo!");
+      console.error("❌ Lỗi gửi thông báo:", err);
+      alert("❌ Gửi thất bại!");
     } finally {
       setLoading(false);
     }
@@ -111,6 +136,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
           className="bg-white rounded-xl shadow-lg w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header */}
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
             <h1 className="text-2xl font-bold">📢 TẠO THÔNG BÁO</h1>
             <button
@@ -121,15 +147,16 @@ export default function CreateNotification({ stateOpen, onClose }) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-6">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-6 space-y-5">
             {/* Chọn ngành */}
-            <div className="mb-6">
+            <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
-                Chọn ngành:
+                Ngành học:
               </label>
               <select
                 name="major_id"
-                value={selectedMajor}
+                value={formData.major_id}
                 onChange={handleInputChange}
                 disabled={loadingMajor}
                 className="w-full p-3 border border-gray-300 rounded-lg"
@@ -137,7 +164,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
                 <option value="">
                   {loadingMajor ? "🔄 Đang tải..." : "Chọn ngành"}
                 </option>
-                {getMajor.map((m) => (
+                {majors.map((m) => (
                   <option key={m.major_id} value={m.major_id}>
                     {m.major_name}
                   </option>
@@ -146,13 +173,13 @@ export default function CreateNotification({ stateOpen, onClose }) {
             </div>
 
             {/* Chọn lớp */}
-            <div className="mb-6">
+            <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 Gửi đến lớp:
               </label>
               <select
-                name="sendTo"
-                value={formData.sendTo}
+                name="class_id"
+                value={formData.class_id}
                 onChange={handleInputChange}
                 disabled={loadingClass || !selectedMajor}
                 className="w-full p-3 border border-gray-300 rounded-lg"
@@ -164,8 +191,8 @@ export default function CreateNotification({ stateOpen, onClose }) {
                     ? "Chọn ngành trước"
                     : "Chọn lớp"}
                 </option>
-                {getClass.map((c) => (
-                  <option key={c.class_id} value={c.class_id}>
+                {classes.map((c) => (
+                  <option key={c.class_id_teacher} value={c.class_id_teacher}>
                     {c.class_name}
                   </option>
                 ))}
@@ -173,7 +200,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
             </div>
 
             {/* Tiêu đề */}
-            <div className="mb-6">
+            <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 Tiêu đề:
               </label>
@@ -188,7 +215,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
             </div>
 
             {/* Nội dung */}
-            <div className="mb-6">
+            <div>
               <label className="block mb-2 text-sm font-medium text-gray-700">
                 Nội dung:
               </label>
@@ -201,7 +228,8 @@ export default function CreateNotification({ stateOpen, onClose }) {
                 placeholder="Nhập nội dung thông báo..."
               />
             </div>
-            {/* 🧩 Tuỳ chọn gửi */}
+
+            {/* Tuỳ chọn gửi */}
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
               <h3 className="font-semibold text-gray-700">
                 Tuỳ chọn gửi thông báo:
@@ -229,8 +257,9 @@ export default function CreateNotification({ stateOpen, onClose }) {
                 <span>🖥️ Hiển thị trên dashboard</span>
               </label>
             </div>
-            {/* Gửi */}
-            <div className="flex justify-end gap-4">
+
+            {/* Nút gửi */}
+            <div className="flex justify-end gap-4 pt-4">
               <button
                 type="button"
                 onClick={() => onClose(false)}

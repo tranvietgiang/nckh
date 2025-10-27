@@ -22,9 +22,9 @@ class NotificationController extends Controller
     {
         $data = $request->all();
 
-        if (($data)) {
+        if (!$data) {
             return response()->json([
-                "error" => "Dữ liệu gửi đi không tồn tại!"
+                "message_error" => "Dữ liệu gửi đi không tồn tại!"
             ], 403);
         }
 
@@ -70,9 +70,9 @@ class NotificationController extends Controller
         $createNotify =  Notification::create([
             'title' => $data['title'],
             'content' => $data['content'],
+            'major_id' => $data['major_id'],
             'teacher_id' => $data['teacher_id'],
             'class_id' => $data['class_id'],
-            'major_id' => $data['major_id'],
         ]);
 
 
@@ -82,6 +82,7 @@ class NotificationController extends Controller
                     ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
                     ->join('majors', 'user_profiles.major_id', '=', 'majors.major_id')
                     ->where('user_profiles.class_id', $data['class_id'])
+                    ->where("user_profiles.major_id", $data['major_id'])
                     ->where("users.role", "student")
                     ->get();
 

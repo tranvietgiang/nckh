@@ -31,7 +31,7 @@ Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id
 Route::middleware('auth:sanctum')->get('/get-class-by-major/{selectedMajor}', [ClassController::class, 'getClassOfTeacher']);
 
 /**Tạo thông báo gửi đến sinh viên */
-Route::post('/create-notification', [NotificationController::class, 'createNotification']);
+Route::middleware('auth:sanctum')->post('/create-notification', [NotificationController::class, 'createNotification']);
 
 Route::get('/profiles', [StudentController::class, 'getProfile']);
 
