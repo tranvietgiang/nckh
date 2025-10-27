@@ -3,10 +3,12 @@ import axios from "../../../../config/axios";
 import { useNavigate } from "react-router-dom";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
+import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
 
 export default function CreateClass({ stateOpen, onClose }) {
   const { user, token } = getAuth();
   IsLogin(user, token);
+  RoleAdmin(user?.role);
 
   const [majors, setMajors] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -139,7 +141,7 @@ export default function CreateClass({ stateOpen, onClose }) {
 
     setLoading(true);
     try {
-      const res = await axios.post("/classes", formData);
+      const res = await axios.post("/create-classes", formData);
 
       if (res.status === 401) {
         alert("⚠️ Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại!");
