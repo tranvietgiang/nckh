@@ -12,7 +12,6 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class MajorsController extends Controller
 {
     //
-
     public function getMajors()
     {
         AuthHelper::isLogin();

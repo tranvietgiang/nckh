@@ -13,7 +13,10 @@ class report_member extends Model
     public $incrementing = true;
 
     protected $fillable = [
+        'rm_name',
         'report_id',
-        'student_id'
+        'report_m_role',
+        'student_id',
+        'rm_code'
     ];
 }
