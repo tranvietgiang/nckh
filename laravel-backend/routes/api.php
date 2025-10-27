@@ -11,6 +11,7 @@ use App\Http\Controllers\ClassController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MajorsController;
+use App\Http\Controllers\ReportMembersController;
 use App\Http\Controllers\SimpleDriveController;
 use App\Http\Controllers\StudentErrorsController;
 use App\Http\Controllers\TeacherController;
@@ -110,3 +111,6 @@ Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsC
 
 //lấy ra ngành theo teacher
 Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getAllMajors']);
+
+//lấy ra ngành theo teacher
+Route::middleware('auth:sanctum')->get('/get-class-by-major-group/classes/{classId}/majors/{majorId}', [ReportMembersController::class, 'getClassBbyMajorGroup']);

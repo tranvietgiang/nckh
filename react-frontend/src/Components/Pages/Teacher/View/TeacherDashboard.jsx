@@ -46,6 +46,9 @@ export default function TeacherDashboard() {
       case "Tạo Thông Báo":
         setOpenNotification(true);
         break;
+      case "Quản lý nhóm":
+        navigate("/nckh-teacher-groups");
+        break;
       default:
         console.log("Chức năng khác");
     }
@@ -105,17 +108,21 @@ export default function TeacherDashboard() {
             ⚡ THAO TÁC NHANH
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {["Quản Lý Lớp", "Tạo Báo Cáo", "Chấm Điểm", "Tạo Thông Báo"].map(
-              (item, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleButtonClick(item)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
-                >
-                  {item}
-                </button>
-              )
-            )}
+            {[
+              "Quản Lý Lớp",
+              "Tạo Báo Cáo",
+              "Chấm Điểm",
+              "Tạo Thông Báo",
+              "Quản lý nhóm",
+            ].map((item, i) => (
+              <button
+                key={i}
+                onClick={() => handleButtonClick(item)}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
 
