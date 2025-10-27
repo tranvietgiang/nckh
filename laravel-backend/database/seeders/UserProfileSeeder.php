@@ -19,14 +19,6 @@ class UserProfileSeeder extends Seeder
             "major_id" => 1
         ]);
 
-        user_profile::create([
-            'fullname' => 'Phan Thanh Nhuần',
-            'birthdate' => '15/10/2025',
-            'phone' => '012345678',
-            'user_id' => 'gv001',
-            'class_id' => 1,
-            "major_id" => 2
-        ]);
 
         user_profile::create([
             'fullname' => 'Nguyễn văn A',
