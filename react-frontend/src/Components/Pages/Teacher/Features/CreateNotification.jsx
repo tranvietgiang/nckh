@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
-import { getUser } from "../../../Constants/INFO_USER";
+import { getAuth } from "../../../Constants/INFO_USER";
+import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function CreateNotification({ stateOpen, onClose }) {
   const [majors, setMajors] = useState([]);
@@ -9,7 +11,10 @@ export default function CreateNotification({ stateOpen, onClose }) {
   const [loadingMajor, setLoadingMajor] = useState(false);
   const [loadingClass, setLoadingClass] = useState(false);
 
-  const user = getUser();
+  const { user, token } = getAuth();
+  IsLogin(user, token);
+  RoleTeacher(user?.role);
+
   const teacherId = user?.user_id ?? null;
   const [selectedMajor, setSelectedMajor] = useState("");
 
@@ -59,7 +64,6 @@ export default function CreateNotification({ stateOpen, onClose }) {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     // chọn ngành
     if (name === "major_id") {
       setSelectedMajor(value);
@@ -89,8 +93,6 @@ export default function CreateNotification({ stateOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    console.log(formData);
 
     if (!formData.major_id) return alert("⚠️ Vui lòng chọn ngành!");
     if (!formData.class_id) return alert("⚠️ Vui lòng chọn lớp!");

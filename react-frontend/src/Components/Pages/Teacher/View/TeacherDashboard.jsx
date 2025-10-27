@@ -6,19 +6,20 @@ import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import axios from "../../../../config/axios";
-
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
   const [classes, setClasses] = useState([]); // ✅ thêm state lớp học
   const { user, token } = getAuth();
   const navigate = useNavigate();
 
-  RouterHome(user, token);
+  IsLogin(user, token);
+  RoleTeacher(user?.role);
 
   useEffect(() => {
     document.title = "Trang teacher";
 
-    // ✅ Lấy danh sách lớp mà giảng viên đang dạy
     axios
       .get("/classes", {
         headers: { Authorization: `Bearer ${token}` },
@@ -81,9 +82,7 @@ export default function TeacherDashboard() {
         {/* Tổng quan */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div className="bg-blue-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-blue-700">
-              {classes.length}
-            </p>
+            <p className="text-5xl font-bold text-blue-700">{classes.length}</p>
             <p className="mt-2 font-medium">Lớp học</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded-xl text-center shadow-sm">
@@ -127,7 +126,9 @@ export default function TeacherDashboard() {
           </h3>
 
           {classes.length === 0 ? (
-            <p className="text-gray-500 italic">Chưa có lớp nào được phân công.</p>
+            <p className="text-gray-500 italic">
+              Chưa có lớp nào được phân công.
+            </p>
           ) : (
             <div className="space-y-4">
               {classes.map((cls) => (

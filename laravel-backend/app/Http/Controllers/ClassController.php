@@ -97,7 +97,7 @@ class ClassController extends Controller
 
     public function insertClassNew(Request $request)
     {
-        AuthHelper::isLogin();
+        AuthHelper::roleAmin();
 
         if (Auth::user()->role != 'admin') {
             return response()->json(['message_error' => 'Bạn không có quyền tạo lớp!'], 403);

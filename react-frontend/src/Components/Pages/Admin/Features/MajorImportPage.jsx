@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
-import ModalMajor from "../Modal/ModalMajor";
+import ModalMajor from "../Modal/ModalAddMajor";
 
 export default function MajorImportPage() {
   const [getMajors, setMajors] = useState([]);
   const [openModalMajor, setOpenModalMajor] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  // const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,23 +33,6 @@ export default function MajorImportPage() {
     console.log("Sửa ngành:", major);
   };
 
-  const handleDelete = (majorId) => {
-    if (window.confirm("Bạn có chắc muốn xóa ngành này?")) {
-      axios
-        .delete(`/majors/${majorId}`)
-        .then((res) => {
-          if (res.data.status) {
-            alert("✅ Xóa ngành thành công!");
-            fetchMajors();
-          }
-        })
-        .catch((error) => {
-          console.error("Lỗi xóa ngành:", error);
-          alert("❌ Lỗi khi xóa ngành!");
-        });
-    }
-  };
-
   const handleImport = () => {
     console.log("Import file ngành");
   };
@@ -60,10 +43,6 @@ export default function MajorImportPage() {
 
   const handleMajorSuccess = () => {
     fetchMajors();
-  };
-
-  const handleButtonClick = (menuItem) => {
-    console.log("Menu clicked:", menuItem);
   };
 
   // Định dạng ngày tháng như trong hình (27/10/2025)
