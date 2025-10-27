@@ -23,7 +23,7 @@ export default function StudentsTeachersTab({
   handleDelete,
 }) {
   if (activeMenu !== "students" && activeMenu !== "teachers") return null;
-
+  
   return (
     <div>
       <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6">
