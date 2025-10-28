@@ -218,13 +218,6 @@ class ReportController extends Controller
 
     public function createReport(Request $request)
     {
-        return Report::createNew($request);
-    }
-
-
-
-    public function createReport(Request $request)
-    {
         // Validate đầu vào
         $request->validate([
             'report_name' => 'required|string|max:255',
