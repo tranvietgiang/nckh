@@ -34,7 +34,7 @@ Route::middleware('auth:sanctum')->get('/get-class-by-major/{selectedMajor}', [C
 /**Tạo thông báo gửi đến sinh viên */
 Route::middleware('auth:sanctum')->post('/create-notification', [NotificationController::class, 'createNotification']);
 
-Route::get('/profiles', [StudentController::class, 'getProfile']);
+Route::middleware('auth:sanctum')->get('/profiles', [StudentController::class, 'getProfile']);
 
 /**Lấy danh sách ở trong phần admin */
 Route::get('/users', [AdminController::class, 'getUser']);

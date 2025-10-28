@@ -36,9 +36,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const res = await axios.get("/profiles", {
-        params: { role },
-      });
+      const res = await axios.get("/profiles");
       setProfile(res.data);
       console.log(res.data);
       setSafeJSON("user_profiles", JSON.stringify(res.data));
