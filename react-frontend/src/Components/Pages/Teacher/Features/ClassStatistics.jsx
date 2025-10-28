@@ -16,7 +16,7 @@ export default function ClassStatistics() {
     axios
       .get(`/classes/${classId}/students`)
       .then((res) => {
-        setStudents(res.data);
+        setStudents(res.data.data);
         setLoading(false);
       })
       .catch((err) => {
