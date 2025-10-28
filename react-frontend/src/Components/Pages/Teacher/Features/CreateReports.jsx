@@ -25,7 +25,7 @@ export default function CreateReports() {
     setLoading(true);
     axios
       .get("/classes")
-      .then((res) => mounted && setClasses(res.data || []))
+      .then((res) => mounted && setClasses(res.data.data || []))
       .catch(() => mounted && setError("Không tải được danh sách lớp."))
       .finally(() => mounted && setLoading(false));
     return () => (mounted = false);

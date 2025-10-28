@@ -54,4 +54,6 @@ class Classe extends Model
             'data' => $classes,
         ]);
     }
+
+    
 }
