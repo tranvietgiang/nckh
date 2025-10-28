@@ -235,17 +235,30 @@ class ClassController extends Controller
     // }
     public function import(Request $request)
     {
-        if (!$request->hasFile('file')) {
-            return response()->json(['message' => 'Không có file được tải lên'], 400);
-        }
-
-        $file = $request->file('file');
-
         try {
-            Excel::import(new ClassImport, $file);
-            return response()->json(['message' => 'Import thành công!']);
-        } catch (\Exception $e) {
-            return response()->json(['message' => 'Lỗi khi import: ' . $e->getMessage()], 500);
+            $file = $request->file('file');
+            if (!$file) {
+                return response()->json(['message' => '❌ Không có file tải lên!'], 400);
+            }
+
+            $teacherId = $request->input('teacher_id');
+            $majorId = $request->input('major_id');
+
+            $import = new ClassImport($teacherId, $majorId);
+            Excel::import($import, $file);
+
+            return response()->json([
+                'message' => '✅ Import lớp học hoàn tất!',
+                'success' => $import->success,
+                'failed' => $import->failed,
+                'total' => $import->totalClass,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => '❌ Lỗi khi import lớp học: ' . $e->getMessage(),
+            ], 500);
         }
     }
+
+
 }

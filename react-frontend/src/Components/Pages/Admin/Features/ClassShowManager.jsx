@@ -30,32 +30,55 @@ export default function ClassShowManager() {
   const [getMajors, setMajors] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
   const fileInputRef = useRef(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [importLoading, setImportLoading] = useState(false);
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
   };
 
-  const handleFileChange = async (event) => {
+  const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await axios.post("/classes/import", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      alert(res.data.message || "Import thành công!");
-      setShowImportModal(false);
-    } catch (err) {
-      console.error("Lỗi khi import:", err);
-      alert("Import thất bại!");
+    if (file) {
+      setSelectedFile(file);
     }
   };
 
+  const handleImportSubmit = async () => {
+    if (!selectedFile) {
+      alert("Vui lòng chọn file Excel trước khi import!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    setImportLoading(true);
+    try {
+      const res = await axios.post("/classes/import", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert(res.data.message || "Import lớp học thành công!");
+      setShowImportModal(false);
+      setSelectedFile(null);
+
+      // Cập nhật lại danh sách lớp sau khi import
+      const newList = await axios.get("/classes");
+      if (Array.isArray(newList.data)) {
+        setClasses(newList.data);
+        setSafeJSON("data_classes", newList.data);
+      }
+    } catch (err) {
+      console.error("Lỗi khi import:", err);
+      alert(
+        err.response?.data?.message ||
+        "❌ Import thất bại! Vui lòng kiểm tra lại file Excel."
+      );
+    } finally {
+      setImportLoading(false);
+    }
+  };
 
   useEffect(() => {
     axios
@@ -286,11 +309,12 @@ export default function ClassShowManager() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Import Lớp Học
-                </h3>
+                <h3 className="text-lg font-semibold text-gray-900">Import Lớp Học</h3>
                 <button
-                  onClick={() => setShowImportModal(false)}
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setSelectedFile(null);
+                  }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <FaPlus className="w-6 h-6 transform rotate-45" />
@@ -304,7 +328,6 @@ export default function ClassShowManager() {
                     Kéo thả file Excel vào đây hoặc
                   </p>
 
-                  {/* ✅ Nút chọn file có input ẩn */}
                   <button
                     onClick={handleButtonClick}
                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
@@ -320,6 +343,13 @@ export default function ClassShowManager() {
                     className="hidden"
                   />
 
+                  {/* ✅ Hiển thị tên file đã chọn */}
+                  {selectedFile && (
+                    <p className="mt-4 text-sm text-gray-800 font-medium">
+                      📂 Đã chọn: <span className="text-blue-600">{selectedFile.name}</span>
+                    </p>
+                  )}
+
                   <p className="text-sm text-gray-500 mt-4">
                     Định dạng hỗ trợ: .xlsx, .csv
                   </p>
@@ -328,18 +358,28 @@ export default function ClassShowManager() {
 
               <div className="flex justify-end space-x-3 p-6 border-t border-gray-200">
                 <button
-                  onClick={() => setShowImportModal(false)}
+                  onClick={() => {
+                    setShowImportModal(false);
+                    setSelectedFile(null);
+                  }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800"
                 >
                   Hủy
                 </button>
-                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
-                  Import
+
+                <button
+                  onClick={handleImportSubmit}
+                  disabled={importLoading}
+                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${importLoading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                >
+                  {importLoading ? "Đang import..." : "Import"}
                 </button>
               </div>
             </div>
           </div>
         )}
+
       </div>
       <Footer />
     </>
