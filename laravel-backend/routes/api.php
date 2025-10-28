@@ -97,7 +97,7 @@ Route::post('/majors/import', [MajorsController::class, 'import']);
 
 
 /**Láy ra tất cả các lớp */
-// Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+ Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
@@ -114,3 +114,6 @@ Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 
 
 //lấy ra ngành theo teacher
 Route::middleware('auth:sanctum')->get('/get-class-by-major-group/classes/{classId}/majors/{majorId}', [ReportMembersController::class, 'getClassBbyMajorGroup']);
+
+//Import class 
+Route::post('/classes/import', [ClassController::class, 'import']);

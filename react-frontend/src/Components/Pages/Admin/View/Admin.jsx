@@ -106,8 +106,8 @@ export default function AdminManagement() {
 
       {/* Phần nội dung chính */}
       <main className="flex-1 flex flex-col min-h-screen">
-        {/* <AdminHeader setSidebarOpen={setSidebarOpen} /> */}
-        <AdminHeader />
+        {/* ✅ Gọi lại AdminHeader và truyền đúng props */}
+        <AdminHeader setSidebarOpen={setSidebarOpen} />
 
         <div className="p-6">
           {/* ⚡ Nội dung thay đổi theo route */}
@@ -131,22 +131,28 @@ export default function AdminManagement() {
                   setActiveMenu={setActiveMenu}
                   activeTab="students"
                   setActiveTab={setActiveTab}
-                  filteredStudents={[]}
-                  filteredTeachers={teachers}
+                  searchTerm=""
+                  setSearchTerm={() => { }}
                   openModal={setOpenImports}
                   showToast={showToast}
                   toastMessage={toastMessage}
+                  filteredStudents={students}
+                  filteredTeachers={[]}
+                  handleDelete={(id) => console.log("Xóa SV", id)}
                 />
               }
             />
+
             <Route
               path="teachers"
               element={
                 <StudentsTeachersTab
-                  activeMenu="teachers"
+                  activeMenu={activeMenu}
+                  setActiveMenu={setActiveMenu}
                   activeTab="teachers"
+                  setActiveTab={setActiveTab}
                   searchTerm=""
-                  setSearchTerm={() => {}}
+                  setSearchTerm={() => { }}
                   openModal={setOpenImports}
                   showToast={showToast}
                   toastMessage={toastMessage}
@@ -158,10 +164,7 @@ export default function AdminManagement() {
             />
 
             {/* 👇 Route cho Báo cáo */}
-            <Route
-              path="reports"
-              element={<ReportsManagement reports={[]} />}
-            />
+            <Route path="reports" element={<ReportsManagement reports={[]} />} />
 
             <Route path="majors" element={<MajorImportPage />} />
           </Routes>

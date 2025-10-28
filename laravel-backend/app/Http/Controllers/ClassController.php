@@ -9,6 +9,8 @@ use App\Helpers\AuthHelper;
 use App\Models\Major;
 use App\Http\Controllers\MajorsController;
 use Illuminate\Support\Facades\Auth;
+use App\Imports\ClassImport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ClassController extends Controller
 {
@@ -108,9 +110,9 @@ class ClassController extends Controller
         if (
             empty($data["class_name"]) ||
             empty($data["class_code"]) ||
-            empty($data["major_id"])   ||
+            empty($data["major_id"]) ||
             empty($data["teacher_id"]) ||
-            empty($data["semester"])   ||
+            empty($data["semester"]) ||
             empty($data["academic_year"])
         ) {
             return response()->json([
@@ -231,4 +233,19 @@ class ClassController extends Controller
 
     //     return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     // }
+    public function import(Request $request)
+    {
+        if (!$request->hasFile('file')) {
+            return response()->json(['message' => 'Không có file được tải lên'], 400);
+        }
+
+        $file = $request->file('file');
+
+        try {
+            Excel::import(new ClassImport, $file);
+            return response()->json(['message' => 'Import thành công!']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Lỗi khi import: ' . $e->getMessage()], 500);
+        }
+    }
 }

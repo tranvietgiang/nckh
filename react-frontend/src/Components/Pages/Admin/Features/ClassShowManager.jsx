@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   FaUpload,
   FaPlus,
@@ -29,6 +29,33 @@ export default function ClassShowManager() {
   const [getClasses, setClasses] = useState([]);
   const [getMajors, setMajors] = useState([]);
   const [showImportModal, setShowImportModal] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleButtonClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await axios.post("/classes/import", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      alert(res.data.message || "Import thành công!");
+      setShowImportModal(false);
+    } catch (err) {
+      console.error("Lỗi khi import:", err);
+      alert("Import thất bại!");
+    }
+  };
+
 
   useEffect(() => {
     axios
@@ -276,9 +303,23 @@ export default function ClassShowManager() {
                   <p className="text-gray-600 mb-4">
                     Kéo thả file Excel vào đây hoặc
                   </p>
-                  <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200">
+
+                  {/* ✅ Nút chọn file có input ẩn */}
+                  <button
+                    onClick={handleButtonClick}
+                    className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200"
+                  >
                     Chọn file từ máy tính
                   </button>
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.csv"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+
                   <p className="text-sm text-gray-500 mt-4">
                     Định dạng hỗ trợ: .xlsx, .csv
                   </p>
