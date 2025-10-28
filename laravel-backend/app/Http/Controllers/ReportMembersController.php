@@ -6,15 +6,18 @@ use App\Helpers\AuthHelper;
 use App\Models\report_member;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+use App\Imports\GroupsImport;
+use App\Models\ImportError;
+use Maatwebsite\Excel\Facades\Excel;
+use Exception;
 
 class ReportMembersController extends Controller
 {
     //
-
     public function getClassBbyMajorGroup($classId, $majorId)
     {
-        $auth = AuthHelper::isLogin();
-
+        AuthHelper::isLogin();
         $groups = report_member::from('report_members as rm')
             ->join('reports as r', 'rm.report_id', '=', 'r.report_id')
             ->join('user_profiles as up', 'rm.student_id', '=', 'up.user_id')
@@ -41,5 +44,53 @@ class ReportMembersController extends Controller
         }
 
         return response()->json(["message_error" => "server lỗi!"], 200);
+    }
+
+    public function importGroups(Request $request)
+    {
+        try {
+            AuthHelper::roleTeacher();
+
+            $validated = $request->validate([
+                'file' => 'required|file|mimes:xlsx,xls,csv',
+                'teacher_id' => 'required|string',
+                'report_id' => 'required|integer',
+                'class_id' => 'required|integer',
+                'major_id' => 'required|integer',
+            ]);
+
+            $reportId = (int) $validated['report_id'];
+            $teacherId = (string) $validated['teacher_id'];
+            $classId = (int) $validated['class_id'];
+            $majorId = (int) $validated['major_id'];
+
+            // Import file Excel
+            $import = new GroupsImport(
+                reportId: $reportId,
+                teacherId: $teacherId,
+                classId: $classId,
+                majorId: $classId
+            );
+
+            Excel::import($import, $validated['file']);
+
+            $list_import_error = ImportError::where('class_id', $classId)
+                ->where('teacher_id', $teacherId)
+                ->where('typeError', 'group')
+                ->get();
+
+            return response()->json([
+                'message' => 'Import hoàn tất!',
+                'total_group' => $import->totalGroup,
+                'success' => $import->success,
+                'failed' => $import->failed,
+                'list_import_error' => $list_import_error,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => '❌ Import thất bại!',
+                'message' => $e->getMessage(),
+            ], 400);
+        }
     }
 }

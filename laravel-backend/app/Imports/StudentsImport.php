@@ -31,7 +31,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
         $this->majorId   = $majorId;
 
         // Gom các check vào 1 query mỗi bảng, tránh sai tên model
-        $majorExist   = Major::where('major_id', $this->majorId)->exists();
+        $majorExist  = Major::where('major_id', $this->majorId)->exists();
 
         $teacherExist = user_profile::where('user_id', $this->teacherId)
             ->where('major_id', $this->majorId) // giáo viên thuộc ngành
