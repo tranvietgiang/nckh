@@ -24,6 +24,22 @@ class AuthHelper
         // ✅ Nếu đăng nhập hợp lệ → trả user_id
         return Auth::id();
     }
+
+    public static function getRole()
+    {
+        if (!Auth::check()) {
+            // ❌ Nếu chưa đăng nhập → trả response lỗi
+            return response()->json([
+                "status" => false,
+                "message_error" => "Vui lòng đăng nhập tài khoản!",
+            ], 401);
+        }
+
+        // ✅ Nếu đăng nhập hợp lệ → trả user_id
+        return Auth::user()->role;
+    }
+
+
     public static function roleAmin()
     {
         if (!Auth::check()) {
