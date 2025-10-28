@@ -12,16 +12,14 @@ class ReportSeeder extends Seeder
     {
         $reports = [
             [
-                'report_name' => 'Đồ án Quản lý sinh viên',
-                'description' => 'Xây dựng hệ thống quản lý sinh viên sử dụng Laravel và MySQL.',
+                'report_name' => 'Chuyên đề web 1',
                 'class_id' => 1,
                 'status' => 'submitted',
                 'start_date' => '2025-01-10',
                 'end_date' => '2025-02-20',
             ],
             [
-                'report_name' => 'Hệ thống bán hàng trực tuyến',
-                'description' => 'Thiết kế website bán hàng có tích hợp thanh toán trực tuyến.',
+                'report_name' => 'Chuyên đề photo 1',
                 'class_id' => 2,
                 'status' => 'graded',
                 'start_date' => '2025-02-01',

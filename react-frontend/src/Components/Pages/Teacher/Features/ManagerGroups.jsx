@@ -3,8 +3,11 @@ import axios from "../../../../config/axios";
 import { getUser } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
-
+import RouterBack from "../../../ReUse/Back/RouterBack";
+import { useNavigate } from "react-router-dom";
 export default function ManagerGroups() {
+  const navigate = useNavigate();
+
   const [majors, setMajors] = useState([]);
   const [selectedMajorId, setSelectedMajorId] = useState("");
 
@@ -161,6 +164,7 @@ export default function ManagerGroups() {
           Chọn ngành → chọn lớp để xem và import nhóm.
         </p>
 
+        <RouterBack navigate={navigate} />
         {/* Chọn ngành */}
         <div className="bg-white rounded-lg shadow p-4 mb-4">
           <div className="flex items-center justify-between flex-wrap gap-3">
@@ -367,13 +371,9 @@ export default function ManagerGroups() {
                     >
                       <td className="px-6 py-3">{idx + 1}</td>
                       <td className="px-6 py-3 font-medium text-gray-900">
-                        {g?.rm_name ||
-                          g?.report_name_group ||
-                          `Nhóm #${g?.rm_code ?? ""}`}
+                        {g?.rm_name ?? "-"}
                       </td>
-                      <td className="px-6 py-3">
-                        {g?.leader_name || g?.fullname || "—"}
-                      </td>
+                      <td className="px-6 py-3">{g?.leader_name || "—"}</td>
                       <td className="px-6 py-3">
                         {g.member_count ??
                           g.members_count ??
