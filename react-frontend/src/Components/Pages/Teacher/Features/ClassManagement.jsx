@@ -25,7 +25,7 @@ export default function ClassManagement() {
     axios
       .get(`/classes`)
       .then((res) => {
-        setClasses(res.data);
+        setClasses(res.data.data);
         setLoading(false);
       })
       .catch((err) => {

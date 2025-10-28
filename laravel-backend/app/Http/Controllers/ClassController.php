@@ -14,29 +14,10 @@ class ClassController extends Controller
 {
 
     public function getClassByTeacher()
-    {
-        AuthHelper::isLogin();
-
-        $classes = DB::table('classes')
-            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
-            ->join('users', 'classes.teacher_id', '=', 'users.user_id')
-            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->select(
-                'classes.*',
-                'majors.major_name',
-                'user_profiles.fullname',
-            )
-            ->where('users.role', 'teacher') // Chỉ lấy lớp do giảng viên dạy
-            ->orderBy('majors.major_name')
-            ->distinct() // ✅ Loại bỏ trùng dòng nếu 1 user_profile lặp
-            ->get();
-
-        if ($classes->count() > 0) {
-            return response()->json($classes);
-        }
-
-        return response()->json(['message_error' => 'Không có lớp học nào'], 404);
-    }
+{
+    AuthHelper::isLogin();
+    return \App\Models\Classe::getByTeacher();
+}
 
 
     //lấy lớp  học thấy  id giảng viên 
