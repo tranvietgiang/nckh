@@ -237,14 +237,15 @@ class ClassController extends Controller
     {
         try {
             $file = $request->file('file');
+
             if (!$file) {
-                return response()->json(['message' => '❌ Không có file tải lên!'], 400);
+                return response()->json([
+                    'message' => '❌ Không có file tải lên!'
+                ], 400);
             }
 
-            $teacherId = $request->input('teacher_id');
-            $majorId = $request->input('major_id');
-
-            $import = new ClassImport($teacherId, $majorId);
+            // Gọi import KHÔNG cần truyền thêm teacherId hoặc majorId
+            $import = new ClassImport();
             Excel::import($import, $file);
 
             return response()->json([
@@ -259,6 +260,7 @@ class ClassController extends Controller
             ], 500);
         }
     }
+
 
 
 }

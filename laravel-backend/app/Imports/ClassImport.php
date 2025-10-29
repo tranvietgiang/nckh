@@ -17,28 +17,6 @@ class ClassImport implements ToCollection, WithHeadingRow
     public $failed = 0;
     public $totalClass = 0;
 
-    protected ?string $teacherId;
-    protected ?int $majorId;
-
-    public function __construct(?string $teacherId = null, ?int $majorId = null)
-    {
-        $this->teacherId = $teacherId;
-        $this->majorId   = $majorId;
-
-        $majorExist = Major::where('major_id', $this->majorId)->exists();
-        $teacherExist = User::where('user_id', $this->teacherId)
-            ->where('role', 'teacher')
-            ->exists();
-
-        if (!$majorExist) {
-            throw new \Exception("❌ Không tìm thấy ngành học hợp lệ!");
-        }
-
-        if (!$teacherExist) {
-            throw new \Exception("❌ Không tìm thấy giảng viên hợp lệ!");
-        }
-    }
-
     public function collection(Collection $rows)
     {
         if ($rows->isEmpty()) {
@@ -50,18 +28,36 @@ class ClassImport implements ToCollection, WithHeadingRow
 
             $className = trim((string)($row['ten_lop'] ?? ''));
             $classCode = strtoupper(trim((string)($row['ma_lop'] ?? '')));
+            $teacherId = trim((string)($row['giao_vien'] ?? ''));
+            $majorRaw  = trim((string)($row['nganh'] ?? ''));
             $semester  = trim((string)($row['hoc_ky'] ?? ''));
             $academic  = trim((string)($row['nam_hoc'] ?? ''));
 
-            if (empty($className) || empty($classCode)) {
+            // Xác định major_id (cho phép nhập ID hoặc tên ngành)
+            $major = is_numeric($majorRaw)
+                ? Major::find($majorRaw)
+                : Major::where('major_name', 'LIKE', "%$majorRaw%")->first();
+
+            if (!$major) {
                 $this->failed++;
                 ImportError::create([
-                    'user_id'    => $this->teacherId,
-                    'fullname'   => null,
-                    'email'      => null,
-                    'reason'     => 'Thiếu tên lớp hoặc mã lớp',
-                    'major_id'   => $this->majorId,
-                    'teacher_id' => $this->teacherId,
+                    'user_id'    => $teacherId,
+                    'reason'     => "Không tìm thấy ngành: $majorRaw",
+                    'major_id'   => null,
+                    'teacher_id' => $teacherId,
+                ]);
+                continue;
+            }
+
+            // Kiểm tra giáo viên
+            $teacher = User::where('user_id', $teacherId)->where('role', 'teacher')->first();
+            if (!$teacher) {
+                $this->failed++;
+                ImportError::create([
+                    'user_id'    => null,
+                    'reason'     => "Không tìm thấy giáo viên: $teacherId",
+                    'major_id'   => $major->major_id,
+                    'teacher_id' => $teacherId,
                 ]);
                 continue;
             }
@@ -71,23 +67,21 @@ class ClassImport implements ToCollection, WithHeadingRow
             if ($exists) {
                 $this->failed++;
                 ImportError::create([
-                    'user_id'    => $this->teacherId,
-                    'fullname'   => null,
-                    'email'      => null,
+                    'user_id'    => $teacherId,
                     'reason'     => "Trùng mã lớp: $classCode",
-                    'major_id'   => $this->majorId,
-                    'teacher_id' => $this->teacherId,
+                    'major_id'   => $major->major_id,
+                    'teacher_id' => $teacherId,
                 ]);
                 continue;
             }
 
             try {
-                DB::transaction(function () use ($className, $classCode, $semester, $academic) {
+                DB::transaction(function () use ($className, $classCode, $teacherId, $major, $semester, $academic) {
                     Classe::create([
                         'class_name'     => $className,
                         'class_code'     => $classCode,
-                        'teacher_id'     => $this->teacherId,
-                        'major_id'       => $this->majorId,
+                        'teacher_id'     => $teacherId,
+                        'major_id'       => $major->major_id,
                         'semester'       => $semester ?: '1',
                         'academic_year'  => $academic ?: date('Y') . '-' . (date('Y') + 1),
                     ]);
@@ -97,12 +91,10 @@ class ClassImport implements ToCollection, WithHeadingRow
             } catch (\Throwable $e) {
                 $this->failed++;
                 ImportError::create([
-                    'user_id'    => $this->teacherId,
-                    'fullname'   => null,
-                    'email'      => null,
-                    'reason'     => 'Lỗi hệ thống khi lưu DB: ' . $e->getMessage(),
-                    'major_id'   => $this->majorId,
-                    'teacher_id' => $this->teacherId,
+                    'user_id'    => $teacherId,
+                    'reason'     => 'Lỗi hệ thống: ' . $e->getMessage(),
+                    'major_id'   => $major->major_id,
+                    'teacher_id' => $teacherId,
                 ]);
             }
         }
