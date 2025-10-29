@@ -18,6 +18,7 @@ class ImportError extends Model
         'fullname',
         'email',
         'reason',
+        'typeError',
         'class_id',
         'major_id',
         'teacher_id',

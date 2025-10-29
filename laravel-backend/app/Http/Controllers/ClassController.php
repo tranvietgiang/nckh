@@ -9,34 +9,19 @@ use App\Helpers\AuthHelper;
 use App\Models\Major;
 use App\Http\Controllers\MajorsController;
 use Illuminate\Support\Facades\Auth;
+use App\Models\user_profile; 
+use App\Imports\ClassImport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class ClassController extends Controller
 {
 
     public function getClassByTeacher()
-    {
-        AuthHelper::isLogin();
-
-        $classes = DB::table('classes')
-            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
-            ->join('users', 'classes.teacher_id', '=', 'users.user_id')
-            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->select(
-                'classes.*',
-                'majors.major_name',
-                'user_profiles.fullname',
-            )
-            ->where('users.role', 'teacher') // Chỉ lấy lớp do giảng viên dạy
-            ->orderBy('majors.major_name')
-            ->distinct() // ✅ Loại bỏ trùng dòng nếu 1 user_profile lặp
-            ->get();
-
-        if ($classes->count() > 0) {
-            return response()->json($classes);
-        }
-
-        return response()->json(['message_error' => 'Không có lớp học nào'], 404);
-    }
+{
+    AuthHelper::isLogin();
+    return \App\Models\Classe::getByTeacher();
+}
 
 
     //lấy lớp  học thấy  id giảng viên 
@@ -54,44 +39,10 @@ class ClassController extends Controller
     }
 
     public function getStudentsByClass($classId)
-    {
-        $students = DB::table('user_profiles')
+{
+    return \App\Models\user_profile::getStudentsByClass($classId);
+}
 
-            ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
-            ->join('classes', 'classes.class_id', '=', 'user_profiles.class_id') // ✅ thêm dòng này
-            ->leftJoin('reports', 'reports.class_id', '=', 'user_profiles.class_id')
-            ->leftJoin('submissions', function ($join) {
-                $join->on('submissions.student_id', '=', 'user_profiles.user_id')
-                    ->on('submissions.report_id', '=', 'reports.report_id');
-            })
-            ->where('user_profiles.class_id', $classId)
-            ->select(
-                'user_profiles.user_id',
-                'user_profiles.fullname',
-                'users.email',
-                'classes.class_name', // ✅ thêm dòng này
-                DB::raw('
-                CASE
-                    WHEN submissions.submission_id IS NULL THEN "Chưa nộp"
-                    WHEN submissions.status = "submitted" THEN "Đã nộp"
-                    WHEN submissions.status = "graded" THEN "Đã chấm"
-                    WHEN submissions.status = "rejected" THEN "Bị từ chối"
-                    ELSE "Không xác định"
-                END AS status
-            ')
-            )
-            ->groupBy(
-                'user_profiles.user_id',
-                'user_profiles.fullname',
-                'users.email',
-                'classes.class_name',
-                'submissions.submission_id',
-                'submissions.status'
-            )
-            ->get();
-
-        return response()->json($students);
-    }
 
 
 
@@ -108,9 +59,9 @@ class ClassController extends Controller
         if (
             empty($data["class_name"]) ||
             empty($data["class_code"]) ||
-            empty($data["major_id"])   ||
+            empty($data["major_id"]) ||
             empty($data["teacher_id"]) ||
-            empty($data["semester"])   ||
+            empty($data["semester"]) ||
             empty($data["academic_year"])
         ) {
             return response()->json([
@@ -231,4 +182,34 @@ class ClassController extends Controller
 
     //     return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     // }
+    public function import(Request $request)
+    {
+        try {
+            $file = $request->file('file');
+
+            if (!$file) {
+                return response()->json([
+                    'message' => '❌ Không có file tải lên!'
+                ], 400);
+            }
+
+            // Gọi import KHÔNG cần truyền thêm teacherId hoặc majorId
+            $import = new ClassImport();
+            Excel::import($import, $file);
+
+            return response()->json([
+                'message' => '✅ Import lớp học hoàn tất!',
+                'success' => $import->success,
+                'failed' => $import->failed,
+                'total' => $import->totalClass,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => '❌ Lỗi khi import lớp học: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+
+
 }

@@ -105,17 +105,13 @@ class StudentController extends Controller
 
 
     // public function CheckUserExit()
-    public function  getProfile(Request $request)
+    public function  getProfile()
     {
-        $role = $request->input('role') ?? null;
         $user_id = AuthHelper::isLogin();
-
-        if (!$role || !$user_id) {
-            return response()->json(["message_error" => "Thiếu dữ liệu role hoặc user_id"], 402);
-        }
-
+        $role = AuthHelper::getRole();
 
         $checkUser = User::where("user_id", $user_id)->where("role", $role)->exists();
+
         if (!$checkUser) {
             return response()->json(["message_error" => "người dùng này không tồn tại!"], 402);
         }

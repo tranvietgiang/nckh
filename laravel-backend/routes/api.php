@@ -36,7 +36,7 @@ Route::middleware('auth:sanctum')->get('/get-class-by-major/{selectedMajor}', [C
 /**Tạo thông báo gửi đến sinh viên */
 Route::middleware('auth:sanctum')->post('/create-notification', [NotificationController::class, 'createNotification']);
 
-Route::get('/profiles', [StudentController::class, 'getProfile']);
+Route::middleware('auth:sanctum')->get('/profiles', [StudentController::class, 'getProfile']);
 
 /**Lấy danh sách ở trong phần admin */
 Route::get('/users', [AdminController::class, 'getUser']);
@@ -99,7 +99,7 @@ Route::post('/majors/import', [MajorsController::class, 'import']);
 
 
 /**Láy ra tất cả các lớp */
-// Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+ Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
@@ -114,7 +114,7 @@ Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsC
 //lấy ra ngành theo teacher
 Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getAllMajors']);
 
-//lấy ra ngành theo teacher
+
 Route::middleware('auth:sanctum')->get('/get-class-by-major-group/classes/{classId}/majors/{majorId}', [ReportMembersController::class, 'getClassBbyMajorGroup']);
 
 //lấy ra tên report theo lớp
@@ -124,3 +124,6 @@ Route::middleware('auth:sanctum')->get('/get-report/majors/{majorId}/classes/{cl
 Route::middleware('auth:sanctum')->post('/groups/import', [ReportMembersController::class, 'importGroups']);
 //lấy ra tên report theo lớp
 Route::delete('/import-errors/delete-group-errors', [ErrorsImportController::class, 'deleteGroupErrors']);
+//Import class 
+Route::post('/classes/import', [ClassController::class, 'import']);
+

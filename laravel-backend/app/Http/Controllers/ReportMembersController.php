@@ -49,6 +49,7 @@ class ReportMembersController extends Controller
     public function importGroups(Request $request)
     {
         try {
+
             AuthHelper::roleTeacher();
 
             $validated = $request->validate([
@@ -69,7 +70,7 @@ class ReportMembersController extends Controller
                 reportId: $reportId,
                 teacherId: $teacherId,
                 classId: $classId,
-                majorId: $classId
+                majorId: $majorId
             );
 
             Excel::import($import, $validated['file']);

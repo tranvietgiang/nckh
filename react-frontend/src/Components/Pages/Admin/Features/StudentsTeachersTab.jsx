@@ -1,12 +1,13 @@
-import React from "react";
-import { 
-  GraduationCap, 
-  Users, 
-  Search, 
-  UserPlus, 
-  Edit2, 
-  Trash2 
+import React, { useState } from "react";
+import {
+  GraduationCap,
+  Users,
+  Search,
+  UserPlus,
+  Edit2,
+  Trash2,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentsTeachersTab({
   activeMenu,
@@ -22,7 +23,37 @@ export default function StudentsTeachersTab({
   filteredTeachers,
   handleDelete,
 }) {
+  const navigate = useNavigate();
   if (activeMenu !== "students" && activeMenu !== "teachers") return null;
+
+  // ⚙️ Thêm state phân trang
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // ⚙️ Xác định dữ liệu và tổng trang
+  const data =
+    activeTab === "students" ? filteredStudents : filteredTeachers;
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+
+  // ⚙️ Cắt dữ liệu theo trang
+  const paginatedData = data.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // ⚙️ Xử lý chuyển trang
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  // ⚙️ Reset trang khi đổi tab
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
 
   return (
     <div>
@@ -34,6 +65,7 @@ export default function StudentsTeachersTab({
               onClick={() => {
                 setActiveTab("students");
                 setActiveMenu("students");
+                navigate("/nckh-admin/students");
               }}
               className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "students"
@@ -46,10 +78,12 @@ export default function StudentsTeachersTab({
                 <span>Sinh Viên</span>
               </div>
             </button>
+
             <button
               onClick={() => {
                 setActiveTab("teachers");
                 setActiveMenu("teachers");
+                navigate("/nckh-admin/teachers");
               }}
               className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
                 activeTab === "teachers"
@@ -149,76 +183,67 @@ export default function StudentsTeachersTab({
             </thead>
 
             <tbody className="bg-white divide-y divide-gray-200">
-              {activeTab === "students"
-                ? filteredStudents.map((student) => (
-                    <tr key={student.user_id} className="hover:bg-gray-50">
-                      <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-gray-900">
-                        {student.user_id}
-                      </td>
-                      <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-900">
-                        {student.role}
-                      </td>
-                      <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                        {student.email}
-                      </td>
-                      <td className="hidden lg:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600"></td>
-                      <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600"></td>
-                      <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
-                        <div className="flex items-center space-x-2 sm:space-x-4">
-                          <button
-                            onClick={() => openModal("edit", student)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(student.user_id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                : filteredTeachers.map((teacher) => (
-                    <tr key={teacher.user_id} className="hover:bg-gray-50">
-                      <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-gray-900">
-                        {teacher.user_id}
-                      </td>
-                      <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-900">
-                        {teacher.role}
-                      </td>
-                      <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                        {teacher.email}
-                      </td>
-                      <td className="hidden lg:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                        {teacher.department}
-                      </td>
-                      <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                        {teacher.position}
-                      </td>
-                      <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
-                        <div className="flex items-center space-x-2 sm:space-x-4">
-                          <button
-                            onClick={() => openModal("edit", teacher)}
-                            className="text-indigo-600 hover:text-indigo-900"
-                          >
-                            <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(teacher.user_id)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+              {paginatedData.map((item) => (
+                <tr key={item.user_id} className="hover:bg-gray-50">
+                  <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium text-gray-900">
+                    {item.user_id}
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-900">
+                    {item.role}
+                  </td>
+                  <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
+                    {item.email}
+                  </td>
+                  <td className="hidden lg:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
+                    {item.department || ""}
+                  </td>
+                  <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
+                    {item.position || ""}
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
+                      <button
+                        onClick={() => openModal("edit", item)}
+                        className="text-indigo-600 hover:text-indigo-900"
+                      >
+                        <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.user_id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-between items-center p-3 sm:p-4 border-t bg-gray-50">
+            <button
+              onClick={handlePrevPage}
+              disabled={currentPage === 1}
+              className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+            >
+              Trang trước
+            </button>
+            <span className="text-sm text-gray-700">
+              Trang {currentPage}/{totalPages}
+            </span>
+            <button
+              onClick={handleNextPage}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 text-sm bg-gray-200 rounded disabled:opacity-50 hover:bg-gray-300"
+            >
+              Trang sau
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,8 +13,8 @@ export default function ManagerGroups() {
   const [classes, setClasses] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState("");
   const [groups, setGroups] = useState([]);
+  const [getErrorImport, setErrorImport] = useState([]);
   const [getNameReport, setNameReport] = useState({});
-  const [error, setError] = useState("");
 
   // --- Loading state ---
   const [loadingMajors, setLoadingMajors] = useState(false);
@@ -25,9 +25,6 @@ export default function ManagerGroups() {
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileRef = useRef(null);
-
-  // --- Error list (nhóm) ---
-  const [groupError, setGroupError] = useState([]);
 
   const user = getUser();
   const teacherId = user?.user_id;
@@ -43,7 +40,9 @@ export default function ManagerGroups() {
         setMajors(list);
         if (list.length === 1) setSelectedMajorId(list[0].major_id);
       })
-      .catch(() => setError("Không tải được danh sách ngành."))
+      .catch((error) => {
+        console.log(error);
+      })
       .finally(() => setLoadingMajors(false));
   }, [teacherId]);
 
@@ -61,7 +60,9 @@ export default function ManagerGroups() {
         const list = Array.isArray(res.data) ? res.data : [];
         setClasses(list);
       })
-      .catch(() => setError("Không tải được danh sách lớp của ngành này."))
+      .catch((error) => {
+        console.log(error);
+      })
       .finally(() => setLoadingClasses(false));
   }, [selectedMajorId]);
 
@@ -80,7 +81,9 @@ export default function ManagerGroups() {
         const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
         setGroups(list);
       })
-      .catch(() => setError("Không tải được danh sách nhóm của lớp này."))
+      .catch((error) => {
+        console.log(error);
+      })
       .finally(() => setLoadingGroups(false));
   }, [selectedClassId, selectedMajorId]);
 
@@ -88,12 +91,26 @@ export default function ManagerGroups() {
   useEffect(() => {
     if (!selectedMajorId || !selectedClassId) return;
     axios
+      .get(
+        `/get-group-errors/majors/${selectedMajorId}/classes/${selectedClassId}`
+      )
+      .then((res) => setErrorImport(res.data))
+      .catch((error) => {
+        console.log(error);
+        setErrorImport([]);
+      });
+  }, [selectedMajorId, selectedClassId]);
+
+  const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
+
+  // ===== 4) Lấy ra lỗi khi import =====
+  useEffect(() => {
+    if (!selectedMajorId || !selectedClassId) return;
+    axios
       .get(`/get-report/majors/${selectedMajorId}/classes/${selectedClassId}`)
       .then((res) => setNameReport(res.data))
       .catch(() => setNameReport({}));
   }, [selectedMajorId, selectedClassId]);
-
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
 
   // ===== 5) IMPORT nhóm =====
   const openPicker = () => fileRef.current?.click();
@@ -122,9 +139,9 @@ export default function ManagerGroups() {
       );
 
       if (res.data.list_import_error?.length > 0) {
-        setGroupError(res.data.list_import_error);
+        setErrorImport(res.data.list_import_error);
       } else {
-        setGroupError([]);
+        setErrorImport([]);
       }
 
       setSelectedFile(null);
@@ -136,8 +153,11 @@ export default function ManagerGroups() {
       const list = Array.isArray(r.data) ? r.data : r.data?.data || [];
       setGroups(list);
     } catch (err) {
-      console.error("Lỗi import nhóm:", err);
-      alert("❌ Lỗi import nhóm!");
+      if (err.response && err.response.data) {
+        alert(err.response.data.message);
+      } else {
+        alert("Lỗi kết nối server!");
+      }
     } finally {
       setImporting(false);
     }
@@ -151,7 +171,7 @@ export default function ManagerGroups() {
       await axios.delete(`/import-errors/delete-group-errors`, {
         data: { teacher_id: teacherId, class_id: selectedClassId },
       });
-      setGroupError([]);
+      setErrorImport([]);
       alert("✅ Đã xóa danh sách lỗi nhóm.");
     } catch (error) {
       console.error("Lỗi khi xóa lỗi nhóm:", error);
@@ -159,6 +179,9 @@ export default function ManagerGroups() {
     }
   };
 
+  const handleViewDetail = (g) => {
+    console.log(g);
+  };
   // ==========================
   return (
     <>
@@ -302,6 +325,9 @@ export default function ManagerGroups() {
                     <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
                       Ngày tạo
                     </th>
+                    <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
+                      Xem chi tiết
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -319,6 +345,14 @@ export default function ManagerGroups() {
                         {g.member_count ?? g.members_count ?? 0}
                       </td>
                       <td className="px-6 py-3">{formatDate(g.created_at)}</td>
+                      <td className="px-6 py-3">
+                        <button
+                          onClick={() => handleViewDetail(g)}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                        >
+                          Xem chi tiết
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -328,10 +362,10 @@ export default function ManagerGroups() {
         </div>
 
         {/* ===== Danh sách lỗi nhóm ===== */}
-        {groupError?.length > 0 && (
+        {getErrorImport?.length > 0 && (
           <div className="mt-8 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
             <h3 className="text-lg font-semibold text-red-700 mb-3">
-              ⚠️ Danh sách lỗi nhóm ({groupError.length})
+              ⚠️ Danh sách lỗi nhóm ({getErrorImport.length})
             </h3>
 
             <button
@@ -356,7 +390,7 @@ export default function ManagerGroups() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-red-100">
-                {groupError.map((e, i) => (
+                {getErrorImport.map((e, i) => (
                   <tr key={i} className="hover:bg-red-50">
                     <td className="px-4 py-2 text-sm text-gray-800">
                       {e.user_id}
