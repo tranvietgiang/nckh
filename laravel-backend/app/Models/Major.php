@@ -16,6 +16,7 @@ class Major extends Model
     public $incrementing = true;
 
     protected $fillable = [
+        'major_id',
         'major_name',
         'major_abbreviate'
     ];
