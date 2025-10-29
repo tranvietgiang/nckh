@@ -99,7 +99,7 @@ Route::post('/majors/import', [MajorsController::class, 'import']);
 
 
 /**Láy ra tất cả các lớp */
- Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
@@ -127,3 +127,5 @@ Route::delete('/import-errors/delete-group-errors', [ErrorsImportController::cla
 //Import class 
 Route::post('/classes/import', [ClassController::class, 'import']);
 
+//get ra lỗi khi import nhóm
+Route::middleware('auth:sanctum')->get('/get-group-errors/majors/{majorId}/classes/{classId}', [ErrorsImportController::class, 'getGroupErrors']);

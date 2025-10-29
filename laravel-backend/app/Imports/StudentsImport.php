@@ -116,6 +116,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'major_id'      => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
                 continue;
             }
@@ -131,6 +132,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'major_id'      => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
                 continue;
             }
@@ -147,6 +149,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'class_id'   => $this->classId,
                     'major_id'      => $this->majorId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
                 continue;
             }
@@ -182,6 +185,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'reason'     => 'Lỗi hệ thống khi lưu DB: ' . $e->getMessage(),
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
             }
         }

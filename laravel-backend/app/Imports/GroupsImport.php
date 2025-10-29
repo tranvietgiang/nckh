@@ -32,44 +32,32 @@ class GroupsImport implements ToCollection, WithHeadingRow
 
     public function collection(Collection $rows)
     {
-        if (!Classe::where("teacher_id", $this->teacherId)->exists()) {
+        if (!Classe::where("class_id", $this->classId)
+            ->where("teacher_id", $this->teacherId)
+            ->exists()) {
             throw new \Exception("Giảng viên không dạy lớp này!");
         }
 
         if (!Report::where("report_id", $this->reportId)->exists()) {
-            throw new \Exception("Báo cáo này không tồn tại");
+            throw new \Exception("Báo cáo này không tồn tại!");
         }
 
         foreach ($rows as $row) {
             $this->totalGroup++;
 
-            $name_group = trim((string)($row['ten nhom'] ?? ''));
-            $role_group = trim((string)($row['vai tro'] ?? ''));
-            $grouping   = trim((string)($row['chung nhom'] ?? ''));
-            $student_id = trim((string)($row['sinh vien'] ?? ''));
+            // Làm sạch key và value
+            $row = collect($row)
+                ->mapWithKeys(function ($v, $k) {
+                    $key = trim(strtolower($k));
+                    $val = is_string($v) ? trim($v) : $v;
+                    return [$key => $val];
+                })
+                ->toArray();
 
-
-            $checkSVinClass = Classe::select("users.role", "users.user_id", "user_profiles.user_id")
-                ->join("user_profiles", "classes.class_id", "=", "user_profiles.class_id")
-                ->join("users", "user_profiles.user_id", "=", "users.user_id")
-                ->where("users.role", "student")
-                ->where("classes.class_id", $this->classId)
-                ->where("user_profiles.user_id", $student_id)
-                ->exists();
-
-            if ($checkSVinClass) {
-                $this->failed++;
-                ImportError::create([
-                    'user_id'    => $student_id,
-                    'fullname'   => $name_group,
-                    'reason'     => 'Sinh viên này không tồn tại trong lớp',
-                    'major_id' => $this->majorId,
-                    'class_id'   => $this->classId,
-                    'teacher_id' => $this->teacherId,
-                    'typeError'  => 'group',
-                ]);
-                continue;
-            }
+            $name_group = strtoupper((string)($row['ten_nhom'] ?? ''));
+            $role_group = strtoupper((string)($row['vai_tro'] ?? ''));
+            $grouping   = strtoupper((string)($row['chung_nhom'] ?? ''));
+            $student_id = strtoupper((string)($row['sinh_vien'] ?? ''));
 
             // ❌ Thiếu dữ liệu
             if (empty($name_group) || empty($role_group) || empty($grouping) || empty($student_id)) {
@@ -78,7 +66,7 @@ class GroupsImport implements ToCollection, WithHeadingRow
                     'user_id'    => $student_id,
                     'fullname'   => $name_group,
                     'reason'     => 'Thiếu thông tin bắt buộc (Tên nhóm / Vai trò / Chung nhóm / Sinh viên)',
-                    'major_id' => $this->majorId,
+                    'major_id'   => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
                     'typeError'  => 'group',
@@ -86,19 +74,42 @@ class GroupsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // ❌ Kiểm tra trùng trưởng nhóm
+            // ❌ Sinh viên không thuộc lớp
+            $checkSVinClass = Classe::select("users.user_id")
+                ->join("user_profiles", "classes.class_id", "=", "user_profiles.class_id")
+                ->join("users", "user_profiles.user_id", "=", "users.user_id")
+                ->where("users.role", "student")
+                ->where("classes.class_id", $this->classId)
+                ->where("user_profiles.user_id", $student_id)
+                ->exists();
+
+            if (!$checkSVinClass) {
+                $this->failed++;
+                ImportError::create([
+                    'user_id'    => $student_id,
+                    'fullname'   => $name_group,
+                    'reason'     => 'Sinh viên này không tồn tại trong lớp',
+                    'major_id'   => $this->majorId,
+                    'class_id'   => $this->classId,
+                    'teacher_id' => $this->teacherId,
+                    'typeError'  => 'group',
+                ]);
+                continue;
+            }
+
+            // ❌ Trùng trưởng nhóm
             $exists = report_member::where('report_id', $this->reportId)
                 ->where('report_m_role', 'Trưởng nhóm')
                 ->where('rm_code', $grouping)
                 ->exists();
 
-            if ($exists && strtolower($role_group) == 'nt') {
+            if ($exists && $role_group === 'NT') {
                 $this->failed++;
                 ImportError::create([
                     'user_id'    => $student_id,
                     'fullname'   => $name_group,
                     'reason'     => 'Một nhóm chỉ được có 1 trưởng nhóm',
-                    'major_id' => $this->majorId,
+                    'major_id'   => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
                     'typeError'  => 'group',
@@ -106,8 +117,8 @@ class GroupsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
-            // ✅ Tạo nhóm thành viên
-            DB::transaction(function () use ($name_group, $role_group, $grouping, $student_id) {
+            // ✅ Thêm thành viên hợp lệ
+            try {
                 report_member::create([
                     'rm_name'        => $name_group,
                     'report_id'      => $this->reportId,
@@ -115,9 +126,19 @@ class GroupsImport implements ToCollection, WithHeadingRow
                     'student_id'     => $student_id,
                     'rm_code'        => $grouping,
                 ]);
-            });
-
-            $this->success++;
+                $this->success++;
+            } catch (\Throwable $th) {
+                $this->failed++;
+                ImportError::create([
+                    'user_id'    => $student_id,
+                    'fullname'   => $name_group,
+                    'reason'     => 'Lỗi khi ghi dữ liệu: ' . $th->getMessage(),
+                    'major_id'   => $this->majorId,
+                    'class_id'   => $this->classId,
+                    'teacher_id' => $this->teacherId,
+                    'typeError'  => 'group',
+                ]);
+            }
         }
     }
 }
