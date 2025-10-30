@@ -5,7 +5,7 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { useNavigate } from "react-router-dom";
-
+import ModalViewDetailGroups from "../Modal/ModalViewDetailGroups";
 export default function ManagerGroups() {
   const navigate = useNavigate();
   const [majors, setMajors] = useState([]);
@@ -15,6 +15,8 @@ export default function ManagerGroups() {
   const [groups, setGroups] = useState([]);
   const [getErrorImport, setErrorImport] = useState([]);
   const [getNameReport, setNameReport] = useState({});
+  const [getRmCode, setRmCode] = useState(null);
+  const [statusOpen, setStatusOpen] = useState(false);
 
   // --- Loading state ---
   const [loadingMajors, setLoadingMajors] = useState(false);
@@ -179,8 +181,10 @@ export default function ManagerGroups() {
     }
   };
 
-  const handleViewDetail = (g) => {
-    console.log(g);
+  const handleViewDetail = (rm_code) => {
+    if (!rm_code) return;
+    console.log(rm_code);
+    setRmCode(rm_code);
   };
   // ==========================
   return (
@@ -347,7 +351,10 @@ export default function ManagerGroups() {
                       <td className="px-6 py-3">{formatDate(g.created_at)}</td>
                       <td className="px-6 py-3">
                         <button
-                          onClick={() => handleViewDetail(g)}
+                          onClick={() => {
+                            handleViewDetail(g?.rm_code);
+                            setStatusOpen(true);
+                          }}
                           className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                         >
                           Xem chi tiết
@@ -408,6 +415,13 @@ export default function ManagerGroups() {
           </div>
         )}
       </div>
+      <ModalViewDetailGroups
+        statusOpen={statusOpen}
+        onClose={setStatusOpen}
+        rm_code={getRmCode}
+        majorId={selectedMajorId}
+        classId={selectedClassId}
+      />
       <Footer />
     </>
   );
