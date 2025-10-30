@@ -17,6 +17,7 @@ export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
   const [students, setStudents] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("")
   const [activeMenu, setActiveMenu] = useState("students");
   const [activeTab, setActiveTab] = useState("students");
   const [teachers, setTeachers] = useState([]);
@@ -30,6 +31,32 @@ export default function AdminManagement() {
   IsLogin(user, token);
   RoleAmin(role);
 
+  const handleDelete = async (id, type) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa ${type === "student" ? "sinh viên" : "giảng viên"} này không?`)) return;
+
+    try {
+      const res = await axios.delete(`/delete/${id}`);
+      setToastMessage(res.data.message || "✅ Xóa thành công!");
+      setShowToast(true);
+
+      // 🧹 Cập nhật lại danh sách
+      if (type === "student") {
+        setStudents((prev) => prev.filter((s) => s.user_id !== id));
+      } else if (type === "teacher") {
+        setTeachers((prev) => prev.filter((t) => t.user_id !== id));
+      }
+
+      // Ẩn thông báo sau 3 giây
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("❌ Lỗi khi xóa:", error);
+      setToastMessage("❌ Xóa thất bại, vui lòng thử lại!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
+  };
+
+
   useEffect(() => {
     document.title = "Trang Admin";
   }, []);
@@ -37,7 +64,7 @@ export default function AdminManagement() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await axios.get("/reports");
+        const res = await axios.get("/submissions");
         setReports(res.data);
       } catch (error) {
         console.error("❌ Lỗi tải báo cáo:", error);
@@ -60,6 +87,32 @@ export default function AdminManagement() {
     };
     fetchData();
   }, []);
+  const handleEditUser = async (id, data) => {
+    try {
+      const res = await axios.put(`/update/${id}`, data);
+      alert(res.data.message);
+    } catch (error) {
+      console.error("❌ Lỗi khi cập nhật:", error);
+      alert("❌ Cập nhật thất bại!");
+    }
+  };
+
+  //tìm kiếm 
+  // 🧭 Hàm lọc sinh viên & giảng viên theo searchTerm
+  const filteredStudents = students.filter(
+    (s) =>
+      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredTeachers = teachers.filter(
+    (t) =>
+      t.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
 
   /** Sidebar button click → điều hướng */
   const handleButtonClick = (buttonName) => {
@@ -96,6 +149,17 @@ export default function AdminManagement() {
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
+      {/* 🔔 Toast thông báo */}
+      {showToast && (
+        <div
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${toastMessage.startsWith("✅")
+            ? "bg-green-500 animate-bounce"
+            : "bg-red-500 animate-shake"
+            }`}
+        >
+          {toastMessage}
+        </div>
+      )}
 
       {/* Sidebar trái */}
       <AdminSidebar
@@ -118,7 +182,7 @@ export default function AdminManagement() {
                 <Dashboard
                   students={students}
                   teachers={teachers}
-                  totalReports={0}
+                  totalReports={reports.length}
                   errorReports={0}
                 />
               }
@@ -131,14 +195,14 @@ export default function AdminManagement() {
                   setActiveMenu={setActiveMenu}
                   activeTab="students"
                   setActiveTab={setActiveTab}
-                  searchTerm=""
-                  setSearchTerm={() => { }}
-                  openModal={setOpenImports}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  openModal={handleEditUser}
                   showToast={showToast}
                   toastMessage={toastMessage}
-                  filteredStudents={students}
+                  filteredStudents={filteredStudents}
                   filteredTeachers={[]}
-                  handleDelete={(id) => console.log("Xóa SV", id)}
+                  handleDelete={(id) => handleDelete(id, "student")}
                 />
               }
             />
@@ -151,20 +215,20 @@ export default function AdminManagement() {
                   setActiveMenu={setActiveMenu}
                   activeTab="teachers"
                   setActiveTab={setActiveTab}
-                  searchTerm=""
-                  setSearchTerm={() => { }}
-                  openModal={setOpenImports}
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  openModal={handleEditUser}
                   showToast={showToast}
                   toastMessage={toastMessage}
                   filteredStudents={[]}
-                  filteredTeachers={teachers}
-                  handleDelete={(id) => console.log("Xóa GV", id)}
+                  filteredTeachers={filteredTeachers}
+                  handleDelete={(id) => handleDelete(id, "teachers")}
                 />
               }
             />
 
             {/* 👇 Route cho Báo cáo */}
-            <Route path="reports" element={<ReportsManagement reports={[]} />} />
+            <Route path="reports" element={<ReportsManagement reports={reports} />} />
 
             <Route path="majors" element={<MajorImportPage />} />
           </Routes>

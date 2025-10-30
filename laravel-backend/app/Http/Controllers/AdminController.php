@@ -2,50 +2,39 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Repositories\AdminRepository;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
-    //
+    protected $userRepo;
+
+    // Inject repository qua constructor (Dependency Injection)
+    public function __construct(AdminRepository $userRepo)
+    {
+        $this->userRepo = $userRepo;
+    }
+
     public function getUser()
     {
-
-        $getUser = User::all();
-        return response()->json($getUser);
+        return response()->json($this->userRepo->getAllUsers());
     }
 
     public function destroy($user_id)
     {
-        $user = User::find($user_id);
+        $deleted = $this->userRepo->deleteUserById($user_id);
 
-        if (!$user) {
+        if (!$deleted) {
             return response()->json(['message' => 'Người dùng không tồn tại'], 404);
         }
-
-        $user->delete();
 
         return response()->json(['message' => 'Xóa thành công']);
     }
 
-
     public function getReports()
     {
         try {
-            $reports = DB::table('submissions')
-                ->join('users', 'submissions.student_id', '=', 'users.user_id')
-                ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-                ->select(
-                    'submissions.submission_id',
-                    'submissions.status',
-                    'submissions.submission_time',
-                    'user_profiles.fullname as student_name',
-                    'users.user_id as student_id'
-                )
-                ->orderByDesc('submissions.submission_time')
-                ->get();
-
+            $reports = $this->userRepo->getAllReports();
             return response()->json($reports);
         } catch (\Exception $e) {
             return response()->json([
@@ -54,4 +43,18 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    public function updateUser(Request $request, $id)
+    {
+        $data = $request->only(['username', 'email', 'role', 'password']);
+
+        $updatedUser = $this->AdminRepository->updateUserById($id, $data);
+
+        if (!$updatedUser) {
+            return response()->json(['message' => '❌ Không tìm thấy người dùng!'], 404);
+        }
+
+        return response()->json(['message' => '✅ Cập nhật thành công!', 'user' => $updatedUser]);
+    }
+
 }
