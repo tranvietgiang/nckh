@@ -31,7 +31,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
         $this->majorId   = $majorId;
 
         // Gom các check vào 1 query mỗi bảng, tránh sai tên model
-        $majorExist   = Major::where('major_id', $this->majorId)->exists();
+        $majorExist  = Major::where('major_id', $this->majorId)->exists();
 
         $teacherExist = user_profile::where('user_id', $this->teacherId)
             ->where('major_id', $this->majorId) // giáo viên thuộc ngành
@@ -116,6 +116,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'major_id'      => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
                 continue;
             }
@@ -131,6 +132,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'major_id'      => $this->majorId,
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
                 continue;
             }
@@ -147,6 +149,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'class_id'   => $this->classId,
                     'major_id'      => $this->majorId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
                 continue;
             }
@@ -182,6 +185,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     'reason'     => 'Lỗi hệ thống khi lưu DB: ' . $e->getMessage(),
                     'class_id'   => $this->classId,
                     'teacher_id' => $this->teacherId,
+                    'typeError'  => 'student',
                 ]);
             }
         }

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\ErrorsImportController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GoogleOAuthController;
 use App\Http\Controllers\MajorsController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\UserController;
 use App\Imports\StudentsImport;
+use LDAP\Result;
 
 /**Xác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
@@ -61,14 +63,14 @@ Route::middleware('auth:sanctum')->delete('/classes/{class_id}', [ClassControlle
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
 
 /*lấy ra thông báo mà giảng viển gửi*/
-Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify']);
+Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify ']);
 
 
 /**lấy ra lỗi sau khi import ds sinh viên */
 
-Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/major/{major_id}/student-errors', [StudentErrorsController::class, 'getStudentErrors']);
+Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/major/{major_id}/student-errors', [ErrorsImportController::class, 'getStudentErrors']);
 /**Xóa lỗi */
-Route::middleware('auth:sanctum')->delete('/student-errors/classes/{class_id}/teacher/{teacher_id}/major/{major_id}', [StudentErrorsController::class, 'deleteByClass']);
+Route::middleware('auth:sanctum')->delete('/student-errors/classes/{class_id}/teacher/{teacher_id}/major/{major_id}', [ErrorsImportController::class, 'deleteByClass']);
 
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
@@ -97,7 +99,7 @@ Route::post('/majors/import', [MajorsController::class, 'import']);
 
 
 /**Láy ra tất cả các lớp */
-// Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
@@ -112,5 +114,21 @@ Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsC
 //lấy ra ngành theo teacher
 Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getAllMajors']);
 
-//lấy ra ngành theo teacher
+
 Route::middleware('auth:sanctum')->get('/get-class-by-major-group/classes/{classId}/majors/{majorId}', [ReportMembersController::class, 'getClassBbyMajorGroup']);
+
+//lấy ra tên report theo lớp
+Route::middleware('auth:sanctum')->get('/get-report/majors/{majorId}/classes/{classId}', [ReportController::class, 'getNameReportGroup']);
+
+//lấy ra tên report theo lớp
+Route::middleware('auth:sanctum')->post('/groups/import', [ReportMembersController::class, 'importGroups']);
+//lấy ra tên report theo lớp
+Route::delete('/import-errors/delete-group-errors', [ErrorsImportController::class, 'deleteGroupErrors']);
+//Import class 
+Route::post('/classes/import', [ClassController::class, 'import']);
+
+//get ra lỗi khi import nhóm
+Route::middleware('auth:sanctum')->get('/get-group-errors/majors/{majorId}/classes/{classId}', [ErrorsImportController::class, 'getGroupErrors']);
+
+//get ra thanh vien nhom
+Route::middleware('auth:sanctum')->get('/get-members/majors/{majorId}/classes/{classId}/rm_code/{rm_code}', [ReportMembersController::class, 'getMemberDetail']);
