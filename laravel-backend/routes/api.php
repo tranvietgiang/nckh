@@ -129,3 +129,6 @@ Route::post('/classes/import', [ClassController::class, 'import']);
 
 //get ra lỗi khi import nhóm
 Route::middleware('auth:sanctum')->get('/get-group-errors/majors/{majorId}/classes/{classId}', [ErrorsImportController::class, 'getGroupErrors']);
+
+//get ra thanh vien nhom
+Route::middleware('auth:sanctum')->get('/get-members/majors/{majorId}/classes/{classId}/rm_code/{rm_code}', [ReportMembersController::class, 'getMemberDetail']);

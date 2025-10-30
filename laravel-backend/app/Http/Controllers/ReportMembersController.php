@@ -94,4 +94,46 @@ class ReportMembersController extends Controller
             ], 400);
         }
     }
+
+    public function getMemberDetail($majorId, $classId, $rm_code)
+    {
+        // dd($majorId, $classId, $rm_code);
+        $teacherId =  AuthHelper::isLogin();
+
+
+        // kiem tra
+
+        $getMembers = report_member::select(
+            "report_members.rm_code",
+            "report_members.rm_name",
+            "report_members.report_m_role",
+            "user_profiles.fullname as tv",
+            "user_profiles.user_id as msv",
+            "users.role",
+            DB::raw(
+                '(SELECT COUNT(*) FROM report_members rm2 WHERE rm2.report_id = reports.report_id AND rm2.rm_code = report_members.rm_code) as member_count'
+            )
+        )
+            ->join("reports", "report_members.report_id", "=", "reports.report_id")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->join("user_profiles", "report_members.student_id", "=", "user_profiles.user_id")
+            ->join("majors", "user_profiles.major_id", "=", "majors.major_id")
+            ->join("users", "user_profiles.user_id", "=", "users.user_id")
+            ->where("reports.class_id", $classId)
+            ->where("user_profiles.major_id", $majorId)
+            ->where("report_members.rm_code", $rm_code)
+            ->where("users.role", "student")
+            ->groupBy("report_members.rm_code", "user_profiles.fullname", "user_profiles.user_id", "users.role", "reports.report_id")
+            ->orderBy("reports.report_id")
+            ->orderBy("report_members.rm_code")
+            ->get();
+
+
+
+        if ($getMembers->count() > 0) {
+            return response()->json($getMembers, 200);
+        }
+
+        return response()->json(["message_error" => "server lỗi!"], 500);
+    }
 }
