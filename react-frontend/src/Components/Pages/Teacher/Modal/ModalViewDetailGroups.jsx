@@ -19,14 +19,7 @@ export default function ModalViewDetailGroups({
     onClose(false);
   };
 
-  //   localStorage.removeItem("data_member_1");
-  //   localStorage.removeItem("data_member_2");
-  //   localStorage.removeItem("data_member_3");
-  //   localStorage.removeItem("data_member_4");
-  //   localStorage.removeItem("data_member_5");
-  console.log("1", rm_code, majorId, classId);
   useEffect(() => {
-    console.log("2", rm_code, majorId, classId);
     if (!majorId || !classId || !rm_code) return;
     setLoadingMember(true);
 
@@ -88,10 +81,10 @@ export default function ModalViewDetailGroups({
                     MSV
                   </th>
                   <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                    Mã sinh vi
+                    Mã sinh viên
                   </th>
                   <th className="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">
-                    va
+                    Vai trò
                   </th>
                 </tr>
               </thead>
