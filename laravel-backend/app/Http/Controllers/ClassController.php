@@ -21,6 +21,8 @@ class ClassController extends Controller
     {
         AuthHelper::isLogin();
         return Classe::getByTeacher();
+        // return \App\Models\Classe::getByTeacher();
+
     }
 
 
@@ -40,8 +42,12 @@ class ClassController extends Controller
 
     public function getStudentsByClass($classId)
     {
+
         return user_profile::getStudentsByClass($classId);
     }
+
+        // return \App\Models\user_profile::getStudentsByClass($classId);
+    
 
 
     public function insertClassNew(Request $request)

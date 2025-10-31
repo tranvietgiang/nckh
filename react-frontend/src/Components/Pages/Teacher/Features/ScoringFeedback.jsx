@@ -33,7 +33,7 @@ export default function ScoringFeedback() {
 
   const fetchClasses = async () => {
     try {
-      const res = await axios.get(`/classes/teacher/${idTeacher}`);
+      const res = await axios.get(`/classes`);
       setClasses(res.data.data || res.data);
     } catch (err) {
       console.error("Lỗi tải danh sách lớp:", err);

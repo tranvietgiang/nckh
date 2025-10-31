@@ -38,11 +38,16 @@ Route::middleware('auth:sanctum')->post('/create-notification', [NotificationCon
 
 Route::middleware('auth:sanctum')->get('/profiles', [StudentController::class, 'getProfile']);
 
-/**Lấy danh sách ở trong phần admin */
-Route::get('/users', [AdminController::class, 'getUser']);
+Route::middleware('auth:sanctum')->group(function () {
+    // Lấy danh sách user
+    Route::get('/users', [AdminController::class, 'getUser']);
 
-/**Xóa user trong admin */
-Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
+    // Xóa user
+    Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
+
+    // Cập nhật user
+    Route::put('/update/{id}', [AdminController::class, 'updateUser']);
+});
 
 /**Chấm điểm và phản hồi */
 Route::get('/grades', [GradeController::class, 'index']);
@@ -53,7 +58,7 @@ Route::get('/grades/{submission_id}', [GradeController::class, 'show']);
 Route::get('/submissions', [SubmissionController::class, 'indes']);
 
 /**xóa sinh viên */
-Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
+Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/tvg/get-classes', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->post('/create-classes', [ClassController::class, 'insertClassNew']);

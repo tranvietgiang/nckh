@@ -49,7 +49,6 @@ export default function StudentsTeachersTab({
   const handleNextPage = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
-
   // ⚙️ Reset trang khi đổi tab
   React.useEffect(() => {
     setCurrentPage(1);
@@ -67,11 +66,10 @@ export default function StudentsTeachersTab({
                 setActiveMenu("students");
                 navigate("/nckh-admin/students");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "students"
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "students"
                   ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -85,11 +83,10 @@ export default function StudentsTeachersTab({
                 setActiveMenu("teachers");
                 navigate("/nckh-admin/teachers");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "teachers"
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "teachers"
                   ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+                }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />

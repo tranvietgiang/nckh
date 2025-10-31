@@ -61,7 +61,7 @@ class SubmissionsSeeder extends Seeder
 
             // ✅ Tạo bản ghi submissions
             DB::table('submissions')->insert([
-                'report_id' => rand(1, 5),
+                'report_id' => rand(1, 2),
                 'student_id' => $studentId,
                 'version' => 'v' . rand(1, 3) . '.0',
                 'status' => $statuses[array_rand($statuses)],
