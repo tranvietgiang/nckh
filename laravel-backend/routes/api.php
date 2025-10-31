@@ -90,20 +90,12 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 
 /**Láy ra ds ngành */
 Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
-// Route::get('/majors', [MajorsController::class, 'index2']);
 
-// Route::post('/majors', [MajorsController::class, 'store']);
-// Route::post('/majors/import', [MajorsController::class, 'import']);     // Lấy danh sách
-Route::post('/majors/store', [MajorController::class, 'store']);  // Thêm thủ công
-Route::post('/majors/import', [MajorController::class, 'import']); // Import Excel
-
-
-/**Láy ra tất cả các lớp */
-// Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
+Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
 
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
-
 
 //thống kê cho giảng viên
 Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsByClass']);

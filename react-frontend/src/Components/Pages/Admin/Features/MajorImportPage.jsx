@@ -55,16 +55,14 @@ export default function MajorImportPage() {
 
     try {
       setImporting(true);
-      // ⚠️ Endpoint import: dùng đúng với backend của bạn
-      // Nếu bạn đang dùng /majors/import trong API, giữ nguyên dòng dưới:
       const res = await axios.post("/majors/import", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert(
         `${res.data.message || "✅ Import xong!"}\n` +
-          `✅ Thành công: ${res.data.total_success ?? 0}\n` +
-          `❌ Lỗi: ${res.data.total_failed ?? 0}`
+        `✅ Thành công: ${res.data.total_success ?? 0}\n` +
+        `❌ Lỗi: ${res.data.total_failed ?? 0}`
       );
 
       // Reset input file
@@ -74,15 +72,11 @@ export default function MajorImportPage() {
       // Refresh list
       fetchMajors();
     } catch (err) {
-      console.error("Import lỗi:", err?.response?.data || err);
-      const msg =
-        err?.response?.data?.message_error ||
-        err?.response?.data?.message ||
-        "❌ Lỗi import file!";
-      alert(msg);
-      // Nếu muốn xử lý 401/403:
-      // if (err.response?.status === 401) alert("Bạn chưa đăng nhập!");
-      // if (err.response?.status === 403) alert("Bạn không có quyền!");
+      if (err.response && err.response.data) {
+        alert(err.response.data.message);
+      } else {
+        alert("Lỗi kết nối server!");
+      }
     } finally {
       setImporting(false);
     }
@@ -158,11 +152,10 @@ export default function MajorImportPage() {
                     type="button"
                     onClick={handleUpload}
                     disabled={!selectedFile || importing}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition duration-200 ${
-                      !selectedFile || importing
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700"
-                    }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition duration-200 ${!selectedFile || importing
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-600 hover:bg-green-700"
+                      }`}
                   >
                     {importing ? "Đang import..." : "Import Ngành"}
                   </button>
