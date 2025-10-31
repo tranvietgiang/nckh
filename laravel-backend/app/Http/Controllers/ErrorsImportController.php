@@ -6,30 +6,36 @@ use App\Helpers\AuthHelper;
 use App\Models\ImportError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ErrorImportService;
 
 class ErrorsImportController extends Controller
 {
     //
+    protected $errorImportService;
+
+    // Service được inject tự động qua constructor
+    public function __construct(ErrorImportService $errorImportService)
+    {
+        $this->errorImportService = $errorImportService;
+    }
+
     public function getStudentErrors($class_id, $teacherId, $major_id)
     {
         AuthHelper::isLogin();
 
-        if (!$class_id || !$teacherId || !$major_id) {
-            return response()->json(["message_error" => "Dữ liễu sai"], 402);
+        $result = $this->errorImportService->getStudentErrors([
+            'class_id'   => $class_id,
+            'teacher_id' => $teacherId,
+            'major_id'   => $major_id,
+        ]);
+
+        if ($result['success']) {
+            return response()->json($result['data'], 200);
         }
 
-        $list_import_error = ImportError::where('class_id', $class_id)
-            ->where('teacher_id', $teacherId)
-            ->where('major_id', $major_id)
-            ->where("typeError", 'student')
-            ->get();
-
-        if ($list_import_error->count() > 0) {
-            return response()->json($list_import_error, 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json(['message_error' => $result['message']], 500);
     }
+
 
     public function deleteByClass($class_id, $teacherId, $major_id)
     {

@@ -45,7 +45,8 @@ class Classe extends Model
 
         if ($classes->isEmpty()) {
             return response()->json([
-                'success' => false,
+                "status" => false,
+                "message_error" => "Không thể tải dữ liệu"
             ], 404);
         }
 

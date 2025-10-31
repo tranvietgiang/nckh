@@ -112,7 +112,6 @@ Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsC
 //lấy ra ngành theo teacher
 Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getAllMajors']);
 
-
 Route::middleware('auth:sanctum')->get('/get-class-by-major-group/classes/{classId}/majors/{majorId}', [ReportMembersController::class, 'getClassBbyMajorGroup']);
 
 //lấy ra tên report theo lớp

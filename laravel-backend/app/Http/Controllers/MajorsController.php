@@ -8,21 +8,27 @@ use App\Models\Major;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Services\MajorService;
 
 class MajorsController extends Controller
 {
     //
+    protected $majorService;
+
+    // Service được inject tự động qua constructor
+    public function __construct(MajorService $majorService)
+    {
+        $this->majorService = $majorService;
+    }
+
     public function getMajors()
     {
         AuthHelper::isLogin();
 
-        $getMajor = Major::all();
+        // 👇 Gọi hàm trong Service
+        $result = $this->majorService->getMajors();
 
-        if ($getMajor->count() > 0) {
-            return response()->json($getMajor);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json($result);
     }
 
     public function getAllMajors()
