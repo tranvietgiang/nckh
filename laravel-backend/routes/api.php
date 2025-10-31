@@ -92,8 +92,10 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
 // Route::get('/majors', [MajorsController::class, 'index2']);
 
-Route::post('/majors', [MajorsController::class, 'store']);
-Route::post('/majors/import', [MajorsController::class, 'import']);
+// Route::post('/majors', [MajorsController::class, 'store']);
+// Route::post('/majors/import', [MajorsController::class, 'import']);     // Lấy danh sách
+Route::post('/majors/store', [MajorController::class, 'store']);  // Thêm thủ công
+Route::post('/majors/import', [MajorController::class, 'import']); // Import Excel
 
 
 /**Láy ra tất cả các lớp */
