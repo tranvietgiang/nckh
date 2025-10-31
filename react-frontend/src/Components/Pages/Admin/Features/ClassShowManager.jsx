@@ -73,7 +73,7 @@ export default function ClassShowManager() {
       console.error("Lỗi khi import:", err);
       alert(
         err.response?.data?.message ||
-        "❌ Import thất bại! Vui lòng kiểm tra lại file Excel."
+          "❌ Import thất bại! Vui lòng kiểm tra lại file Excel."
       );
     } finally {
       setImportLoading(false);
@@ -82,7 +82,7 @@ export default function ClassShowManager() {
 
   useEffect(() => {
     axios
-      .get("/majors")
+      .get("/get-majors/tvg")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setMajors(res.data);
@@ -97,13 +97,13 @@ export default function ClassShowManager() {
 
   // Lấy danh sách classes
   useEffect(() => {
-    const data_class = getSafeJSON("data_classes");
-    if (data_class) {
-      setClasses(data_class);
-    }
+    // const data_class = getSafeJSON("data_classes");
+    // if (data_class) {
+    //   setClasses(data_class);
+    // }
 
     axios
-      .get("/classes")
+      .get("/tvg/get-classes")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setClasses(res.data);
@@ -143,6 +143,7 @@ export default function ClassShowManager() {
     );
   };
 
+  // localStorage.clear();
   return (
     <>
       <Navbar />
@@ -309,7 +310,9 @@ export default function ClassShowManager() {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg max-w-md w-full">
               <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Import Lớp Học</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Import Lớp Học
+                </h3>
                 <button
                   onClick={() => {
                     setShowImportModal(false);
@@ -346,7 +349,8 @@ export default function ClassShowManager() {
                   {/* ✅ Hiển thị tên file đã chọn */}
                   {selectedFile && (
                     <p className="mt-4 text-sm text-gray-800 font-medium">
-                      📂 Đã chọn: <span className="text-blue-600">{selectedFile.name}</span>
+                      📂 Đã chọn:{" "}
+                      <span className="text-blue-600">{selectedFile.name}</span>
                     </p>
                   )}
 
@@ -370,8 +374,9 @@ export default function ClassShowManager() {
                 <button
                   onClick={handleImportSubmit}
                   disabled={importLoading}
-                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${importLoading ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
+                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${
+                    importLoading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
                   {importLoading ? "Đang import..." : "Import"}
                 </button>
@@ -379,7 +384,6 @@ export default function ClassShowManager() {
             </div>
           </div>
         )}
-
       </div>
       <Footer />
     </>

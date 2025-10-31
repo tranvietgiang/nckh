@@ -30,14 +30,13 @@ export default function CreateClass({ stateOpen, onClose }) {
   useEffect(() => {
     setLoadingMajors(true);
     axios
-      .get("/majors")
+      .get("/get-majors/tvg")
       .then((res) => {
         if (Array.isArray(res.data)) setMajors(res.data);
         else throw new Error("Dữ liệu ngành trả về không hợp lệ!");
       })
       .catch((err) => {
         console.error("Lỗi tải danh sách ngành:", err);
-        alert("⚠️ Không thể tải danh sách ngành. Vui lòng thử lại!");
         setMajors([]);
       })
       .finally(() => setLoadingMajors(false));
@@ -45,7 +44,7 @@ export default function CreateClass({ stateOpen, onClose }) {
 
   useEffect(() => {
     axios
-      .get("/classes")
+      .get("/tvg/get-classes")
       .then((res) => setClasses(res.data || []))
       .catch((err) => {
         console.warn("Không thể tải danh sách lớp:", err);

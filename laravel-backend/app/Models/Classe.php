@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+
 class Classe extends Model
 {
     //
@@ -45,15 +46,9 @@ class Classe extends Model
         if ($classes->isEmpty()) {
             return response()->json([
                 'success' => false,
-                'message' => __('class.not_found'),
             ], 404);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => $classes,
-        ]);
+        return response()->json($classes, 200);
     }
-
-    
 }

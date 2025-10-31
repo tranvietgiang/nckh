@@ -55,7 +55,7 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 /**xóa sinh viên */
 Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
-Route::middleware('auth:sanctum')->get('/classes', [ClassController::class, 'getClassByTeacher']);
+Route::middleware('auth:sanctum')->get('/tvg/get-classes', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->post('/create-classes', [ClassController::class, 'insertClassNew']);
 Route::middleware('auth:sanctum')->delete('/classes/{class_id}', [ClassController::class, 'deleteClassNew']);
 
@@ -91,19 +91,17 @@ Route::middleware('auth:sanctum')->post('/change-password', [UserController::cla
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
 
 /**Láy ra ds ngành */
-Route::middleware('auth:sanctum')->get('/majors', [MajorsController::class, 'getMajors']);
-// Route::get('/majors', [MajorsController::class, 'index2']);
+Route::middleware('auth:sanctum')->get('/get-majors/tvg', [MajorsController::class, 'getMajors']);
 
 Route::post('/majors', [MajorsController::class, 'store']);
+
 Route::post('/majors/import', [MajorsController::class, 'import']);
 
 
 /**Láy ra tất cả các lớp */
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
-
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
-
 
 //thống kê cho giảng viên
 Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsByClass']);
