@@ -36,9 +36,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const res = await axios.get("/profiles", {
-        params: { role },
-      });
+      const res = await axios.get("/profiles");
       setProfile(res.data);
       console.log(res.data);
       setSafeJSON("user_profiles", JSON.stringify(res.data));
@@ -162,7 +160,7 @@ export default function ProfilePage() {
                         </label>
                         <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
                           {role === "student" ? (
-                            <span>{getProfile?.class_name}</span>
+                            <span>{getProfile?.class_student}</span>
                           ) : getProfile?.classes?.length > 0 ? (
                             getProfile.classes.map((cls, index) => (
                               <p key={index} className="mb-1">

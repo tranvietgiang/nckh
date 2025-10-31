@@ -10,7 +10,7 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
 class MajorImport implements ToCollection, WithHeadingRow
 {
-   public $success = 0;
+    public $success = 0;
     public $failed = 0;
     public $totalMajors = 0;
 

@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             ClassSeeder::class,
             UserProfileSeeder::class,
             ReportSeeder::class,
+            // ReportMemberSeeder::class,
         ]);
     }
 }

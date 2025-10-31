@@ -9,16 +9,19 @@ use App\Helpers\AuthHelper;
 use App\Models\Major;
 use App\Http\Controllers\MajorsController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\user_profile; //
+use App\Models\user_profile;
+use App\Imports\ClassImport;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class ClassController extends Controller
 {
 
     public function getClassByTeacher()
-{
-    AuthHelper::isLogin();
-    return \App\Models\Classe::getByTeacher();
-}
+    {
+        AuthHelper::isLogin();
+        return Classe::getByTeacher();
+    }
 
 
     //lấy lớp  học thấy  id giảng viên 
@@ -36,11 +39,9 @@ class ClassController extends Controller
     }
 
     public function getStudentsByClass($classId)
-{
-    return \App\Models\user_profile::getStudentsByClass($classId);
-}
-
-
+    {
+        return user_profile::getStudentsByClass($classId);
+    }
 
 
     public function insertClassNew(Request $request)
@@ -56,9 +57,9 @@ class ClassController extends Controller
         if (
             empty($data["class_name"]) ||
             empty($data["class_code"]) ||
-            empty($data["major_id"])   ||
+            empty($data["major_id"]) ||
             empty($data["teacher_id"]) ||
-            empty($data["semester"])   ||
+            empty($data["semester"]) ||
             empty($data["academic_year"])
         ) {
             return response()->json([
@@ -179,4 +180,31 @@ class ClassController extends Controller
 
     //     return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     // }
+    public function import(Request $request)
+    {
+        try {
+            $file = $request->file('file');
+
+            if (!$file) {
+                return response()->json([
+                    'message' => '❌ Không có file tải lên!'
+                ], 400);
+            }
+
+            // Gọi import KHÔNG cần truyền thêm teacherId hoặc majorId
+            $import = new ClassImport();
+            Excel::import($import, $file);
+
+            return response()->json([
+                'message' => '✅ Import lớp học hoàn tất!',
+                'success' => $import->success,
+                'failed' => $import->failed,
+                'total' => $import->totalClass,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => '❌ Lỗi khi import lớp học: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
 }

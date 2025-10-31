@@ -93,7 +93,7 @@ class MajorsController extends Controller
               if ($list_import_error->count() > 0) {
                 return response()->json([
                     'message' => 'Import hoàn tất!',
-                    'total_student' => $import->totalMajors,
+                    'total_major' => $import->totalMajors,
                     'success' => $import->success ?? 0,
                     'failed'  => $import->failed ?? 0,
                     'list_import_error' => $list_import_error,
@@ -102,9 +102,32 @@ class MajorsController extends Controller
 
             return response()->json([
                 'message' => 'Import hoàn tất!',
-                'total_student' => $import->totalMajors,
+                'total_major' => $import->totalMajors,
                 'success' => $import->success ?? 0,
                 'failed'  => $import->failed ?? 0,
             ]);
+    }
+
+    public function deleteErrorMajorsImport(){
+        AuthHelper::roleAmin();
+
+        $delete = ImportError::where("typeError","major")->delete();
+
+        if(!$delete){   
+            return response()->json(["message_error" => "Xóa lỗi không thành công"],500);
+        
+        }
+    }
+
+    public function getErrorMajorsImport(){
+        AuthHelper::roleAmin();
+
+        $get = ImportError::where("typeError","major")->get();
+
+        if($get->count() > 0){   
+            return response()->json($get,200);
+        }
+
+        return response()->json(["message_error" => "Xóa lỗi không thành công"],500);
     }
 }
