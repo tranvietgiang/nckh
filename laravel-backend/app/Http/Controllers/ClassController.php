@@ -9,7 +9,7 @@ use App\Helpers\AuthHelper;
 use App\Models\Major;
 use App\Http\Controllers\MajorsController;
 use Illuminate\Support\Facades\Auth;
-use App\Models\user_profile; 
+use App\Models\user_profile;
 use App\Imports\ClassImport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -18,10 +18,10 @@ class ClassController extends Controller
 {
 
     public function getClassByTeacher()
-{
-    AuthHelper::isLogin();
-    return \App\Models\Classe::getByTeacher();
-}
+    {
+        AuthHelper::isLogin();
+        return Classe::getByTeacher();
+    }
 
 
     //lấy lớp  học thấy  id giảng viên 
@@ -39,11 +39,9 @@ class ClassController extends Controller
     }
 
     public function getStudentsByClass($classId)
-{
-    return \App\Models\user_profile::getStudentsByClass($classId);
-}
-
-
+    {
+        return user_profile::getStudentsByClass($classId);
+    }
 
 
     public function insertClassNew(Request $request)
@@ -209,7 +207,4 @@ class ClassController extends Controller
             ], 500);
         }
     }
-
-
-
 }
