@@ -90,15 +90,11 @@ Route::middleware('auth:sanctum')->post('/change-password', [UserController::cla
 //  tạo báo cáo
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
 
-/**Láy ra ds ngành */
+Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
+Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
+
 Route::middleware('auth:sanctum')->get('/get-majors/tvg', [MajorsController::class, 'getMajors']);
 
-Route::post('/majors', [MajorsController::class, 'store']);
-
-Route::post('/majors/import', [MajorsController::class, 'import']);
-
-
-/**Láy ra tất cả các lớp */
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
@@ -130,3 +126,8 @@ Route::middleware('auth:sanctum')->get('/get-group-errors/majors/{majorId}/class
 
 //get ra thanh vien nhom
 Route::middleware('auth:sanctum')->get('/get-members/majors/{majorId}/classes/{classId}/rm_code/{rm_code}', [ReportMembersController::class, 'getMemberDetail']);
+
+//xóa lỗi import ngành
+Route::middleware('auth:sanctum')->delete('/pc/import-errors/major', [MajorsController::class, 'deleteErrorMajorsImport']);
+//xóa lỗi import ngành
+Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController::class, 'getErrorMajorsImport']);
