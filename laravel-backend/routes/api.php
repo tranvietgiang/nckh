@@ -1,10 +1,10 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\GradeController;
 use App\Http\Controllers\AdminController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\ClassController;
@@ -16,10 +16,7 @@ use App\Http\Controllers\ReportMembersController;
 use App\Http\Controllers\SimpleDriveController;
 use App\Http\Controllers\StudentErrorsController;
 use App\Http\Controllers\TeacherController;
-use Illuminate\Support\Facades\Request;
 use App\Http\Controllers\UserController;
-use App\Imports\StudentsImport;
-use LDAP\Result;
 
 /**Xác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
@@ -98,7 +95,7 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
 
-Route::middleware('auth:sanctum')->get('/get-majors/tvg', [MajorsController::class, 'getMajors']);
+Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::class, 'getMajors']);
 
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
@@ -114,24 +111,19 @@ Route::middleware('auth:sanctum')->get('/major-by-teacher/{idTeacher}', [MajorsC
 Route::middleware('auth:sanctum')->get('/get-majors', [MajorsController::class, 'getAllMajors']);
 
 Route::middleware('auth:sanctum')->get('/get-class-by-major-group/classes/{classId}/majors/{majorId}', [ReportMembersController::class, 'getClassBbyMajorGroup']);
-
 //lấy ra tên report theo lớp
 Route::middleware('auth:sanctum')->get('/get-report/majors/{majorId}/classes/{classId}', [ReportController::class, 'getNameReportGroup']);
-
 //lấy ra tên report theo lớp
 Route::middleware('auth:sanctum')->post('/groups/import', [ReportMembersController::class, 'importGroups']);
 //lấy ra tên report theo lớp
 Route::delete('/import-errors/delete-group-errors', [ErrorsImportController::class, 'deleteGroupErrors']);
 //Import class 
 Route::post('/classes/import', [ClassController::class, 'import']);
-
 //get ra lỗi khi import nhóm
 Route::middleware('auth:sanctum')->get('/get-group-errors/majors/{majorId}/classes/{classId}', [ErrorsImportController::class, 'getGroupErrors']);
-
 //get ra thanh vien nhom
 Route::middleware('auth:sanctum')->get('/get-members/majors/{majorId}/classes/{classId}/rm_code/{rm_code}', [ReportMembersController::class, 'getMemberDetail']);
-
 //xóa lỗi import ngành
 Route::middleware('auth:sanctum')->delete('/pc/import-errors/major', [MajorsController::class, 'deleteErrorMajorsImport']);
-//xóa lỗi import ngành
+//get lỗi import ngành
 Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController::class, 'getErrorMajorsImport']);

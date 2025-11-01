@@ -25,7 +25,7 @@ export default function CreateReports() {
     setLoading(true);
     axios
       .get("/classes")
-      .then((res) => mounted && setClasses(res.data.data || []))
+      .then((res) => mounted && setClasses(res.data || []))
       .catch(() => mounted && setError("Không tải được danh sách lớp."))
       .finally(() => mounted && setLoading(false));
     return () => (mounted = false);
@@ -132,11 +132,10 @@ export default function CreateReports() {
             <select
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
-              className={`w-full rounded-lg border p-2.5 pr-10 text-sm outline-none transition ${
-                errors.class_id
+              className={`w-full rounded-lg border p-2.5 pr-10 text-sm outline-none transition ${errors.class_id
                   ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
                   : "border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              }`}
+                }`}
               disabled={loading || submitting}
             >
               <option value="">{loading ? "Đang tải..." : "-- Chọn lớp giảng dạy --"}</option>
@@ -165,11 +164,10 @@ export default function CreateReports() {
             value={reportName}
             onChange={(e) => setReportName(e.target.value)}
             placeholder="VD: Báo cáo giữa kỳ"
-            className={`w-full rounded-lg border p-2.5 text-sm outline-none transition ${
-              errors.report_name
+            className={`w-full rounded-lg border p-2.5 text-sm outline-none transition ${errors.report_name
                 ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
                 : "border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            }`}
+              }`}
             disabled={submitting}
             maxLength={255}
           />
@@ -211,11 +209,10 @@ export default function CreateReports() {
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className={`w-full rounded-lg border p-2.5 text-sm outline-none transition ${
-                errors.start_date
+              className={`w-full rounded-lg border p-2.5 text-sm outline-none transition ${errors.start_date
                   ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
                   : "border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              }`}
+                }`}
               disabled={submitting}
             />
             {errors.start_date && (
@@ -231,11 +228,10 @@ export default function CreateReports() {
               value={endDate}
               min={startDate || undefined}
               onChange={(e) => setEndDate(e.target.value)}
-              className={`w-full rounded-lg border p-2.5 text-sm outline-none transition ${
-                errors.end_date
+              className={`w-full rounded-lg border p-2.5 text-sm outline-none transition ${errors.end_date
                   ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
                   : "border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              }`}
+                }`}
               disabled={submitting}
             />
             {errors.end_date && (
@@ -248,11 +244,10 @@ export default function CreateReports() {
         <button
           type="submit"
           disabled={!canSubmit}
-          className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium text-white transition ${
-            canSubmit
+          className={`flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium text-white transition ${canSubmit
               ? "bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
               : "cursor-not-allowed bg-blue-300"
-          }`}
+            }`}
         >
           {submitting ? (
             <>

@@ -6,10 +6,7 @@ use App\Repositories\MajorRepository;
 
 class MajorService
 {
-    protected $majorRepo;
-
-    public function __construct(protected MajorRepository $repo) {}
-
+    public function __construct(protected MajorRepository $majorRepo) {}
 
     public function getMajors()
     {
