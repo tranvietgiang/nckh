@@ -143,8 +143,8 @@ export default function ProfilePage() {
                         <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
                           {role === "student" ? (
                             <span>{getProfile?.major_name ?? "lỗi"}</span>
-                          ) : getProfile?.major?.length > 0 ? (
-                            getProfile.major.map((cls, index) => (
+                          ) : getProfile?.majors?.length > 0 ? (
+                            getProfile.majors.map((cls, index) => (
                               <p key={index} className="mb-1">
                                 {cls}
                               </p>

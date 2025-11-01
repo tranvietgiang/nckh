@@ -56,5 +56,4 @@ class AdminController extends Controller
 
         return response()->json(['message' => '✅ Cập nhật thành công!', 'user' => $updatedUser]);
     }
-
 }

@@ -7,6 +7,7 @@ use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use App\Services\StudentService;
 use Exception;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,6 +16,13 @@ use Illuminate\Validation\Rule;
 class StudentController extends Controller
 {
     //
+
+    protected $studentService;
+    public function __construct(StudentService $studentService)
+    {
+        $this->studentService = $studentService;
+    }
+
     public function import(Request $request)
     {
         try {
@@ -103,6 +111,13 @@ class StudentController extends Controller
     }
 
 
-    // public function CheckUserExit()
+    public function displayInfo()
+    {
+        $userId = AuthHelper::isLogin();
+        $role   = AuthHelper::getRole();
 
+        $result = $this->studentService->getProfile($userId, $role);
+
+        return response()->json($result, $result['success'] ? 200 : 404);
+    }
 }
