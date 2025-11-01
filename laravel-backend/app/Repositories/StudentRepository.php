@@ -7,7 +7,7 @@ use Illuminate\Support\Collection;
 
 class StudentRepository
 {
-    public function getProfileByRole(string $userId, string $role): Collection|array|null
+    public function getProfileByRole(string $userId, string $role): mixed
     {
         if ($role === 'student') {
             return User::select('users.*', 'user_profiles.*', 'classes.*', 'majors.*')
