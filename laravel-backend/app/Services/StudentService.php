@@ -43,7 +43,7 @@ class StudentService
             ];
         }
 
-        return ['success' => true, 'data' => $profile];
+        return ['success' => true, $profile];
     }
 
     /**
