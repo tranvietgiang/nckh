@@ -25,7 +25,7 @@ export default function TeacherDashboard() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        if (Array.isArray(res.data.data)) setClasses(res.data.data);
+        if (Array.isArray(res.data)) setClasses(res.data);
       })
       .catch((err) => {
         console.error("❌ Lỗi khi tải danh sách lớp:", err);
