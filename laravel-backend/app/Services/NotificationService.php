@@ -6,6 +6,7 @@ use App\Repositories\NotificationRepository;
 use App\Models\Classe;
 use App\Models\Major;
 use App\Models\User;
+use App\Models\user_profile;
 
 class NotificationService
 {
@@ -40,7 +41,7 @@ class NotificationService
         $teacherOwnsClass = Classe::where('teacher_id', $data['teacher_id'])
             ->where('class_id', $data['class_id'])
             ->where('major_id', $data['major_id'])
-            ->exists(); 
+            ->exists();
 
         if (!$teacherOwnsClass) {
             return ['success' => false, 'message_error' => "Giảng viên không dạy lớp này!"];
@@ -53,13 +54,20 @@ class NotificationService
             : ['success' => false, 'message_error' => "Gửi thông báo thất bại"];
     }
 
-    public function getNotifyService(string $teacherId): array
+    public function getNotifyService(string $studentId): array
     {
-
-        $data = $this->repo->getNotifyRepository($teacherId);
+        $data = $this->repo->getNotifyRepository($studentId);
 
         if ($data->count() > 0) {
-            return ["status" => true, $data];
+            $data = $data->map(function ($item) {
+                $teacherName = user_profile::where('user_id', $item->teacher_id)->value('fullname');
+                $item->teacher_name = $teacherName ?? 'Không rõ';
+                return $item;
+            });
+            return [
+                'status' => true,
+                'data'   => $data
+            ];
         }
         return ["status" => false, []];
     }

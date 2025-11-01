@@ -21,9 +21,9 @@ class NotificationController extends Controller
 
     public function getNotify()
     {
-        $useId = AuthHelper::isLogin();
+        $studentId =  AuthHelper::isLogin();
 
-        $result = $this->service->getNotifyService($useId);
+        $result = $this->service->getNotifyService($studentId);
 
         return response()->json($result, $result['status'] ? 200 : 400);
     }

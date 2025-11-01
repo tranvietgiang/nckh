@@ -65,7 +65,7 @@ Route::middleware('auth:sanctum')->delete('/tvg/classes/{class_id}/teacher/{teac
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
 
 /*lấy ra thông báo mà giảng viển gửi*/
-Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::class, 'getNotify ']);
+Route::middleware('auth:sanctum')->get('/tvg/get-notify', [NotificationController::class, 'getNotify']);
 
 
 /**lấy ra lỗi sau khi import ds sinh viên */
