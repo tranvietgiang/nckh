@@ -82,7 +82,7 @@ export default function ClassShowManager() {
 
   useEffect(() => {
     axios
-      .get("/get-majors/tvg")
+      .get("/tvg/get-majors")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setMajors(res.data);
