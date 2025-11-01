@@ -45,4 +45,21 @@ class StudentService
 
         return ['success' => true, 'data' => $profile];
     }
+
+    /**
+     * Lấy hồ sơ theo role, luôn trả về mảng thống nhất.
+     */
+    public function getStudentService(int $class_id, string $teacher_id): array
+    {
+        $data = $this->repo->getStudentRepository($class_id, $teacher_id);
+
+        if ($data->count() > 0) {
+            return ['success' => true, 'list_student' => $data, "total_student" => $data->count()];
+        }
+        return [
+            'message_error' => "không thể tải dc dữ liệu",
+            'success' => false,
+            'data' => []
+        ];
+    }
 }

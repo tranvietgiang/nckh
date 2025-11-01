@@ -98,7 +98,7 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
 
-Route::middleware('auth:sanctum')->get('/get-majors/tvg', [MajorsController::class, 'getMajors']);
+Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::class, 'getMajors']);
 
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 
