@@ -55,8 +55,8 @@ class ClassController extends Controller
         return user_profile::getStudentsByClass($classId);
     }
 
-        // return \App\Models\user_profile::getStudentsByClass($classId);
-    
+    // return \App\Models\user_profile::getStudentsByClass($classId);
+
 
 
     public function insertClassNew(Request $request)
@@ -153,7 +153,6 @@ class ClassController extends Controller
             'teacher_id' => $teacherId,
         ]);
 
-        // return response()->json($result);
         return response()->json($result, $result['success'] ? 200 : 400);
     }
 
