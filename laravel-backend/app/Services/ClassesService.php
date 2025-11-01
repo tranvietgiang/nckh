@@ -15,8 +15,6 @@ class ClassesService
 
     public function deleteByClass(array $params): array
     {
-
-        // return $params;
         $classId   = (int)($params['class_id'] ?? 0);
         $teacherId = (string)($params['teacher_id'] ?? '');
 
