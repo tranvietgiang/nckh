@@ -15,14 +15,8 @@ use App\Services\MajorService;
 
 class MajorsController extends Controller
 {
-    //
-    protected $majorService;
-
     // Service được inject tự động qua constructor
-    public function __construct(MajorService $majorService)
-    {
-        $this->majorService = $majorService;
-    }
+    public function __construct(protected MajorService $majorService) {}
 
     public function getMajors()
     {

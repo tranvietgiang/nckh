@@ -3,15 +3,11 @@
 namespace App\Services;
 
 use App\Repositories\ClassesRepository;
-use App\Repositories\MajorRepository;
 
 class ClassesService
 {
 
-    public function __construct(protected ClassesRepository $repo)
-    {
-        $this->repo = $repo;
-    }
+    public function __construct(protected ClassesRepository $repo) {}
 
     public function deleteByClass(array $params): array
     {
