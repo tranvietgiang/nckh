@@ -61,12 +61,13 @@ class NotificationRepository
     /**
      * lấy ra thông tin để gửi thông báo
      */
-    public function getNotifyRepository(string $teacherId): Collection
+    public function getNotifyRepository(string $studentId): Collection
     {
         return User::select(
             "users.user_id",
             "users.role",
             "classes.class_id",
+            "classes.class_name",
             "user_profiles.user_id",
             "user_profiles.class_id",
             "notifications.*"
@@ -74,7 +75,7 @@ class NotificationRepository
             ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
             ->join("classes", "classes.class_id", "=", "user_profiles.class_id")
             ->join("notifications", "classes.class_id", "=", "notifications.class_id")
-            ->where("users.user_id", $teacherId)
+            ->where("users.user_id", $studentId)
             ->where("users.role", "student")
             ->orderBy("notifications.created_at", "desc")->get();
     }
