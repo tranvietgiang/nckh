@@ -57,7 +57,7 @@ Route::delete('/delete/{user_id}', [AuthController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/tvg/get-classes', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->post('/create-classes', [ClassController::class, 'insertClassNew']);
-Route::middleware('auth:sanctum')->delete('/classes/{class_id}', [ClassController::class, 'deleteClassNew']);
+Route::middleware('auth:sanctum')->delete('/tvg/classes/{class_id}/teacher/{teacher_id}', [ClassController::class, 'deleteClass']);
 
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
@@ -70,7 +70,7 @@ Route::middleware('auth:sanctum')->get('/get-notify', [NotificationController::c
 
 Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/major/{major_id}/student-errors', [ErrorsImportController::class, 'getStudentErrors']);
 /**Xóa lỗi */
-Route::middleware('auth:sanctum')->delete('/student-errors/classes/{class_id}/teacher/{teacher_id}/major/{major_id}', [ErrorsImportController::class, 'deleteByClass']);
+Route::middleware('auth:sanctum')->delete('/student-errors/classes/{class_id}/teacher/{teacher_id}/major/{major_id}', [ErrorsImportController::class, 'deleteErrorImportStudent']);
 
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
