@@ -11,13 +11,7 @@ use App\Services\ErrorImportService;
 class ErrorsImportController extends Controller
 {
     //
-    protected $errorImportService;
-
-    // Service được inject tự động qua constructor
-    public function __construct(ErrorImportService $errorImportService)
-    {
-        $this->errorImportService = $errorImportService;
-    }
+    public function __construct(protected ErrorImportService $errorImportService) {}
 
     public function getStudentErrors($class_id, $teacherId, $major_id)
     {

@@ -7,10 +7,8 @@ use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
-    protected $userRepo;
-
     // Inject repository qua constructor (Dependency Injection)
-    public function __construct(AdminRepository $userRepo)
+    public function __construct(protected AdminRepository $userRepo)
     {
         $this->userRepo = $userRepo;
     }
