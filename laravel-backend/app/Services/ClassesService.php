@@ -28,7 +28,6 @@ class ClassesService
             ];
         }
 
-        // ✅ Gọi repository
         $deleted = $this->repo->deleteByClass($classId, $teacherId);
 
         if ($deleted === 0) {
