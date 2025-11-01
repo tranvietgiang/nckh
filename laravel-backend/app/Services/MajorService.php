@@ -8,10 +8,8 @@ class MajorService
 {
     protected $majorRepo;
 
-    public function __construct(MajorRepository $majorRepo)
-    {
-        $this->majorRepo = $majorRepo;
-    }
+    public function __construct(protected MajorRepository $repo) {}
+
 
     public function getMajors()
     {
