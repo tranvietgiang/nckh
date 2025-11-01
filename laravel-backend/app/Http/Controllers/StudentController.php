@@ -74,7 +74,6 @@ class StudentController extends Controller
     }
 
 
-
     public function getStudents($class_id, $teacher_id)
     {
         AuthHelper::isLogin();
@@ -105,67 +104,5 @@ class StudentController extends Controller
 
 
     // public function CheckUserExit()
-    public function  getProfile()
-    {
-        $user_id = AuthHelper::isLogin();
-        $role = AuthHelper::getRole();
 
-        $checkUser = User::where("user_id", $user_id)->where("role", $role)->exists();
-
-        if (!$checkUser) {
-            return response()->json(["message_error" => "người dùng này không tồn tại!"], 402);
-        }
-
-
-        if ($role === "student") {
-            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
-                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->Join("classes", "user_profiles.class_id", "=", "classes.class_id")
-                ->Join("majors", "user_profiles.major_id", "=", "majors.major_id")
-                ->where("users.user_id", $user_id)
-                ->where('users.role', $role)
-                ->first();
-
-            if (!$dataProfile) {
-                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
-            }
-            return response()->json($dataProfile, 200);
-        } else if ($role === "teacher") {
-            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
-                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
-                ->Join("majors", "user_profiles.major_id", "=", "majors.major_id")
-                ->where("users.user_id", $user_id)
-                ->where('users.role', $role)
-                ->get();
-
-            if (!$dataProfile) {
-                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
-            }
-
-            $Info = [
-                "fullname" => $dataProfile[0]->fullname,
-                "user_id" => $dataProfile[0]->user_id,
-                "email" => $dataProfile[0]->email,
-                "phone" => $dataProfile[0]->phone,
-                "birthdate" => $dataProfile[0]->birthdate,
-                "role" => $dataProfile[0]->role,
-                "major" => $dataProfile->pluck('major_name')->unique()->values(),
-                "classes" => $dataProfile->pluck('class_name')->unique()->values(),
-            ];
-            return response()->json($Info, 200);
-        } else if ($role === "admin") {
-            $dataProfile = User::select("users.*", "user_profiles.*")
-                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->where("users.user_id", $user_id)
-                ->where('users.role', $role)
-                ->first();
-
-            if (!$dataProfile) {
-                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
-            }
-
-            return response()->json($dataProfile, 200);
-        }
-    }
 }

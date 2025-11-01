@@ -20,7 +20,7 @@ class ErrorImportRepository
             ->get();
     }
 
-    public function deleteByClass(int $classId, string $teacherId, int $majorId): int
+    public function deleteErrorImportStudent(int $classId, string $teacherId, int $majorId): int
     {
         if ($classId && $teacherId && $majorId) {
             return ImportError::where('class_id', $classId)

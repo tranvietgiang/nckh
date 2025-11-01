@@ -11,11 +11,20 @@ use App\Http\Controllers\MajorsController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\user_profile;
 use App\Imports\ClassImport;
+use App\Models\User;
+use App\Services\ClassesService;
 use Maatwebsite\Excel\Facades\Excel;
 
 
 class ClassController extends Controller
 {
+
+    protected $classesService;
+    // Service được inject tự động qua constructor
+    public function __construct(ClassesService $classesService)
+    {
+        $this->classesService = $classesService;
+    }
 
     public function getClassByTeacher()
     {
@@ -48,18 +57,14 @@ class ClassController extends Controller
     {
         AuthHelper::roleAmin();
 
-        if (Auth::user()->role != 'admin') {
-            return response()->json(['message_error' => 'Bạn không có quyền tạo lớp!'], 403);
-        }
-
         $data = $request->all();
 
         if (
             empty($data["class_name"]) ||
             empty($data["class_code"]) ||
-            empty($data["major_id"]) ||
+            empty($data["major_id"])   ||
             empty($data["teacher_id"]) ||
-            empty($data["semester"]) ||
+            empty($data["semester"])   ||
             empty($data["academic_year"])
         ) {
             return response()->json([
@@ -132,16 +137,18 @@ class ClassController extends Controller
         }
     }
 
-    public function deleteClassNew($class_id)
+    public function deleteClass($class_id, $teacherId)
     {
-        $teacherId = AuthHelper::isLogin();
 
-        $delete = Classe::where("class_id", $class_id)->where("teacher_id", $teacherId)->delete();
-        if ($delete) {
-            return response()->json([
-                "status" => true,
-            ], 200);
-        }
+        AuthHelper::roleAmin();
+
+        $result = $this->classesService->deleteByClass([
+            'class_id'   => $class_id,
+            'teacher_id' => $teacherId,
+        ]);
+
+        // return response()->json($result);
+        return response()->json($result, $result['success'] ? 200 : 400);
     }
 
     public function getClassOfTeacher($selectedMajor)

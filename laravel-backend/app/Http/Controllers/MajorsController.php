@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Imports\MajorImport;
 use App\Models\Classe;
+use App\Models\ImportError;
 use App\Models\Major;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use App\Services\MajorService;
 
@@ -85,43 +88,52 @@ class MajorsController extends Controller
             return response()->json(['error' => '❌ Chưa chọn file Excel!'], 400);
         }
 
-        $file = $request->file('file');
-        $spreadsheet = IOFactory::load($file->getRealPath());
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray(null, true, true, true);
+            $file = $request->file('file');
 
-        $success = 0;
-        $failed = 0;
-        $errors = [];
+            // Dùng class import chuyên biệt (đã tự lưu lỗi)
+            $import = new MajorImport();
+            Excel::import($import, $file);
 
-        foreach (array_slice($rows, 1) as $row) {
-            $name = trim($row['A']);
-            $abbr = trim($row['B']);
+            $list_import_error = ImportError::where("typeError", "major")->get();
 
-            if (!$name || !$abbr) {
-                $failed++;
-                continue;
+              if ($list_import_error->count() > 0) {
+                return response()->json([
+                    'message' => 'Import hoàn tất!',
+                    'total_major' => $import->totalMajors,
+                    'success' => $import->success ?? 0,
+                    'failed'  => $import->failed ?? 0,
+                    'list_import_error' => $list_import_error,
+                ]);
             }
 
-            if (Major::where('major_abbreviate', $abbr)->exists()) {
-                $failed++;
-                $errors[] = "Trùng mã ngành: {$abbr}";
-                continue;
-            }
-
-            Major::create([
-                'major_name' => $name,
-                'major_abbreviate' => $abbr,
+            return response()->json([
+                'message' => 'Import hoàn tất!',
+                'total_major' => $import->totalMajors,
+                'success' => $import->success ?? 0,
+                'failed'  => $import->failed ?? 0,
             ]);
-            $success++;
+    }
+
+    public function deleteErrorMajorsImport(){
+        AuthHelper::roleAmin();
+
+        $delete = ImportError::where("typeError","major")->delete();
+
+        if(!$delete){   
+            return response()->json(["message_error" => "Xóa lỗi không thành công"],500);
+        
+        }
+    }
+
+    public function getErrorMajorsImport(){
+        AuthHelper::roleAmin();
+
+        $get = ImportError::where("typeError","major")->get();
+
+        if($get->count() > 0){   
+            return response()->json($get,200);
         }
 
-        return response()->json([
-            'success' => true,
-            'message' => ' Import hoàn tất!',
-            'total_success' => $success,
-            'total_failed' => $failed,
-            'errors' => $errors,
-        ]);
+        return response()->json(["message_error" => "Xóa lỗi không thành công"],500);
     }
 }
