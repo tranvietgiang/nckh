@@ -130,7 +130,7 @@ export default function ImportAndDetailStudents() {
       FetchDataStudentByClass();
     } catch (err) {
       if (err.response && err.response.data) {
-        alert(err.response.data.message);
+        alert(err.response.data.message_error);
       } else {
         alert("Lỗi kết nối server!");
       }

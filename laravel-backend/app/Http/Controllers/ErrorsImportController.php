@@ -37,23 +37,22 @@ class ErrorsImportController extends Controller
     }
 
 
-    public function deleteByClass($class_id, $teacherId, $major_id)
+    public function deleteErrorImportStudent($class_id, $teacherId, $major_id)
     {
         AuthHelper::isLogin();
+        AuthHelper::roleAmin();
 
-        if (!$class_id || !$teacherId || !$major_id) {
-            return response()->json(["message_error" => "Dữ liễu sai"], 402);
+        $result = $this->errorImportService->deleteErrorImportStudent([
+            'class_id'   => $class_id,
+            'teacher_id' => $teacherId,
+            'major_id'   => $major_id,
+        ]);
+
+        if ($result['success']) {
+            return response()->json([], 200);
         }
 
-        $delete = ImportError::where('class_id', $class_id)
-            ->where('teacher_id', $teacherId)
-            ->where('major_id', $major_id)->delete();
-
-        if ($delete) {
-            return response()->json(["status" => true], 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json(['message_error' => $result['message']], 500);
     }
 
     public function deleteGroupErrors(Request $request)

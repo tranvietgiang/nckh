@@ -118,10 +118,10 @@ export default function ClassShowManager() {
   }, []);
 
   // Xử lý xóa lớp
-  const handleDeleteClass = (classId) => {
+  const handleDeleteClass = (classId, teacher_id) => {
     if (window.confirm("Bạn có chắc muốn xóa lớp học này?")) {
       axios
-        .delete(`/classes/${classId}`)
+        .delete(`/tvg/classes/${classId}/teacher/${teacher_id}`)
         .then((res) => {
           console.log(res.data);
           setClasses(
@@ -130,8 +130,12 @@ export default function ClassShowManager() {
           alert("Xóa lớp học thành công!");
         })
         .catch((error) => {
-          console.log("Error deleting class:", error);
-          alert("Lỗi khi xóa lớp học!");
+          if (error.response) {
+            alert(error.response.data.message_error);
+            console.log("Error deleting class:", error);
+          } else {
+            alert("Lỗi server!");
+          }
         });
     }
   };
@@ -272,7 +276,10 @@ export default function ClassShowManager() {
                               </button>
                               <button
                                 onClick={() =>
-                                  handleDeleteClass(classItem?.class_id)
+                                  handleDeleteClass(
+                                    classItem?.class_id,
+                                    classItem?.teacher_id
+                                  )
                                 }
                                 className="text-red-600 hover:text-red-800 text-sm font-medium"
                               >
