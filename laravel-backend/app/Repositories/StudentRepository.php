@@ -31,7 +31,7 @@ class StudentRepository
 
         if ($role === 'admin') {
             return User::select('users.*', 'user_profiles.*')
-                ->join('user_profiles', 'user_profiles.user_id', '=', 'users.user_id')
+                ->leftJoin('user_profiles', 'user_profiles.user_id', '=', 'users.user_id')
                 ->where('users.user_id', $userId)
                 ->where('users.role', $role)
                 ->first();
@@ -48,9 +48,9 @@ class StudentRepository
             'classes.*',
             "majors.*"
         )
-            ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
-            ->join('majors', "user_profiles.major_id", "=", "majors.major_id")
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
+            ->leftJoin('classes', 'user_profiles.class_id', '=', 'classes.class_id')
+            ->leftJoin('majors', 'user_profiles.major_id', '=', 'majors.major_id')
             ->where('users.role', 'student')
             ->where("user_profiles.class_id", $class_id)
             ->where("classes.teacher_id", $teacher_id)

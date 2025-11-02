@@ -40,9 +40,8 @@ export default function ImportAndDetailStudents() {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
   }, [checkPage]);
 
-  RoleAdmin(role);
-
   IsLogin(user, token);
+  RoleAdmin(role);
 
   // Hàm tìm kiếm
   const handleSearch = () => {
