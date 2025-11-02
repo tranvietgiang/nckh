@@ -10,6 +10,7 @@ class submission_file extends Model
     use HasFactory;
 
     protected $primaryKey = 'file_id';
+
     protected $fillable = [
         'submission_id',
         'file_name',

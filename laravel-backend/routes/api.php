@@ -76,7 +76,7 @@ Route::middleware('auth:sanctum')->delete('/student-errors/classes/{class_id}/te
 
 Route::get('/drive-auth', [ReportController::class, 'getAuthUrl']);
 Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
-Route::post('/drive-upload', [ReportController::class, 'uploadReport']);
+Route::middleware('auth:sanctum')->post('/drive-upload', [ReportController::class, 'uploadReport']);
 
 /**Lấy báo cáo  */
 Route::get('/submissions', [AdminController::class, 'getReports']);

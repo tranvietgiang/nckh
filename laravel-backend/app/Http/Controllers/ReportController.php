@@ -3,16 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Models\Classe;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
 use Illuminate\Support\Facades\DB;
 use App\Models\ReportMember;
-
+use App\Models\User;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ReportController extends Controller
@@ -133,12 +135,65 @@ class ReportController extends Controller
     public function uploadReport(Request $request)
     {
         try {
+
+            $userId = AuthHelper::isLogin();
+
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png',
+                'email' => 'required|email',
+                'report_id' => 'required|integer',
+                'teacher_id' => 'required|string|max:15'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message_error' => 'Vui lòng kiểm tra lại thông tin!',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
             $file = $request->file('file');
             $email = $request->input('email');
+            $reportId = $request->input('report_id');
+            $teacherId = $request->input('teacher_id');
 
-            if (!$file || !$email) {
-                return response()->json(['error' => 'Thiếu file hoặc email!'], 400);
+            // Kiểm tra từng trường hợp và trả về lỗi ngay khi phát hiện
+            if (!User::where('user_id', $teacherId)->where('role', 'teacher')->exists()) {
+                return response()->json(['message_error' => 'Giảng viên không tồn tại!'], 400);
             }
+
+            $report = Report::where('report_id', $reportId)->where('teacher_id', $teacherId)->first();
+            if (!$report) {
+                return response()->json(['message_error' => 'Báo cáo không tồn tại!'], 400);
+            }
+
+            if ($report->end_date && now()->gt($report->end_date)) {
+                return response()->json(['message_error' => 'Đã quá hạn nộp báo cáo!'], 400);
+            }
+
+            if (!User::where('email', $email)->where('user_id', $userId)->where('role', 'student')->exists()) {
+                return response()->json(['message_error' => 'Email sinh viên không tồn tại!'], 400);
+            }
+
+            if ($report->status === 'expired') {
+                return response()->json(['message_error' => 'Báo cáo đã hết hạn nộp!'], 400);
+            }
+
+            if ($report->status === 'graded') {
+                return response()->json(['message_error' => 'Báo cáo đã được chấm điểm!'], 400);
+            }
+
+            if (!$file->isValid()) {
+                return response()->json(['message_error' => 'File upload bị lỗi!'], 400);
+            }
+
+            // kiểm tra có phải là nhóm trưởng nộp ko
+            // // Nếu tất cả check pass
+            // return response()->json([
+            //     'success' => true,
+            //     'message' => 'Tất cả điều kiện hợp lệ, có thể upload!'
+            // ]);
+
 
             $client = $this->getGoogleClient();
             $driveService = new \Google\Service\Drive($client);

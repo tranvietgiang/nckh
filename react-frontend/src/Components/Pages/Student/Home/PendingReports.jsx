@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
 import { getUser } from "../../../Constants/INFO_USER";
 
-// 🌀 Hiệu ứng loading 3 chấm
+// Hiệu ứng loading 3 chấm
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
     color === "white"
@@ -66,6 +66,9 @@ export default function PendingReports() {
     formData.append("file", file);
     formData.append("email", user?.email);
     formData.append("report_id", selectedReport.report_id);
+    formData.append("teacher_id", selectedReport.teacher_id);
+
+    console.log(user?.email, selectedReport.report_id);
 
     try {
       setUploading(true);
@@ -116,6 +119,9 @@ export default function PendingReports() {
               <div className="space-y-1 text-sm text-gray-600">
                 <p>
                   <strong>Môn học:</strong> {report.report_name}
+                </p>
+                <p>
+                  <strong>Giáo viên phụ trách:</strong> {report.teacher_id}
                 </p>
                 <p>
                   <strong>Lớp:</strong> {report.class_name}
