@@ -72,9 +72,9 @@ class NotificationRepository
             "user_profiles.class_id",
             "notifications.*"
         )
-            ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
-            ->join("classes", "classes.class_id", "=", "user_profiles.class_id")
-            ->join("notifications", "classes.class_id", "=", "notifications.class_id")
+            ->leftJoin("user_profiles", "users.user_id", "=", "user_profiles.user_id")
+            ->leftJoin("classes", "classes.class_id", "=", "user_profiles.class_id")
+            ->leftJoin("notifications", "classes.class_id", "=", "notifications.class_id")
             ->where("users.user_id", $studentId)
             ->where("users.role", "student")
             ->orderBy("notifications.created_at", "desc")->get();
