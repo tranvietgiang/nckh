@@ -6,7 +6,9 @@ import RoleStudent from "../../../ReUse/IsLogin/RoleStudent";
 export default function ModelNotifications({ stateOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
   const role = getRole();
-  // RoleStudent(role);
+  if (role === "student") {
+    RoleStudent(role);
+  }
   useEffect(() => {
     if (role !== "student") return;
     axios
