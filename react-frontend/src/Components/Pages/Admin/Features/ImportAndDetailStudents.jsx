@@ -13,7 +13,6 @@ import {
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
-import { CloudFog } from "lucide-react";
 
 export default function ImportAndDetailStudents() {
   const [students, setStudents] = useState([]);
@@ -40,9 +39,8 @@ export default function ImportAndDetailStudents() {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
   }, [checkPage]);
 
-  RoleAdmin(role);
-
   IsLogin(user, token);
+  RoleAdmin(role);
 
   // Hàm tìm kiếm
   const handleSearch = () => {
