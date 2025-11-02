@@ -18,6 +18,7 @@ import {
   setSafeJSON,
   // getSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
+import AdminHeader from "../View/AdminHeader";
 export default function ClassShowManager() {
   const navigate = useNavigate();
 
@@ -150,7 +151,7 @@ export default function ClassShowManager() {
   // localStorage.clear();
   return (
     <>
-      <Navbar />
+      <AdminHeader />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex justify-between items-center">
