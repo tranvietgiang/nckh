@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Menu, Home, ArrowLeft, ChevronDown, LogOut } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 export default function AdminHeader({
   setSidebarOpen,
   homePath = "/nckh-admin",
-  showHomeWhenAway = true, // đặt false nếu không muốn hiện nút Home
+  showHomeWhenAway = true,
 }) {
   const location = useLocation();
   const navigate = useNavigate();
   const isOnHome = location.pathname === homePath;
-
   const [openMenu, setOpenMenu] = useState(false);
+  const timeoutRef = useRef(null);
 
   const handleGoHome = () => navigate(homePath);
   const handleGoBack = () => navigate(-1);
@@ -27,6 +27,16 @@ export default function AdminHeader({
     navigate("/nckh-login", { replace: true });
   };
 
+  // 🧠 hover ổn định: có delay khi đóng để tránh mất menu do di chuột nhanh
+  const handleMouseEnter = () => {
+    clearTimeout(timeoutRef.current);
+    setOpenMenu(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => setOpenMenu(false), 150);
+  };
+
   return (
     <header className="bg-white shadow-md sticky top-0 z-30">
       <div className="px-6 py-4 flex justify-between items-center">
@@ -39,20 +49,15 @@ export default function AdminHeader({
           <Menu className="w-6 h-6" />
         </button>
 
-        {/* Tiêu đề + các nút điều hướng */}
+        {/* Tiêu đề + điều hướng */}
         <div className="flex items-center gap-3">
-          {/* Bỏ chữ "Admin Dashboard" khi không ở home */}
           {isOnHome ? (
             <h1 className="text-xl font-bold text-gray-800">Admin Dashboard</h1>
-          ) : null}
-
-          {/* Khi không ở home: hiện nút Quay lại (và Home nếu muốn) */}
-          {!isOnHome && (
+          ) : (
             <div className="flex items-center gap-2">
               <button
                 onClick={handleGoBack}
                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-700"
-                title="Quay lại trang trước"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Quay lại
@@ -61,7 +66,6 @@ export default function AdminHeader({
                 <button
                   onClick={handleGoHome}
                   className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-700"
-                  title="Về trang Admin Home"
                 >
                   <Home className="w-4 h-4" />
                   Home
@@ -71,20 +75,19 @@ export default function AdminHeader({
           )}
         </div>
 
-        {/* Khu vực Admin + Dropdown */}
+        {/* Avatar + dropdown */}
         <div
           className="relative"
-          onMouseEnter={() => setOpenMenu(true)}
-          onMouseLeave={() => setOpenMenu(false)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
         >
+          {/* Avatar */}
           <button
             type="button"
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 select-none"
             aria-haspopup="menu"
-            aria-expanded={openMenu}
-            title="Tài khoản Admin"
           >
-            <div className="w-10 h-10 bg-indigo-600 rounded-full text-white flex items-center justify-center font-bold select-none">
+            <div className="w-10 h-10 bg-indigo-600 rounded-full text-white flex items-center justify-center font-bold">
               AD
             </div>
             <span className="hidden sm:inline text-sm text-gray-700">
@@ -93,17 +96,16 @@ export default function AdminHeader({
             <ChevronDown className="w-4 h-4 text-gray-500 hidden sm:inline" />
           </button>
 
-          {/* Dropdown */}
+          {/* Dropdown menu */}
           {openMenu && (
             <div
-              className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1"
+              className="absolute right-0 mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-lg py-1 animate-fadeIn z-50"
               role="menu"
             >
               {!isOnHome && (
                 <button
                   onClick={handleGoHome}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 inline-flex items-center gap-2"
-                  role="menuitem"
+                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                 >
                   <Home className="w-4 h-4" />
                   Về trang Admin
@@ -111,8 +113,7 @@ export default function AdminHeader({
               )}
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 inline-flex items-center gap-2"
-                role="menuitem"
+                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
               >
                 <LogOut className="w-4 h-4" />
                 Đăng xuất
