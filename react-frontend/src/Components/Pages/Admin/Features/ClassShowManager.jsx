@@ -16,7 +16,7 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import {
   setSafeJSON,
-  getSafeJSON,
+  // getSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 export default function ClassShowManager() {
   const navigate = useNavigate();

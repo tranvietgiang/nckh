@@ -4,7 +4,7 @@ export default function RoleStudent(role) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (role != "student") {
+    if (role !== "student") {
       navigate("/nckh-404");
       return;
     }

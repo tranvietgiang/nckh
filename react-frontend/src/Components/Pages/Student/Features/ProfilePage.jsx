@@ -35,24 +35,16 @@ export default function ProfilePage() {
       setProfile(data_user_profile);
     }
 
-    localStorage.removeItem("user_profiles");
-
     try {
       const res = await axios.get("/profiles");
-      let data = res.data;
-
-      // Trường hợp backend trả { success:true, user:{...} }
-      if (data && data.user) data = data.user;
-
-      // Nếu là teacher và data là mảng → lấy phần tử đầu cho gọn UI
-      if (role === "teacher" && Array.isArray(data)) {
-        data = data[0] ?? null;
+      if (role === "teacher") {
+        setProfile(res.data);
+        setSafeJSON("user_profiles", JSON.stringify(res.data));
+      } else {
+        setProfile(res.data[0]);
+        setSafeJSON("user_profiles", JSON.stringify(res.data[0]));
       }
-
-      setProfile(data || null);
-      // ✅ KHÔNG stringify ở đây (setSafeJSON đã tự stringify)
-      setSafeJSON("user_profiles", data || null);
-      console.log("profiles:", res.data);
+      console.log(res.data);
     } catch (error) {
       console.log(error);
     }
