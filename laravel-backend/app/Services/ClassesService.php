@@ -42,4 +42,23 @@ class ClassesService
             'message_error' => 'Xóa lớp thành công',
         ];
     }
+
+    
+    // cả
+   public function getByTeacher()
+    {
+        $classes = $this->repo->getByTeacher();
+
+        if ($classes->isEmpty()) {
+            return [
+                'status' => false,
+                'message_error' => 'Không có lớp nào được phân công.'
+            ];
+        }
+
+        return [
+            'status' => true,
+            'data' => $classes
+        ];
+    }
 }

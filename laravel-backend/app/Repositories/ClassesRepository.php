@@ -6,7 +6,7 @@ use App\Models\Classe;
 use App\Models\User;
 use App\Models\user_profile;
 use App\Models\ImportError;
-
+use Illuminate\Support\Facades\DB;
 class ClassesRepository
 {
     /**
@@ -30,5 +30,26 @@ class ClassesRepository
         return Classe::where('class_id', $classId)
             ->where('teacher_id', $teacherId)
             ->delete();
+    }
+
+
+
+
+    /// cả
+     public function getByTeacher()
+    {
+        return DB::table('classes')
+            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
+            ->join('users', 'classes.teacher_id', '=', 'users.user_id')
+            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
+            ->select(
+                'classes.*',
+                'majors.major_name',
+                'user_profiles.fullname'
+            )
+            ->where('users.role', 'teacher')
+            ->orderBy('majors.major_name')
+            ->distinct()
+            ->get();
     }
 }

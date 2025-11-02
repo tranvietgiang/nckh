@@ -27,29 +27,5 @@ class Classe extends Model
         return $this->hasMany(user_profile::class, 'class_id', 'class_id');
     }
 
-    public static function getByTeacher()
-    {
-        $classes = DB::table('classes')
-            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
-            ->join('users', 'classes.teacher_id', '=', 'users.user_id')
-            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->select(
-                'classes.*',
-                'majors.major_name',
-                'user_profiles.fullname',
-            )
-            ->where('users.role', 'teacher')
-            ->orderBy('majors.major_name')
-            ->distinct()
-            ->get();
 
-        if ($classes->isEmpty()) {
-            return response()->json([
-                "status" => false,
-                "message_error" => "Không thể tải dữ liệu"
-            ], 404);
-        }
-
-        return response()->json($classes, 200);
-    }
 }

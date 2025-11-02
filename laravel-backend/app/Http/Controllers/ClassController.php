@@ -19,19 +19,25 @@ use Maatwebsite\Excel\Facades\Excel;
 class ClassController extends Controller
 {
 
-    protected $classesService;
-    // Service được inject tự động qua constructor
-    public function __construct(ClassesService $classesService)
+   
+    protected $classService;
+
+    public function __construct(classesService $classService)
     {
-        $this->classesService = $classesService;
+        $this->classService = $classService;
     }
 
     public function getClassByTeacher()
     {
         AuthHelper::isLogin();
-        return Classe::getByTeacher();
-        // return \App\Models\Classe::getByTeacher();
 
+        $result = $this->classService->getByTeacher();
+
+        if (!$result['status']) {
+            return response()->json($result, 404);
+        }
+
+        return response()->json($result['data'], 200);
     }
 
 
@@ -148,7 +154,7 @@ class ClassController extends Controller
 
         AuthHelper::roleAmin();
 
-        $result = $this->classesService->deleteByClass([
+       $result = $this->classService->deleteByClass([
             'class_id'   => $class_id,
             'teacher_id' => $teacherId,
         ]);
