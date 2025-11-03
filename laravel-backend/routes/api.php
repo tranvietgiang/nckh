@@ -17,6 +17,7 @@ use App\Http\Controllers\SimpleDriveController;
 use App\Http\Controllers\StudentErrorsController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SubmissionFileController;
 
 /**Xác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
@@ -127,3 +128,10 @@ Route::middleware('auth:sanctum')->get('/get-members/majors/{majorId}/classes/{c
 Route::middleware('auth:sanctum')->delete('/pc/import-errors/major', [MajorsController::class, 'deleteErrorMajorsImport']);
 //get lỗi import ngành
 Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController::class, 'getErrorMajorsImport']);
+//get submission
+Route::middleware('auth:sanctum')->get('/tvg/get-submission/{studentIdLeader}/submitted', [SubmissionFileController::class, 'getGroupsByLeader']);
+
+//get lấy ra nhóm của mình
+Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
+//get lấy studentId leader
+Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);

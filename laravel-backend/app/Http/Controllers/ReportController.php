@@ -9,8 +9,11 @@ use App\Models\Report;
 use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
 use Illuminate\Support\Facades\DB;
 use App\Models\ReportMember;
+use App\Models\Submission;
+use App\Models\submission_file;
 use App\Models\User;
 use App\Models\user_profile;
+use Carbon\Carbon;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
@@ -208,25 +211,20 @@ class ReportController extends Controller
             }
 
             // kiểm tra có phải là nhóm trưởng nộp ko
-            $checkLeaderSubmit = User::select("report_members.report_m_role", "users.role")
-                ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
-                ->join("majors", "user_profiles.major_id", "=", "user_profiles.major_id")
-                ->join("classes", "majors.major_id", "=", "classes.major_id")
-                ->join("reports", "classes.class_id", "=", "reports.class_id")
-                ->join("report_members", "reports.report_id", "=", "report_members.report_id")
-                ->where("report_members.report_m_role", 'NT')
-                ->where("report_members.student_id", $userId)
-                ->where("users.role", "student")
-                ->exists();
+            $checkLeaderSubmit = DB::table('report_members')
+                ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+                ->join('users', 'users.user_id', '=', 'report_members.student_id') // map đúng user
+                ->where('users.user_id', $userId)           // chính user đang đăng nhập
+                ->where('users.role', 'student')
+                ->where('reports.report_id', $reportId)     // ràng buộc đúng report
+                ->where('reports.teacher_id', $teacherId)   // ràng buộc đúng GV
+                ->where('report_members.report_m_role', 'NT')
+                ->first();
+
 
             if (!$checkLeaderSubmit) {
                 return response()->json(['message_error' => 'Sinh viên này không có trong lớp hoặc không phải là nhóm trưởng'], 400);
             }
-            // // Nếu tất cả check pass
-            // return response()->json([
-            //     'success' => true,
-            //     'message' => 'Tất cả điều kiện hợp lệ, có thể upload!'
-            // ]);
 
             $client = $this->getGoogleClient();
             $driveService = new \Google\Service\Drive($client);
@@ -268,6 +266,26 @@ class ReportController extends Controller
                 'type' => 'anyone',
                 'role' => 'reader',
             ]));
+
+            // $studentId = 1;
+            $studentId = $checkLeaderSubmit->user_id;
+            $checkSubmission = Submission::where("student_id", $studentId)->where('report_id', $reportId)->first();
+
+            $submission = Submission::create([
+                'report_id' => $reportId,
+                'student_id' => $studentId,
+                'version' => $checkSubmission ? $checkSubmission->version + 1 : 1,
+                'status' => "submitted",
+                'submission_time' => now(),
+            ]);
+
+            submission_file::create([
+                'submission_id' => $submission->submission_id,
+                'file_name' => $uploadedFile->name,
+                'file_path' => $uploadedFile->webViewLink,
+                'file_size' => $file->getSize(),
+                'file_type' => $file->getClientOriginalExtension(),
+            ]);
 
             return response()->json([
                 'success' => true,

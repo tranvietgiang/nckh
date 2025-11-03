@@ -1,9 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import { getUser } from "../../../Constants/INFO_USER";
+import axios from "../../../../config/axios";
 export default function Header() {
   const user = getUser();
-
+  useEffect(() => {
+    axios.get("/profiles");
+  });
   return (
     <header className="bg-gray-50 min-h-screen">
       <Navbar />
