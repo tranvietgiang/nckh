@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
 use Illuminate\Support\Facades\DB;
 use App\Models\ReportMember;
 use App\Models\User;
+use App\Models\user_profile;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
@@ -77,28 +78,47 @@ class ReportController extends Controller
 
     private function getGoogleClient()
     {
-        $client = new Client();
+        $client = new \Google\Client();
         $client->setClientId(env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
         $client->setRedirectUri(env('GOOGLE_REDIRECT_URI'));
-        $client->addScope(Drive::DRIVE_FILE);
+        $client->addScope(\Google\Service\Drive::DRIVE_FILE);
         $client->setAccessType('offline');
+        $client->setPrompt('consent');
 
-        $tokenPath = storage_path('app/token.json');
+        $tokenPath = storage_path('app/token.json'); // ✅ trùng với handleCallback
+
         if (!file_exists($tokenPath)) {
-            throw new \Exception("❌ Chưa xác thực Google Drive. Hãy gọi /api/drive-auth trước.");
+            throw new \Exception("❌ Token chưa tồn tại. Hãy xác thực Google lại.");
         }
 
         $accessToken = json_decode(file_get_contents($tokenPath), true);
         $client->setAccessToken($accessToken);
 
-        // Refresh token nếu hết hạn
+        // 🔄 Refresh token nếu hết hạn
         if ($client->isAccessTokenExpired()) {
-            if (!empty($accessToken['refresh_token'])) {
-                $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
-                file_put_contents($tokenPath, json_encode($client->getAccessToken()));
-            } else {
-                throw new \Exception("❌ Refresh token không tồn tại. Cần xác thực lại!");
+            try {
+                if (!empty($accessToken['refresh_token'])) {
+                    $newToken = $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
+
+                    // ⚠️ Nếu Google trả lỗi
+                    if (isset($newToken['error'])) {
+                        // Xóa token hỏng, yêu cầu xác thực lại
+                        unlink($tokenPath);
+                        throw new \Exception("⚠️ Refresh token đã hết hạn hoặc bị thu hồi. Vui lòng xác thực lại Google Drive!");
+                    }
+
+                    // ✅ Gộp refresh token cũ (vì Google thường không trả lại)
+                    $updatedToken = array_merge($accessToken, $client->getAccessToken());
+
+                    // ✅ Lưu lại token mới
+                    file_put_contents($tokenPath, json_encode($updatedToken));
+                } else {
+                    throw new \Exception("❌ Refresh token không tồn tại. Vui lòng xác thực lại!");
+                }
+            } catch (\Exception $e) {
+                if (file_exists($tokenPath)) unlink($tokenPath);
+                throw $e;
             }
         }
 
@@ -188,12 +208,25 @@ class ReportController extends Controller
             }
 
             // kiểm tra có phải là nhóm trưởng nộp ko
+            $checkLeaderSubmit = User::select("report_members.report_m_role", "users.role")
+                ->join("user_profiles", "users.user_id", "=", "user_profiles.user_id")
+                ->join("majors", "user_profiles.major_id", "=", "user_profiles.major_id")
+                ->join("classes", "majors.major_id", "=", "classes.major_id")
+                ->join("reports", "classes.class_id", "=", "reports.class_id")
+                ->join("report_members", "reports.report_id", "=", "report_members.report_id")
+                ->where("report_members.report_m_role", 'NT')
+                ->where("report_members.student_id", $userId)
+                ->where("users.role", "student")
+                ->exists();
+
+            if (!$checkLeaderSubmit) {
+                return response()->json(['message_error' => 'Sinh viên này không có trong lớp hoặc không phải là nhóm trưởng'], 400);
+            }
             // // Nếu tất cả check pass
             // return response()->json([
             //     'success' => true,
             //     'message' => 'Tất cả điều kiện hợp lệ, có thể upload!'
             // ]);
-
 
             $client = $this->getGoogleClient();
             $driveService = new \Google\Service\Drive($client);
