@@ -1,6 +1,5 @@
-import React, { useState, useRef } from "react";
+import { useState, useRef } from "react";
 
-// 🌀 Hiệu ứng loading 3 chấm
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
     color === "white"
@@ -61,6 +60,9 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
       setSelectedFile(null);
       onClose();
     } catch (error) {
+      if (error.response) {
+        alert(error.response.data.message_error);
+      }
       console.error("❌ Upload failed:", error);
     } finally {
       setUploading(false);
@@ -104,35 +106,6 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
 
         {/* Content */}
         <div className="p-6">
-          {/* Assignment Info */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <h3 className="font-semibold text-gray-900 mb-2">
-              THÔNG TIN BÁO CÁO
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
-              <div>
-                <p>
-                  <strong>Nhóm:</strong> Nhóm G
-                </p>
-                <p>
-                  <strong>Báo cáo:</strong> Chuyên đề web 1
-                </p>
-                <p>
-                  <strong>Lớp:</strong> Chuyên đề web 1
-                </p>
-              </div>
-              <div>
-                <p>
-                  <strong>Thời gian:</strong> 01/12/2024 – 15/12/2024
-                </p>
-                <p>
-                  <strong>Trạng thái:</strong>{" "}
-                  <span className="text-orange-500">Chưa nộp</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
           {/* Upload Area */}
           <div className="mb-6">
             <div className="text-center mb-4">

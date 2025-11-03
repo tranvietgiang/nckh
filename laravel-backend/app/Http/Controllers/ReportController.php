@@ -3,16 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Models\Classe;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
 use Illuminate\Support\Facades\DB;
 use App\Models\ReportMember;
-
+use App\Models\Submission;
+use App\Models\submission_file;
+use App\Models\User;
+use App\Models\user_profile;
+use Carbon\Carbon;
 use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class ReportController extends Controller
@@ -75,28 +81,47 @@ class ReportController extends Controller
 
     private function getGoogleClient()
     {
-        $client = new Client();
+        $client = new \Google\Client();
         $client->setClientId(env('GOOGLE_CLIENT_ID'));
         $client->setClientSecret(env('GOOGLE_CLIENT_SECRET'));
         $client->setRedirectUri(env('GOOGLE_REDIRECT_URI'));
-        $client->addScope(Drive::DRIVE_FILE);
+        $client->addScope(\Google\Service\Drive::DRIVE_FILE);
         $client->setAccessType('offline');
+        $client->setPrompt('consent');
 
-        $tokenPath = storage_path('app/token.json');
+        $tokenPath = storage_path('app/token.json'); // ✅ trùng với handleCallback
+
         if (!file_exists($tokenPath)) {
-            throw new \Exception("❌ Chưa xác thực Google Drive. Hãy gọi /api/drive-auth trước.");
+            throw new \Exception("❌ Token chưa tồn tại. Hãy xác thực Google lại.");
         }
 
         $accessToken = json_decode(file_get_contents($tokenPath), true);
         $client->setAccessToken($accessToken);
 
-        // Refresh token nếu hết hạn
+        // 🔄 Refresh token nếu hết hạn
         if ($client->isAccessTokenExpired()) {
-            if (!empty($accessToken['refresh_token'])) {
-                $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
-                file_put_contents($tokenPath, json_encode($client->getAccessToken()));
-            } else {
-                throw new \Exception("❌ Refresh token không tồn tại. Cần xác thực lại!");
+            try {
+                if (!empty($accessToken['refresh_token'])) {
+                    $newToken = $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
+
+                    // ⚠️ Nếu Google trả lỗi
+                    if (isset($newToken['error'])) {
+                        // Xóa token hỏng, yêu cầu xác thực lại
+                        unlink($tokenPath);
+                        throw new \Exception("⚠️ Refresh token đã hết hạn hoặc bị thu hồi. Vui lòng xác thực lại Google Drive!");
+                    }
+
+                    // ✅ Gộp refresh token cũ (vì Google thường không trả lại)
+                    $updatedToken = array_merge($accessToken, $client->getAccessToken());
+
+                    // ✅ Lưu lại token mới
+                    file_put_contents($tokenPath, json_encode($updatedToken));
+                } else {
+                    throw new \Exception("❌ Refresh token không tồn tại. Vui lòng xác thực lại!");
+                }
+            } catch (\Exception $e) {
+                if (file_exists($tokenPath)) unlink($tokenPath);
+                throw $e;
             }
         }
 
@@ -133,11 +158,72 @@ class ReportController extends Controller
     public function uploadReport(Request $request)
     {
         try {
+
+            $userId = AuthHelper::isLogin();
+
+            $validator = Validator::make($request->all(), [
+                'file' => 'required|file|max:10240|mimes:pdf,doc,docx,jpg,jpeg,png',
+                'email' => 'required|email',
+                'report_id' => 'required|integer',
+                'teacher_id' => 'required|string|max:15'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'message_error' => 'Vui lòng kiểm tra lại thông tin!',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
             $file = $request->file('file');
             $email = $request->input('email');
+            $reportId = $request->input('report_id');
+            $teacherId = $request->input('teacher_id');
 
-            if (!$file || !$email) {
-                return response()->json(['error' => 'Thiếu file hoặc email!'], 400);
+            // Kiểm tra từng trường hợp và trả về lỗi ngay khi phát hiện
+            if (!User::where('user_id', $teacherId)->where('role', 'teacher')->exists()) {
+                return response()->json(['message_error' => 'Giảng viên không tồn tại!'], 400);
+            }
+
+            $report = Report::where('report_id', $reportId)->where('teacher_id', $teacherId)->first();
+            if (!$report) {
+                return response()->json(['message_error' => 'Báo cáo không tồn tại!'], 400);
+            }
+
+            if ($report->end_date && now()->gt($report->end_date)) {
+                return response()->json(['message_error' => 'Đã quá hạn nộp báo cáo!'], 400);
+            }
+
+            if (!User::where('email', $email)->where('user_id', $userId)->where('role', 'student')->exists()) {
+                return response()->json(['message_error' => 'Email sinh viên không tồn tại!'], 400);
+            }
+
+            if ($report->status === 'expired') {
+                return response()->json(['message_error' => 'Báo cáo đã hết hạn nộp!'], 400);
+            }
+
+            if ($report->status === 'graded') {
+                return response()->json(['message_error' => 'Báo cáo đã được chấm điểm!'], 400);
+            }
+
+            if (!$file->isValid()) {
+                return response()->json(['message_error' => 'File upload bị lỗi!'], 400);
+            }
+
+            // kiểm tra có phải là nhóm trưởng nộp ko
+            $checkLeaderSubmit = DB::table('report_members')
+                ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+                ->join('users', 'users.user_id', '=', 'report_members.student_id') // map đúng user
+                ->where('users.user_id', $userId)           // chính user đang đăng nhập
+                ->where('users.role', 'student')
+                ->where('reports.report_id', $reportId)     // ràng buộc đúng report
+                ->where('reports.teacher_id', $teacherId)   // ràng buộc đúng GV
+                ->where('report_members.report_m_role', 'NT')
+                ->first();
+
+
+            if (!$checkLeaderSubmit) {
+                return response()->json(['message_error' => 'Sinh viên này không có trong lớp hoặc không phải là nhóm trưởng'], 400);
             }
 
             $client = $this->getGoogleClient();
@@ -180,6 +266,26 @@ class ReportController extends Controller
                 'type' => 'anyone',
                 'role' => 'reader',
             ]));
+
+            // $studentId = 1;
+            $studentId = $checkLeaderSubmit->user_id;
+            $checkSubmission = Submission::where("student_id", $studentId)->where('report_id', $reportId)->first();
+
+            $submission = Submission::create([
+                'report_id' => $reportId,
+                'student_id' => $studentId,
+                'version' => $checkSubmission ? $checkSubmission->version + 1 : 1,
+                'status' => "submitted",
+                'submission_time' => now(),
+            ]);
+
+            submission_file::create([
+                'submission_id' => $submission->submission_id,
+                'file_name' => $uploadedFile->name,
+                'file_path' => $uploadedFile->webViewLink,
+                'file_size' => $file->getSize(),
+                'file_type' => $file->getClientOriginalExtension(),
+            ]);
 
             return response()->json([
                 'success' => true,

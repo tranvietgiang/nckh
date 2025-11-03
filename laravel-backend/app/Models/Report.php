@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
 
 class Report extends Model
 {
@@ -18,6 +18,7 @@ class Report extends Model
         'description',
         'class_id',
         'start_date',
+        'teacher_id',
         'end_date',
         'status'
     ];
@@ -28,7 +29,7 @@ class Report extends Model
         // 'report_id' (cột ở bảng submissions) liên kết tới 'report_id' (cột ở bảng reports)
     }
 
-     public static function createNew($request)
+    public static function createNew($request)
     {
         // Validate ngay trong model
         $validator = Validator::make($request->all(), [
@@ -74,6 +75,4 @@ class Report extends Model
             'report'  => $report,
         ], 201);
     }
-
-
 }

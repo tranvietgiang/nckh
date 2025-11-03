@@ -11,6 +11,7 @@ use App\Imports\GroupsImport;
 use App\Models\ImportError;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class ReportMembersController extends Controller
 {
@@ -135,5 +136,41 @@ class ReportMembersController extends Controller
         }
 
         return response()->json(["message_error" => "server lỗi!"], 500);
+    }
+
+
+    //tvg
+    public function getLeaderGroup()
+    {
+        $userId = AuthHelper::isLogin();
+
+        $checkLeader = report_member::where('student_id', $userId)
+            ->first();
+
+        if ($checkLeader) {
+            return response()->json($checkLeader, 200);
+        }
+        return response()->json([], 204);
+    }
+
+    //tvg
+    public function getStudentLeader($rm_code)
+    {
+        try {
+            AuthHelper::isLogin();
+
+            $groupLeader = report_member::where('rm_code', $rm_code)
+                ->where("report_m_role", "NT")
+                ->first();
+
+            if ($groupLeader) {
+                return response()->json($groupLeader, 200);
+            }
+
+            return response()->json(['message' => 'Không tìm thấy nhóm trưởng'], 404);
+        } catch (\Exception $e) {
+            Log::error('❌ Lỗi lấy nhóm trưởng: ' . $e->getMessage());
+            return response()->json(['error' => '❌ Lỗi hệ thống'], 500);
+        }
     }
 }

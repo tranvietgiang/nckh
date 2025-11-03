@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('report_name', 150);
             $table->text('description', 1000)->nullable();
             $table->foreignId("class_id")->constrained("classes", "class_id")->onDelete("cascade");
+            $table->string("teacher_id", 15);
+            $table->foreign("teacher_id")->references("user_id")->on("users")->comment("Giáo viên nào nộp")->onDelete("cascade");
             $table->enum('status', ['submitted', 'graded', 'not_submitted', 'expired'])->default('not_submitted')->comment('Trạng thái của đồ án');
             $table->date('start_date');
             $table->date('end_date');
