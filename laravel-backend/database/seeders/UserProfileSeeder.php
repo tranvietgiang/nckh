@@ -19,7 +19,6 @@ class UserProfileSeeder extends Seeder
             "major_id" => 1
         ]);
 
-
         user_profile::create([
             'fullname' => 'Nguyễn văn A',
             'birthdate' => '15/10/2025',

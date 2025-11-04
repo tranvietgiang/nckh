@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
 import { getUser } from "../../../Constants/INFO_USER";
-
+import {
+  setSafeJSON,
+  getSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 // Hiệu ứng loading 3 chấm
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
@@ -39,7 +42,7 @@ export default function PendingReports() {
   const [getCheckLeader, setCheckLeader] = useState({});
   const [getRmCodeLeader, setRmCodeLeader] = useState({});
 
-  // 🔹 Lấy danh sách báo cáo
+  // Lấy danh sách báo cáo
   useEffect(() => {
     setLoading(true);
     axios
@@ -54,14 +57,12 @@ export default function PendingReports() {
       .finally(() => setLoading(false));
   }, []);
 
-  // 🔹 Lấy thông tin nhóm và submission
+  // Lấy thông tin nhóm và submission
   useEffect(() => {
-    // Lấy thông tin vai trò trong nhóm
     axios
       .get(`/tvg/get-group-member`)
       .then((res) => {
         setCheckLeader(res.data);
-        console.log("Group member:", res.data);
 
         // Sau khi có thông tin nhóm, lấy submission của nhóm trưởng
         if (res.data?.rm_code) {
@@ -69,7 +70,6 @@ export default function PendingReports() {
             .get(`/tvg/get-student-leader/${res.data.rm_code}`)
             .then((leaderRes) => {
               setRmCodeLeader(leaderRes.data);
-              console.log("Leader info:", leaderRes.data);
 
               // Lấy submission của nhóm trưởng
               if (leaderRes.data?.student_id) {
@@ -126,15 +126,8 @@ export default function PendingReports() {
       const newReports = await axios.get("/get-report");
       setReports(newReports.data);
 
-      // Reload submission data
-      if (getRmCodeLeader?.student_id) {
-        const submissionRes = await axios.get(
-          `/tvg/get-submission/${getRmCodeLeader.student_id}`
-        );
-        setCheckStatusSubmit(submissionRes.data);
-      }
-
       alert("Nộp báo cáo thành công");
+      window.location.reload();
     } catch (err) {
       console.error("❌ Upload lỗi:", err.response?.data || err.message);
       alert(err.response?.data?.message_error || "Nộp báo cáo thất bại!");
@@ -143,12 +136,29 @@ export default function PendingReports() {
     }
   };
 
+  useEffect(() => {
+    if (!getRmCodeLeader?.student_id) return;
+
+    const data_submission = getSafeJSON("get-submission");
+    if (data_submission) {
+      setCheckStatusSubmit(data_submission);
+    }
+    axios
+      .get(`/tvg/get-submission/${getRmCodeLeader.student_id}`)
+      .then((res) => {
+        setCheckStatusSubmit(res.data);
+        setSafeJSON("get-submission", res.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [getRmCodeLeader]);
+
   // Hàm render action button theo vai trò
   const renderActionButton = (report) => {
     const isLeader = getCheckLeader?.report_m_role === "NT";
     const isSubmitted = checkStatusSubmit?.status === "submitted";
 
-    // Thành viên (TV) - chỉ hiển thị thông tin
     if (!isLeader) {
       return (
         <div className="space-y-2 mt-4">

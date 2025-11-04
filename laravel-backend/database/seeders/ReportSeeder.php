@@ -17,7 +17,15 @@ class ReportSeeder extends Seeder
                 'status' => 'submitted',
                 'start_date' => '2025-01-10',
                 'teacher_id' => 'gv001',
-                'end_date' => '2025-02-20',
+                'end_date' => '2026-02-20',
+            ],
+            [
+                'report_name' => 'Cms',
+                'class_id' => 3,
+                'status' => 'submitted',
+                'start_date' => '2025-01-10',
+                'teacher_id' => 'gv001',
+                'end_date' => '2026-02-20',
             ],
             [
                 'report_name' => 'Chuyên đề photo 1',
@@ -25,7 +33,7 @@ class ReportSeeder extends Seeder
                 'status' => 'graded',
                 'teacher_id' => 'gv002',
                 'start_date' => '2025-02-01',
-                'end_date' => '2025-03-10',
+                'end_date' => '2026-03-10',
             ],
         ];
 
