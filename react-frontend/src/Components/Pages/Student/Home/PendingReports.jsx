@@ -2,11 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
 import { getUser } from "../../../Constants/INFO_USER";
-import {
-  setSafeJSON,
-  getSafeJSON,
-} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
-// Hiệu ứng loading 3 chấm
+
+// 🌀 Hiệu ứng loading
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
     color === "white"
@@ -14,7 +11,6 @@ function DotLoading({ text = "Đang tải", color = "gray" }) {
       : color === "blue"
       ? "bg-blue-500"
       : "bg-gray-500";
-
   return (
     <div className="inline-flex items-center space-x-2">
       <span>{text}</span>
@@ -33,20 +29,17 @@ function DotLoading({ text = "Đang tải", color = "gray" }) {
 
 export default function PendingReports() {
   const user = getUser();
-  const [getReport, setReports] = useState([]);
+  const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [checkStatusSubmit, setCheckStatusSubmit] = useState({});
-  const [getCheckLeader, setCheckLeader] = useState({});
-  const [getRmCodeLeader, setRmCodeLeader] = useState({});
+  const [submissionMap, setSubmissionMap] = useState({}); // ✅ lưu trạng thái + file_path
 
-  // Lấy danh sách báo cáo
+  // 🔹 Lấy danh sách báo cáo
   useEffect(() => {
-    setLoading(true);
     axios
-      .get("/tvg/get-report-bu-student")
+      .post("/tvg/get-report-by-student")
       .then((res) => {
         setReports(res.data);
         console.log("📄 Report data:", res.data);
@@ -57,53 +50,34 @@ export default function PendingReports() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Lấy thông tin nhóm và submission
+  // 🔹 Lấy trạng thái nộp và link file thực tế
   useEffect(() => {
+    if (reports.length === 0) return;
+
     axios
-      .get(`/tvg/get-group-member`)
+      .get("/tvg/get-submission/submitted")
       .then((res) => {
-        setCheckLeader(res.data);
-
-        // Sau khi có thông tin nhóm, lấy submission của nhóm trưởng
-        if (res.data?.rm_code) {
-          axios
-            .get(`/tvg/get-student-leader/${res.data.rm_code}`)
-            .then((leaderRes) => {
-              setRmCodeLeader(leaderRes.data);
-
-              // Lấy submission của nhóm trưởng
-              if (leaderRes.data?.student_id) {
-                axios
-                  .get(
-                    `/tvg/get-submission/${leaderRes.data.student_id}/submitted`
-                  )
-                  .then((submissionRes) => {
-                    setCheckStatusSubmit(submissionRes.data);
-                    console.log("Submission:", submissionRes.data);
-                  })
-                  .catch((error) => {
-                    console.log("Lỗi load submission:", error);
-                  });
-              }
-            })
-            .catch((error) => {
-              console.log("Lỗi load leader:", error);
-            });
-        }
+        const map = {};
+        res.data.forEach((item) => {
+          map[item.report_id] = {
+            status: item.status,
+            file_path: item.file_path,
+          };
+        });
+        setSubmissionMap(map);
+        console.log("✅ Submission map:", map);
       })
       .catch((error) => {
-        console.log("Lỗi load group member:", error);
+        console.log("❌ Lỗi khi lấy submission:", error);
       });
-  }, []);
+  }, [reports]);
 
-  // 🔹 Nộp báo cáo
+  // 🔹 Hàm nộp báo cáo
   const handleSubmit = async (file) => {
     if (!file || !selectedReport) {
       alert("Vui lòng chọn file trước!");
       return;
     }
-
-    console.log("File submitted:", file);
 
     const formData = new FormData();
     formData.append("file", file);
@@ -118,15 +92,10 @@ export default function PendingReports() {
       });
 
       console.log("✅ Upload thành công:", res.data);
+      alert("📤 Nộp báo cáo thành công!");
 
       setIsModalOpen(false);
       setSelectedReport(null);
-
-      // Reload data
-      const newReports = await axios.get("/tvg/get-report-bu-student");
-      setReports(newReports.data);
-
-      alert("Nộp báo cáo thành công");
     } catch (err) {
       console.error("❌ Upload lỗi:", err.response?.data || err.message);
       alert(err.response?.data?.message_error || "Nộp báo cáo thất bại!");
@@ -135,39 +104,21 @@ export default function PendingReports() {
     }
   };
 
-  useEffect(() => {
-    if (!getRmCodeLeader?.student_id) return;
-
-    // const data_submission = getSafeJSON("get-submission");
-    // if (data_submission) {
-    //   setCheckStatusSubmit(data_submission);
-    // }
-    axios
-      .get(`/tvg/get-submission/${getRmCodeLeader.student_id}`)
-      .then((res) => {
-        setCheckStatusSubmit(res.data);
-        setSafeJSON("get-submission", res.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [getRmCodeLeader]);
-
-  // Hàm render action button theo vai trò
+  // 🔹 Render nút hành động
   const renderActionButton = (report) => {
-    const isLeader = getCheckLeader?.report_m_role === "NT";
-    const isSubmitted = checkStatusSubmit?.status === "submitted";
+    const isLeader = report.report_m_role === "NT";
+    const submission = submissionMap[report.report_id];
+    const isSubmitted = submission?.status === "submitted";
 
-    // Thành viên (TV) - chỉ hiển thị thông tin
     if (!isLeader) {
       return (
         <div className="space-y-2 mt-4">
           <div className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-center">
             👥 Bạn là thành viên trong nhóm
           </div>
-          {isSubmitted && (
+          {isSubmitted && submission.file_path && (
             <a
-              href={checkStatusSubmit?.file_path || "#"}
+              href={submission.file_path}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-center"
@@ -179,128 +130,143 @@ export default function PendingReports() {
       );
     }
 
-    // Nhóm trưởng (NT) - có quyền nộp/nộp lại
-    if (isSubmitted) {
-      return (
-        <div className="space-y-2 mt-4">
+    return (
+      <div className="space-y-2 mt-4">
+        {isSubmitted && submission.file_path && (
           <a
-            href={checkStatusSubmit?.file_path || "#"}
+            href={submission.file_path}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-center"
           >
-            🔗 Xem file trên Google Drive
+            🔗 Xem báo cáo đã nộp
           </a>
-          <button
-            onClick={() => {
-              setSelectedReport(report);
-              setIsModalOpen(true);
-            }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
-          >
-            📤 Nộp lại báo cáo
-          </button>
-        </div>
-      );
-    } else {
-      return (
+        )}
         <button
           onClick={() => {
             setSelectedReport(report);
             setIsModalOpen(true);
           }}
-          className="w-full mt-4 bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg flex items-center justify-center"
+          className={`w-full ${
+            isSubmitted
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-red-600 hover:bg-red-700"
+          } text-white py-2 px-4 rounded-lg`}
         >
-          <span className="mr-2">📤</span>
-          Nộp báo cáo
+          {isSubmitted ? "📤 Nộp lại báo cáo" : "📤 Nộp báo cáo"}
         </button>
-      );
-    }
+      </div>
+    );
   };
 
+  // ===== Render chính =====
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
         DANH SÁCH BÁO CÁO
       </h1>
 
-      {/* 🔹 Hiệu ứng loading khi fetch */}
       {loading ? (
         <div className="flex justify-center items-center mt-10">
           <DotLoading text="Đang tải danh sách báo cáo..." color="blue" />
         </div>
-      ) : getReport.length === 0 ? (
+      ) : reports.length === 0 ? (
         <p className="text-center text-gray-500 italic">
           Không có báo cáo nào cần nộp.
         </p>
       ) : (
-        getReport.map((report, index) => (
-          <div key={index} className="mb-6">
-            <div className="border border-gray-300 rounded-lg p-4 bg-white hover:shadow-md transition">
-              <h2 className="font-semibold text-lg mb-2 text-gray-800">
-                {report.report_name}
-              </h2>
+        reports.map((report) => {
+          const submission = submissionMap[report.report_id];
+          const isSubmitted = submission?.status === "submitted";
 
-              <div className="space-y-1 text-sm text-gray-600">
-                <p>
-                  <strong>Môn học:</strong> {report.report_name}
-                </p>
-                <p>
-                  <strong>Giáo viên phụ trách:</strong> {report.teacher_id}
-                </p>
-                <p>
-                  <strong>Năm học:</strong> {report.academic_year}
-                </p>
-                <p>
-                  <strong>Hạn nộp:</strong>{" "}
-                  {new Date(report.end_date).toLocaleDateString("vi-VN")}
-                </p>
-                <p>
-                  <strong>Nhóm:</strong>
-                  <span className="px-2 font-semibold">
-                    {getCheckLeader?.rm_name || "Chưa có nhóm"}
-                  </span>
-                </p>
-                <p>
-                  <strong>Vai trò:</strong>
-                  <span
-                    className={`px-2 font-semibold ${
-                      getCheckLeader?.report_m_role === "NT"
-                        ? "text-blue-600"
-                        : "text-green-600"
-                    }`}
-                  >
-                    {getCheckLeader?.report_m_role === "NT"
-                      ? "Nhóm trưởng"
-                      : getCheckLeader?.report_m_role === "NP"
-                      ? "Nhóm phó"
-                      : "Thành viên"}
-                  </span>
-                </p>
-                <p>
-                  <strong>Trạng thái nộp:</strong>
-                  <span
-                    className={`px-2 font-semibold ${
-                      checkStatusSubmit?.status === "submitted"
-                        ? "text-green-600"
-                        : "text-orange-500"
-                    }`}
-                  >
-                    {checkStatusSubmit?.status === "submitted"
-                      ? "Đã nộp"
-                      : "Chưa nộp"}
-                  </span>
-                </p>
+          return (
+            <div key={report.report_id} className="mb-6">
+              <div
+                className={`border border-gray-300 rounded-lg p-4 transition ${
+                  isSubmitted
+                    ? "bg-white hover:shadow-md"
+                    : "bg-red-50 border-red-300"
+                }`}
+              >
+                <h2 className="font-semibold text-lg mb-2 text-gray-800">
+                  {report.report_name}
+                </h2>
+
+                <div className="space-y-1 text-sm text-gray-600">
+                  <p>
+                    <strong>Môn học:</strong> {report.report_name}
+                  </p>
+                  <p>
+                    <strong>Giáo viên phụ trách:</strong> {report.teacher_id}
+                  </p>
+                  <p>
+                    <strong>Hạn nộp:</strong>{" "}
+                    {new Date(report.end_date).toLocaleDateString("vi-VN")}
+                  </p>
+
+                  {report.rm_name ? (
+                    <>
+                      <p>
+                        <strong>Nhóm:</strong> {report.rm_name}
+                      </p>
+                      <p>
+                        <strong>Vai trò:</strong>{" "}
+                        <span
+                          className={`px-2 font-semibold ${
+                            report.report_m_role === "NT"
+                              ? "text-blue-600"
+                              : report.report_m_role === "NP"
+                              ? "text-green-600"
+                              : "text-gray-600"
+                          }`}
+                        >
+                          {report.report_m_role === "NT"
+                            ? "Nhóm trưởng"
+                            : report.report_m_role === "NP"
+                            ? "Nhóm phó"
+                            : "Thành viên"}
+                        </span>
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-red-500 font-medium">
+                      🚫 Bạn chưa có nhóm
+                    </p>
+                  )}
+
+                  {/* ✅ Trạng thái nộp + link xem file */}
+                  <p>
+                    <strong>Trạng thái nộp:</strong>{" "}
+                    <span
+                      className={`px-2 font-semibold ${
+                        isSubmitted ? "text-green-600" : "text-red-500"
+                      }`}
+                    >
+                      {isSubmitted ? "✅ Đã nộp" : "❌ Chưa nộp"}
+                    </span>
+                  </p>
+
+                  {isSubmitted && submission?.file_path && (
+                    <p>
+                      <a
+                        href={submission.file_path}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        🔗 Xem báo cáo đã nộp trên Google Drive
+                      </a>
+                    </p>
+                  )}
+                </div>
+
+                {renderActionButton(report)}
               </div>
-
-              {/* Render action button theo vai trò */}
-              {renderActionButton(report)}
             </div>
-          </div>
-        ))
+          );
+        })
       )}
 
-      {/* 🔹 Modal nộp báo cáo (chỉ nhóm trưởng sử dụng) */}
       <ReportSubmissionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -308,7 +274,6 @@ export default function PendingReports() {
         reportData={selectedReport}
       />
 
-      {/* 🔹 Trạng thái Upload */}
       {uploading && (
         <div className="mt-6 flex justify-center">
           <DotLoading text="Đang upload lên Google Drive..." color="blue" />

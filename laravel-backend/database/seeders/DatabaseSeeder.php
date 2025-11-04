@@ -20,7 +20,7 @@ class DatabaseSeeder extends Seeder
             MajorSeeder::class,
             ClassSeeder::class,
             UserProfileSeeder::class,
-            ReportSeeder::class,
+            // ReportSeeder::class,
             // ReportMemberSeeder::class,
         ]);
     }

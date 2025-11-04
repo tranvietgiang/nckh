@@ -324,17 +324,44 @@ class ReportController extends Controller
 
     public function getReportByStudent()
     {
-        $auth = AuthHelper::isLogin();
+        try {
+            $studentId = AuthHelper::isLogin();
 
-        $getReport = Report::select("reports.*", "classes.*")
-            ->join("classes", "reports.class_id",  "=", "classes.class_id")
-            ->join("user_profiles", "classes.class_id",  "=", "user_profiles.class_id")
-            ->where("user_profiles.user_id", $auth)
-            ->where("reports.status", "submitted")
-            ->get();
+            $groups = DB::table('report_members')
+                ->select(
+                    'report_members.rm_code',
+                    'report_members.rm_name',
+                    'report_members.report_m_role',
+                    'reports.report_id',
+                    'reports.report_name',
+                    'reports.teacher_id',
+                    'reports.end_date',
+                    'classes.class_id',
+                    'classes.class_name'
+                )
+                ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+                ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+                ->where('report_members.student_id', $studentId)
+                ->orderBy('reports.report_id', 'asc')
+                ->get();
 
-        return response()->json($getReport);
+            if ($groups->isEmpty()) {
+                return response()->json([
+                    'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
+                ], 404);
+            }
+
+            return response()->json($groups, 200);
+        } catch (\Exception $e) {
+            Log::error('❌ Lỗi khi lấy danh sách nhóm: ' . $e->getMessage());
+            return response()->json(['error' => '❌ Lỗi hệ thống khi truy vấn dữ liệu'], 500);
+        }
     }
+
+
+
+
+
 
 
     public function createReport(Request $request)

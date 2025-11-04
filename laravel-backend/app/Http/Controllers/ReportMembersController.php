@@ -168,14 +168,18 @@ class ReportMembersController extends Controller
     }
 
     //tvg
-    public function getStudentLeader($rm_code)
+    public function getStudentLeader($rm_code, $classId)
     {
         try {
             AuthHelper::isLogin();
 
-            $groupLeader = report_member::where('rm_code', $rm_code)
-                ->where("report_m_role", "NT")
-                ->first();
+            $groupLeader = report_member::select()
+                ->join("reports", "report_members.report_id", "=", "reports.report_id")
+                ->join("classes", "reports.class_id", "=", "classes.class_id")
+                ->where('rm_code', $rm_code)
+                ->where('reports.class_id', $classId)
+                // ->where("report_m_role", "NT")
+                ->get();
 
             if ($groupLeader) {
                 return response()->json($groupLeader, 200);

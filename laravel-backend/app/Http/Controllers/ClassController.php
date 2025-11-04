@@ -219,4 +219,8 @@ class ClassController extends Controller
             ], 500);
         }
     }
+
+    // public function allClassId(){
+    //     $getAllClassId = Classe::where()
+    // }
 }
