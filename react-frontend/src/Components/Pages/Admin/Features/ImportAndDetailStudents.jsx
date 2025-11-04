@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import axios from "../../../../config/axios";
-import Navbar from "../../../ReUse/Navbar/Navbar";
+import AdminHeader from "../View/AdminHeader";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { getAuth } from "../../../Constants/INFO_USER";
@@ -34,7 +34,6 @@ export default function ImportAndDetailStudents() {
   const name_class = location.state?.name_class;
   const checkPage = typeView === 1 ? true : false;
 
-  console.log(location);
   useEffect(() => {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
   }, [checkPage]);
@@ -87,6 +86,7 @@ export default function ImportAndDetailStudents() {
     setFile(e.target.files[0]);
   };
 
+  console.log(class_id, major_id, teacher_id);
   // Upload và lấy danh sách
   const handleImport = async () => {
     if (!file) {
@@ -128,7 +128,7 @@ export default function ImportAndDetailStudents() {
       FetchDataStudentByClass();
     } catch (err) {
       if (err.response && err.response.data) {
-        alert(err.response.data.message_error);
+        alert(err.response.data.message);
       } else {
         alert("Lỗi kết nối server!");
       }
@@ -144,35 +144,35 @@ export default function ImportAndDetailStudents() {
       setStudents([]);
       return;
     }
-    const data_students_current = getSafeJSON(
-      `data_students_current_${class_id}_${teacher_id}_${major_id}`
-    );
+    // const data_students_current = getSafeJSON(
+    //   `data_students_current_${class_id}_${teacher_id}_${major_id}`
+    // );
 
-    const total_student_current = getSafeJSON(
-      `total_student_current_${class_id}_${teacher_id}_${major_id}`
-    );
+    // const total_student_current = getSafeJSON(
+    //   `total_student_current_${class_id}_${teacher_id}_${major_id}`
+    // );
 
-    if (
-      Array.isArray(data_students_current) &&
-      data_students_current.length > 0
-    ) {
-      setStudents(data_students_current);
-    }
+    // if (
+    //   Array.isArray(data_students_current) &&
+    //   data_students_current.length > 0
+    // ) {
+    //   setStudents(data_students_current);
+    // }
 
-    if (
-      typeof total_student_current === "number" &&
-      total_student_current > 0
-    ) {
-      setTotalStudent(total_student_current);
-    }
+    // if (
+    //   typeof total_student_current === "number" &&
+    //   total_student_current > 0
+    // ) {
+    //   setTotalStudent(total_student_current);
+    // }
 
-    const get_student_error = getSafeJSON(
-      `student_import_error_${class_id}_${teacher_id}_${major_id}`
-    );
+    // const get_student_error = getSafeJSON(
+    //   `student_import_error_${class_id}_${teacher_id}_${major_id}`
+    // );
 
-    if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
-      setStudentErrors(get_student_error);
-    }
+    // if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
+    //   setStudentErrors(get_student_error);
+    // }
 
     axios
       .get(
@@ -240,7 +240,7 @@ export default function ImportAndDetailStudents() {
 
   return (
     <>
-      <Navbar />
+      <AdminHeader />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}

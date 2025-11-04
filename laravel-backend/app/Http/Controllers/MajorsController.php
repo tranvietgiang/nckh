@@ -131,4 +131,11 @@ class MajorsController extends Controller
 
         return response()->json(["message_error" => "Xóa lỗi không thành công"], 500);
     }
+
+    public function getNameMajor($majorId)
+    {
+        $name = Major::where("major_id", $majorId)->first();
+
+        return response()->json($name);
+    }
 }
