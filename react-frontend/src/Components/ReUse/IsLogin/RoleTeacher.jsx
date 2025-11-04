@@ -1,12 +1,14 @@
+// ✅ file: src/ReUse/IsLogin/useRoleTeacher.js
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-export default function RoleTeacher(role) {
+
+export default function useRoleTeacher(role) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (role != "teacher") {
+    if (!role) return;
+    if (role !== "teacher") {
       navigate("/nckh-404");
-      return;
     }
-  }, []);
+  }, [role, navigate]);
 }

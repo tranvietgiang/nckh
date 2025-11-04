@@ -28,7 +28,16 @@ class AuthController extends Controller
         // Tạo token (sanctum / personal token)
         $token = $user->createToken('api-token')->plainTextToken;
         // get info
-        $userProfile = User::select("users.*", "user_profiles.*")
+        $userProfile = User::select(
+            'users.user_id as user_id',   // ✅ alias rõ để không bị đè
+            'users.role',
+            'users.email',
+            'users.created_at',
+            'user_profiles.fullname',
+            'user_profiles.phone',
+            'user_profiles.class_id',
+            'user_profiles.major_id'
+        )
             ->leftJoin("user_profiles", "users.user_id", "=", "user_profiles.user_id")
             ->where('users.user_id', $username)->first();
 

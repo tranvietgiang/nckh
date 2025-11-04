@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "../../../../config/axios";
 import ModalMajor from "../Modal/ModalAddMajor";
 
@@ -41,7 +41,8 @@ export default function MajorImportPage() {
   // ======= XOÁ TOÀN BỘ LỖI =======
   const handleDeleteError = () => {
     if (!majorErrors.length) return;
-    if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import ngành?")) return;
+    if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import ngành?"))
+      return;
 
     axios
       .delete("/pc/import-errors/major")
@@ -79,8 +80,8 @@ export default function MajorImportPage() {
 
       alert(
         `${res.data.message || "✅ Import xong!"}\n` +
-        `✅ Thành công: ${res.data.success ?? 0}\n` +
-        `❌ Lỗi: ${res.data.failed ?? 0}`
+          `✅ Thành công: ${res.data.success ?? 0}\n` +
+          `❌ Lỗi: ${res.data.failed ?? 0}`
       );
 
       // Reset
@@ -129,7 +130,9 @@ export default function MajorImportPage() {
           <div className="p-6">
             {/* HEADER */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Quản lý Ngành</h1>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Quản lý Ngành
+              </h1>
               <p className="text-gray-600 mt-1">
                 Quản lý danh sách các ngành học trong hệ thống
               </p>
@@ -163,10 +166,11 @@ export default function MajorImportPage() {
                   <button
                     onClick={handleUpload}
                     disabled={!selectedFile || importing}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition ${!selectedFile || importing
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700"
-                      }`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition ${
+                      !selectedFile || importing
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700"
+                    }`}
                   >
                     {importing ? "Đang import..." : "Import Ngành"}
                   </button>
@@ -241,7 +245,9 @@ export default function MajorImportPage() {
               {loading ? (
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                  <span className="ml-2 text-gray-600">
+                    Đang tải dữ liệu...
+                  </span>
                 </div>
               ) : (
                 <div className="overflow-x-auto">

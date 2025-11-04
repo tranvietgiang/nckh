@@ -30,7 +30,7 @@ export default function CreateClass({ stateOpen, onClose }) {
   useEffect(() => {
     setLoadingMajors(true);
     axios
-      .get("/get-majors/tvg")
+      .get("/get-majors")
       .then((res) => {
         if (Array.isArray(res.data)) setMajors(res.data);
         else throw new Error("Dữ liệu ngành trả về không hợp lệ!");

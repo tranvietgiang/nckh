@@ -41,7 +41,7 @@ export default function ClassManagement() {
       axios
         .get(`/classes/students/${selectedClass}`)
         .then((res) => {
-          setStudents(res.data.data);
+          setStudents(res.data);
           setStudentLoading(false);
         })
         .catch((err) => {

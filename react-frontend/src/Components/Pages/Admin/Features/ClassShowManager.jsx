@@ -16,8 +16,9 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import {
   setSafeJSON,
-  getSafeJSON,
+  // getSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
+import AdminHeader from "../View/AdminHeader";
 export default function ClassShowManager() {
   const navigate = useNavigate();
 
@@ -82,7 +83,7 @@ export default function ClassShowManager() {
 
   useEffect(() => {
     axios
-      .get("/get-majors/tvg")
+      .get("/tvg/get-majors")
       .then((res) => {
         if (Array.isArray(res.data)) {
           setMajors(res.data);
@@ -150,7 +151,7 @@ export default function ClassShowManager() {
   // localStorage.clear();
   return (
     <>
-      <Navbar />
+      <AdminHeader />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex justify-between items-center">

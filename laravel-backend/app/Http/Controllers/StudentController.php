@@ -7,6 +7,7 @@ use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use App\Services\StudentService;
 use Exception;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -14,7 +15,9 @@ use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
-    //
+
+    public function __construct(protected StudentService $studentService) {}
+
     public function import(Request $request)
     {
         try {
@@ -78,31 +81,19 @@ class StudentController extends Controller
     {
         AuthHelper::isLogin();
 
-        $students = User::select(
-            'users.*',
-            'user_profiles.*',
-            'classes.*',
-            "majors.*"
-        )
-            ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
-            ->join('majors', "user_profiles.major_id", "=", "majors.major_id")
-            ->where('users.role', 'student')
-            ->where("user_profiles.class_id", $class_id)
-            ->where("classes.teacher_id", $teacher_id)
-            ->get();
+        $result = $this->studentService->getStudentService($class_id, $teacher_id);
 
-        if ($students->count() > 0) {
-            return response()->json([
-                "list_student" => $students,
-                "total_student" => $students->count(),
-            ], 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi phía serve"], 500);
+        return response()->json($result, $result['success'] ? 200 : 404);
     }
 
 
-    // public function CheckUserExit()
+    public function displayInfo()
+    {
+        $userId = AuthHelper::isLogin();
+        $role   = AuthHelper::getRole();
 
+        $result = $this->studentService->getProfile($userId, $role);
+
+        return response()->json($result, $result['success'] ? 200 : 404);
+    }
 }
