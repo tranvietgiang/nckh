@@ -16,7 +16,7 @@ class MajorSeeder extends Seeder
         ]);
 
         Major::create([
-            'major_name' => 'Dồ hoạ',
+            'major_name' => 'Đồ họa',
             'major_abbreviate' => 'dh',
         ]);
     }
