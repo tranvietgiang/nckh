@@ -30,31 +30,19 @@ class StudentsImport implements ToCollection, WithHeadingRow
         $this->teacherId = $teacherId;
         $this->majorId   = $majorId;
 
-        // Gom các check vào 1 query mỗi bảng, tránh sai tên model
+        // ✅ Kiểm tra thông tin đầu vào
         $majorExist  = Major::where('major_id', $this->majorId)->exists();
-
         $teacherExist = user_profile::where('user_id', $this->teacherId)
-            ->where('major_id', $this->majorId) // giáo viên thuộc ngành
+            ->where('major_id', $this->majorId)
             ->exists();
-
         $classExist   = Classe::where('class_id', $this->classId)
-            ->where('teacher_id', $this->teacherId) // lớp thuộc gv
-            ->where('major_id', $this->majorId)     // lớp thuộc ngành
+            ->where('teacher_id', $this->teacherId)
+            ->where('major_id', $this->majorId)
             ->exists();
 
-
-        if (!$majorExist) {
-            throw new \Exception("❌ Lỗi server! ngành");
-        }
-
-        if (!$teacherExist) {
-
-            throw new \Exception("❌ Lỗi server! Giảng viên không dạy ngành này.");
-        }
-
-        if (!$classExist) {
-            throw new \Exception("❌ Lỗi server! lớp");
-        }
+        if (!$majorExist) throw new \Exception("❌ Lỗi server! Ngành không tồn tại.");
+        if (!$teacherExist) throw new \Exception("❌ Lỗi server! Giảng viên không dạy ngành này.");
+        if (!$classExist) throw new \Exception("❌ Lỗi server! Lớp không thuộc giáo viên hoặc ngành này.");
     }
 
     public function collection(Collection $rows)
@@ -64,9 +52,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
         }
 
         $major = Major::find($this->majorId);
-        if (!$major) {
-            throw new \Exception("❌ Không tìm thấy ngành học tương ứng!");
-        }
+        if (!$major) throw new \Exception("❌ Không tìm thấy ngành học tương ứng!");
 
         $teacherValid = user_profile::select("user_profiles.user_id")
             ->join("classes", "classes.teacher_id", "=", "user_profiles.user_id")
@@ -80,12 +66,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             throw new \Exception("❌ Giáo viên không dạy lớp này hoặc lớp không thuộc ngành đã chọn!");
         }
 
-        $mapMajor = ['cntt' => 'TT', 'dh' => 'DH'];
-        $abbr = $mapMajor[strtolower($major->major_abbreviate ?? '')] ?? null;
-
-        if (!$abbr) {
-            throw new \Exception("❌ Không xác định được mã ngành để kiểm tra MSSV!");
-        }
+        $abbr = strtoupper($major->major_abbreviate ?? '');
 
         foreach ($rows as $row) {
             $this->totalStudent++;
@@ -105,89 +86,97 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 }
             }
 
-            // Kiểm tra thiếu dữ liệu
+            // ❌ Thiếu thông tin
             if (empty($msv) || empty($email) || empty($ten)) {
-                $this->failed++;
-                ImportError::create([
-                    'user_id'    => $msv,
-                    'fullname'   => $ten,
-                    'email'      => $email,
-                    'reason'     => 'Thiếu thông tin bắt buộc (MSV / Tên / Email)',
-                    'major_id'      => $this->majorId,
-                    'class_id'   => $this->classId,
-                    'teacher_id' => $this->teacherId,
-                    'typeError'  => 'student',
-                ]);
+                $this->logError($msv, $ten, $email, 'Thiếu thông tin bắt buộc (MSV / Tên / Email)');
                 continue;
             }
 
-            // Kiểm tra MSSV khớp ngành
-            if (!str_contains($msv, $abbr)) {
-                $this->failed++;
-                ImportError::create([
-                    'user_id'    => $msv,
-                    'fullname'   => $ten,
-                    'email'      => $email,
-                    'reason'     => "MSSV không khớp ngành ({$major->major_name} - yêu cầu chứa: {$abbr})",
-                    'major_id'      => $this->majorId,
-                    'class_id'   => $this->classId,
-                    'teacher_id' => $this->teacherId,
-                    'typeError'  => 'student',
-                ]);
+            // ⚠️ Kiểm tra định dạng email
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $this->logError($msv, $ten, $email, 'Email không hợp lệ');
                 continue;
             }
 
-            // Trùng MSSV hoặc email
-            $exists = User::where('user_id', $msv)->orWhere('email', $email)->exists();
-            if ($exists) {
-                $this->failed++;
-                ImportError::create([
-                    'user_id'    => $msv,
-                    'fullname'   => $ten,
-                    'email'      => $email,
-                    'reason'     => 'Trùng MSSV hoặc Email',
-                    'class_id'   => $this->classId,
-                    'major_id'      => $this->majorId,
-                    'teacher_id' => $this->teacherId,
-                    'typeError'  => 'student',
-                ]);
+            // ⚠️ Kiểm tra định dạng MSSV (chỉ cho phép chữ hoa và số)
+            if (!preg_match('/^[0-9A-Z]+$/', $msv)) {
+                $this->logError($msv, $ten, $email, 'MSSV không hợp lệ (chỉ chứa chữ hoa và số)');
                 continue;
             }
 
-            // Tạo sinh viên
+            // ⚠️ Kiểm tra MSSV khớp ngành (chuyển hết sang chữ hoa)
+            if ($abbr && !str_contains($msv, $abbr)) {
+                $this->logError($msv, $ten, $email, "MSSV không khớp ngành ({$major->major_name} - yêu cầu chứa: {$abbr})");
+                continue;
+            }
+
             try {
                 DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
-                    User::create([
-                        'user_id'  => $msv,
-                        'email'    => $email,
-                        'password' => Hash::make($msv),
-                        'role'     => 'student',
-                    ]);
 
-                    user_profile::create([
-                        'fullname'      => $ten,
-                        'birthdate'     => $birthdate,
-                        'phone'         => $phone,
-                        'major_id'      => $this->majorId,
-                        'class_student' => $class,
-                        'class_id'      => $this->classId,
-                        'user_id'       => $msv,
-                    ]);
+                    // 1️⃣ Kiểm tra xem có user nào đã dùng email/sdt này chưa
+                    $conflict = User::where(function ($q) use ($email, $phone) {
+                        $q->where('email', $email);
+                    })
+                        ->where('user_id', '!=', $msv)
+                        ->exists();
+
+                    if ($conflict) {
+                        throw new \Exception("Email hoặc số điện thoại đã được dùng bởi MSSV khác.");
+                    }
+
+                    // 2️⃣ Nếu user chưa tồn tại thì tạo mới
+                    $user = User::where('user_id', $msv)->first();
+
+                    if (!$user) {
+                        $user = User::create([
+                            'user_id'  => $msv,
+                            'email'    => $email,
+                            'password' => Hash::make($msv),
+                            'role'     => 'student',
+                        ]);
+                    }
+
+                    // 3️⃣ Nếu profile chưa có lớp/ngành này thì thêm mới
+                    $existsProfile = user_profile::where('user_id', $msv)
+                        ->where('class_id', $this->classId)
+                        ->where('major_id', $this->majorId)
+                        ->exists();
+
+                    if (!$existsProfile) {
+                        user_profile::create([
+                            'fullname'      => $ten,
+                            'birthdate'     => $birthdate,
+                            'phone'         => $phone,
+                            'major_id'      => $this->majorId,
+                            'class_student' => $class,
+                            'class_id'      => $this->classId,
+                            'user_id'       => $msv,
+                        ]);
+                    }
                 });
 
                 $this->success++;
             } catch (\Throwable $e) {
-                $this->failed++;
-                ImportError::create([
-                    'user_id'    => $msv,
-                    'fullname'   => $ten,
-                    'email'      => $email,
-                    'reason'     => 'Lỗi hệ thống khi lưu DB: ' . $e->getMessage(),
-                    'class_id'   => $this->classId,
-                    'teacher_id' => $this->teacherId,
-                    'typeError'  => 'student',
-                ]);
+                $this->logError($msv, $ten, $email, 'Lỗi hệ thống khi lưu DB: ' . $e->getMessage());
             }
         }
+    }
+
+    /**
+     * 🧾 Ghi log lỗi ImportError thống nhất format
+     */
+    private function logError($msv, $ten, $email, $reason)
+    {
+        $this->failed++;
+        ImportError::create([
+            'user_id'    => $msv,
+            'fullname'   => $ten,
+            'email'      => $email,
+            'reason'     => $reason,
+            'major_id'   => $this->majorId,
+            'class_id'   => $this->classId,
+            'teacher_id' => $this->teacherId,
+            'typeError'  => 'student',
+        ]);
     }
 }

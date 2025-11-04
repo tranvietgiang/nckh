@@ -11,9 +11,11 @@ import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
   const [classes, setClasses] = useState([]); // ✅ thêm state lớp học
+  const [getNameMajor, setNameMajor] = useState({}); // ✅ thêm state lớp học
   const { user, token } = getAuth();
   const navigate = useNavigate();
 
+  console.log(user);
   IsLogin(user, token);
   RoleTeacher(user?.role);
 
@@ -53,6 +55,16 @@ export default function TeacherDashboard() {
         console.log("Chức năng khác");
     }
   };
+  useEffect(() => {
+    axios
+      .get(`/tvg/get-nameMajor/${user?.major_id}`)
+      .then((res) => {
+        setNameMajor(res.data);
+      })
+      .catch((eror) => {
+        console.log(eror);
+      });
+  }, []);
 
   const handleViewStats = (classId) => {
     navigate(`/nckh-class-stats/${classId}`); // ✅ điều hướng sang trang thống kê sinh viên
@@ -75,7 +87,9 @@ export default function TeacherDashboard() {
               👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
             </h2>
             <p className="text-gray-600">Mã GV: {user?.user_id}</p>
-            <p className="text-gray-600">Khoa: CNTT</p>
+            <p className="text-gray-600">
+              Khoa: {getNameMajor?.major_name || ""}
+            </p>
           </div>
           <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
             ✔ Hoạt động

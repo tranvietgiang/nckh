@@ -135,3 +135,6 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/{studentIdLeader}/su
 Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
 //get lấy studentId leader
 Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);
+
+//get lấy name major
+Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
