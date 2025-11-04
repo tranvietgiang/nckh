@@ -46,7 +46,7 @@ export default function PendingReports() {
   useEffect(() => {
     setLoading(true);
     axios
-      .get("/get-report")
+      .get("/tvg/get-report-bu-student")
       .then((res) => {
         setReports(res.data);
         console.log("📄 Report data:", res.data);
@@ -123,11 +123,10 @@ export default function PendingReports() {
       setSelectedReport(null);
 
       // Reload data
-      const newReports = await axios.get("/get-report");
+      const newReports = await axios.get("/tvg/get-report-bu-student");
       setReports(newReports.data);
 
       alert("Nộp báo cáo thành công");
-      window.location.reload();
     } catch (err) {
       console.error("❌ Upload lỗi:", err.response?.data || err.message);
       alert(err.response?.data?.message_error || "Nộp báo cáo thất bại!");
@@ -139,10 +138,10 @@ export default function PendingReports() {
   useEffect(() => {
     if (!getRmCodeLeader?.student_id) return;
 
-    const data_submission = getSafeJSON("get-submission");
-    if (data_submission) {
-      setCheckStatusSubmit(data_submission);
-    }
+    // const data_submission = getSafeJSON("get-submission");
+    // if (data_submission) {
+    //   setCheckStatusSubmit(data_submission);
+    // }
     axios
       .get(`/tvg/get-submission/${getRmCodeLeader.student_id}`)
       .then((res) => {
@@ -159,6 +158,7 @@ export default function PendingReports() {
     const isLeader = getCheckLeader?.report_m_role === "NT";
     const isSubmitted = checkStatusSubmit?.status === "submitted";
 
+    // Thành viên (TV) - chỉ hiển thị thông tin
     if (!isLeader) {
       return (
         <div className="space-y-2 mt-4">

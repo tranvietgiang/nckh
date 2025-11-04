@@ -322,6 +322,20 @@ class ReportController extends Controller
         return response()->json($getReport);
     }
 
+    public function getReportByStudent()
+    {
+        $auth = AuthHelper::isLogin();
+
+        $getReport = Report::select("reports.*", "classes.*")
+            ->join("classes", "reports.class_id",  "=", "classes.class_id")
+            ->join("user_profiles", "classes.class_id",  "=", "user_profiles.class_id")
+            ->where("user_profiles.user_id", $auth)
+            ->where("reports.status", "submitted")
+            ->get();
+
+        return response()->json($getReport);
+    }
+
 
     public function createReport(Request $request)
     {

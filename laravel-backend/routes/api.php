@@ -130,6 +130,8 @@ Route::middleware('auth:sanctum')->delete('/pc/import-errors/major', [MajorsCont
 Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController::class, 'getErrorMajorsImport']);
 //get submission
 Route::middleware('auth:sanctum')->get('/tvg/get-submission/{studentIdLeader}/submitted', [SubmissionFileController::class, 'getGroupsByLeader']);
+//get report của student
+Route::middleware('auth:sanctum')->get('/tvg/get-report/submitted', [ReportController::class, 'getNameReportByStudent']);
 
 //get lấy ra nhóm của mình
 Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
@@ -138,3 +140,12 @@ Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [Rep
 
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
+
+//get lấy name major
+Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
+
+//get lấy name major
+Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
+
+//get lấy name major
+Route::middleware('auth:sanctum')->get('/tvg/get-report-bu-student', [ReportController::class, 'getReportByStudent']);
