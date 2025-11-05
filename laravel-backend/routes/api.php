@@ -38,7 +38,7 @@ Route::middleware('auth:sanctum')->get('/profiles', [StudentController::class, '
 
 Route::middleware('auth:sanctum')->group(function () {
     // Lấy danh sách user
-    Route::get('/nhhh/users', [AdminController::class, 'getUser']);
+    Route::get('/nhhh/users', [AdminController::class, 'getAllUsers']);
 
     // Xóa user
     Route::delete('/nhhh/delete/{user_id}', [AdminController::class, 'destroy']);
