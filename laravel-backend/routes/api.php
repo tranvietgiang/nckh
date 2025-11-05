@@ -38,13 +38,13 @@ Route::middleware('auth:sanctum')->get('/profiles', [StudentController::class, '
 
 Route::middleware('auth:sanctum')->group(function () {
     // Lấy danh sách user
-    Route::get('/users', [AdminController::class, 'getUser']);
+    Route::get('/nhhh/users', [AdminController::class, 'getUser']);
 
     // Xóa user
-    Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
+    Route::delete('/nhhh/delete/{user_id}', [AdminController::class, 'destroy']);
 
     // Cập nhật user
-    Route::put('/update/{id}', [AdminController::class, 'updateUser']);
+    Route::put('/nhhh/update/{user_id}', [AdminController::class, 'updateUser']);
 });
 
 /**Chấm điểm và phản hồi */
@@ -56,7 +56,7 @@ Route::get('/grades/{submission_id}', [GradeController::class, 'show']);
 Route::get('/submissions', [SubmissionController::class, 'indes']);
 
 /**xóa sinh viên */
-Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
+// Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/tvg/get-classes', [ClassController::class, 'getClassByTeacher']);
 Route::middleware('auth:sanctum')->post('/create-classes', [ClassController::class, 'insertClassNew']);
@@ -80,7 +80,7 @@ Route::get('/drive-callback', [ReportController::class, 'handleCallback']);
 Route::middleware('auth:sanctum')->post('/drive-upload', [ReportController::class, 'uploadReport']);
 
 /**Lấy báo cáo  */
-Route::get('/submissions', [AdminController::class, 'getReports']);
+Route::get('/nhhh/submissions', [AdminController::class, 'getReports']);
 Route::middleware('auth:sanctum')->get('/reports', [ReportController::class, 'getReportsByClass']);
 Route::get('/submissionsreport', [SubmissionController::class, 'getSubmissionsByReport']);
 
@@ -98,7 +98,7 @@ Route::post('/majors/import', [MajorsController::class, 'import']); // Import Ex
 
 Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::class, 'getMajors']);
 
-Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
+Route::get('/nhhh/classes', [ClassController::class, 'getAllClassTeacher']);
 
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
 
