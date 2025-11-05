@@ -13,7 +13,7 @@ export default function ReportsManagement() {
   // 🔹 Lấy danh sách lớp
   useEffect(() => {
     axios
-      .get("/classes")
+      .get("/nhhh/classes")
       .then((res) => setClasses(res.data.data || res.data))
       .catch((err) => console.error("❌ Lỗi khi tải danh sách lớp:", err));
   }, []);
