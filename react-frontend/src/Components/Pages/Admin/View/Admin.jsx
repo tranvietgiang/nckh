@@ -235,7 +235,7 @@ export default function AdminManagement() {
                   setActiveTab={setActiveTab}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  openModal={() => openAddModal("students")} // 💡 Sửa: Đây là nút "Thêm"
+                  openModal={() => openAddModal("students")} 
                   showToast={showToast}
                   toastMessage={toastMessage}
                   filteredStudents={filteredStudents}
