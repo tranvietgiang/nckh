@@ -25,7 +25,6 @@ export default function AdminSidebar({
     { id: "teachers", label: "Giảng Viên", icon: Users },
     { id: "reports", label: "Báo Cáo", icon: FileText },
     { id: "majors", label: "Ngành", icon: BookOpen },
-    { id: "notifications", label: "Thông Báo", icon: Bell },
     { id: "import", label: "Import Dữ Liệu", icon: FileText },
     { id: "settings", label: "Cài Đặt", icon: Settings },
   ];

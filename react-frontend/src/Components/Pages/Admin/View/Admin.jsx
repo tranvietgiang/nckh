@@ -17,7 +17,7 @@ export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeMenu, setActiveMenu] = useState("students");
   const [activeTab, setActiveTab] = useState("students");
   const [teachers, setTeachers] = useState([]);
@@ -32,7 +32,14 @@ export default function AdminManagement() {
   RoleAmin(role);
 
   const handleDelete = async (id, type) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa ${type === "student" ? "sinh viên" : "giảng viên"} này không?`)) return;
+    if (
+      !window.confirm(
+        `Bạn có chắc muốn xóa ${
+          type === "student" ? "sinh viên" : "giảng viên"
+        } này không?`
+      )
+    )
+      return;
 
     try {
       const res = await axios.delete(`/delete/${id}`);
@@ -55,7 +62,6 @@ export default function AdminManagement() {
       setTimeout(() => setShowToast(false), 3000);
     }
   };
-
 
   useEffect(() => {
     document.title = "Trang Admin";
@@ -97,7 +103,7 @@ export default function AdminManagement() {
     }
   };
 
-  //tìm kiếm 
+  //tìm kiếm
   // 🧭 Hàm lọc sinh viên & giảng viên theo searchTerm
   const filteredStudents = students.filter(
     (s) =>
@@ -112,7 +118,6 @@ export default function AdminManagement() {
       t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
 
   /** Sidebar button click → điều hướng */
   const handleButtonClick = (buttonName) => {
@@ -152,10 +157,11 @@ export default function AdminManagement() {
       {/* 🔔 Toast thông báo */}
       {showToast && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${toastMessage.startsWith("✅")
-            ? "bg-green-500 animate-bounce"
-            : "bg-red-500 animate-shake"
-            }`}
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+            toastMessage.startsWith("✅")
+              ? "bg-green-500 animate-bounce"
+              : "bg-red-500 animate-shake"
+          }`}
         >
           {toastMessage}
         </div>
@@ -228,7 +234,10 @@ export default function AdminManagement() {
             />
 
             {/* 👇 Route cho Báo cáo */}
-            <Route path="reports" element={<ReportsManagement reports={reports} />} />
+            <Route
+              path="reports"
+              element={<ReportsManagement reports={reports} />}
+            />
 
             <Route path="majors" element={<MajorImportPage />} />
           </Routes>

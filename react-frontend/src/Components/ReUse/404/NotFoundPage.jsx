@@ -56,7 +56,7 @@ export default function NotFoundPage() {
             }}
             className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:border-indigo-400 hover:text-indigo-600 transition duration-300 font-medium"
           >
-            Quay lại
+            Đăng xuất
           </button>
         </div>
 

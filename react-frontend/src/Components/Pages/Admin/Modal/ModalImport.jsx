@@ -9,7 +9,7 @@ export default function ModalImport({ stateOpen, onClose }) {
   };
 
   const handleImportGroup = () => {
-    navigate("/nckh-import-group");
+    navigate("/nckh-subject");
   };
   const handleClose = () => {
     onClose(false);
@@ -43,7 +43,7 @@ export default function ModalImport({ stateOpen, onClose }) {
               onClick={handleImportGroup}
               className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition duration-200"
             >
-              Import nhóm
+              Import Môn học
             </button>
           </div>
         </div>
