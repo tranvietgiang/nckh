@@ -36,23 +36,29 @@ export default function SubjectImportPage() {
   // === Lấy danh sách lỗi import ===
   const fetchSubjectErrors = () => {
     axios
-      .get("/pc/get-errors/subject")
-      .then((res) => setSubjectErrors(res.data || []))
+      .get("/subjects/import-error")
+      .then((res) => {
+        setSubjectErrors(res.data.data);
+        console.log(res.data.data);
+      })
       .catch(() => setSubjectErrors([]));
   };
 
   // === Xoá lỗi import ===
-  const handleDeleteError = () => {
-    if (!subjectErrors.length) return;
-    if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import môn học?"))
+
+  // 🔴 Hàm xử lý nút Xóa lỗi
+  const handleDeleteError = async () => {
+    if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import không?"))
       return;
-    axios
-      .delete("/pc/import-errors/subject")
-      .then(() => {
-        alert("🗑️ Đã xóa danh sách lỗi import môn học!");
-        setSubjectErrors([]);
-      })
-      .catch(() => alert("❌ Không thể xóa lỗi!"));
+    try {
+      setLoading(true);
+      await axios.delete("/subject/import-errors");
+      await fetchSubjectErrors(); // load lại danh sách
+    } catch (err) {
+      console.error("Lỗi khi xóa lỗi:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // === Import Excel ===
@@ -198,27 +204,28 @@ export default function SubjectImportPage() {
               )}
             </div>
           </div>
-          {subjectErrors.length > 0 && (
+          {subjectErrors?.length > 0 && (
             <div className="mt-8 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
               <h3 className="text-lg font-semibold text-red-700 mb-3">
-                ⚠️ Danh sách lỗi import ngành ({subjectErrors.length})
+                ⚠️ Danh sách lỗi import môn học ({subjectErrors.length})
               </h3>
 
               <button
-                className="p-1 w-[100px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white"
+                className="p-2 w-[120px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
                 onClick={handleDeleteError}
+                disabled={loading}
               >
-                Xóa lỗi
+                {loading ? "Đang xóa..." : "🗑️ Xóa lỗi"}
               </button>
 
               <table className="min-w-full divide-y divide-red-200">
                 <thead className="bg-red-100">
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                      Tên ngành
+                      Tên môn
                     </th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                      Mã viết tắt
+                      Ngành / Mã môn
                     </th>
                     <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
                       Lý do lỗi

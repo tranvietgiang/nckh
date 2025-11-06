@@ -123,10 +123,11 @@ Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsCo
 Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [SubmissionFileController::class, 'checkSubmitted']);
 
 //subject
-Route::get('/get-subjects', [SubjectController::class, 'indexSubject']);
-Route::post('/create/subjects', [SubjectController::class, 'storeSubject']);
-Route::put('/update/subjects/{id}', [SubjectController::class, 'updateSubject']);
-Route::get('/get-subjects/{id}', [SubjectController::class, 'getSubject']);
-Route::delete('/subjects/{id}', [SubjectController::class, 'destroySubject']);
-
-Route::post('/subjects/import', [SubjectController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/get-subjects', [SubjectController::class, 'indexSubject']);
+Route::middleware('auth:sanctum')->post('/create/subjects', [SubjectController::class, 'storeSubject']);
+Route::middleware('auth:sanctum')->put('/update/subjects/{id}', [SubjectController::class, 'updateSubject']);
+Route::middleware('auth:sanctum')->get('/get-subjects/{id}', [SubjectController::class, 'getSubject']);
+Route::middleware('auth:sanctum')->delete('/subjects/{id}', [SubjectController::class, 'destroySubject']);
+Route::middleware('auth:sanctum')->post('/subjects/import', [SubjectController::class, 'import']);
+Route::middleware('auth:sanctum')->get('/subjects/import-error', [ErrorsImportController::class, 'importErrSubject']);
+Route::middleware('auth:sanctum')->delete('/subject/import-errors', [ErrorsImportController::class, 'clearImportErrorsSubject']);

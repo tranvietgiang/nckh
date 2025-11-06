@@ -20,38 +20,43 @@ class SubjectImport implements ToCollection, WithHeadingRow
         foreach ($rows as $row) {
             $this->totalSubjects++;
 
-            $subjectName = trim((string)($row['ten_mon'] ?? ''));
-            $majorName = trim((string)($row['nganh'] ?? ''));
+            $subjectName = strtoupper(trim((string)($row['ten_mon'] ?? '')));
+            $subjectCode = strtoupper(trim((string)($row['ma_mom'] ?? '')));
+            $majorName   = strtoupper(trim((string)($row['ten_nganh'] ?? '')));
 
-            // Kiểm tra dữ liệu thiếu
+            // 🟡 Kiểm tra thiếu dữ liệu
             if (empty($subjectName) || empty($majorName)) {
                 ImportError::create([
                     'typeError' => 'subject',
-                    'fullname' => $subjectName ?: 'Không có tên môn',
-                    'email' => $majorName ?: 'Không có ngành',
-                    'reason' => 'Thiếu dữ liệu tên môn hoặc ngành'
+                    'fullname'  => $subjectName ?: 'Không có tên môn',
+                    'email'     => $majorName ?: 'Không có ngành',
+                    'reason'    => 'Thiếu dữ liệu tên môn hoặc ngành'
                 ]);
                 $this->failed++;
                 continue;
             }
 
-            // Kiểm tra ngành tồn tại
-            $major = Major::where('major_name', $majorName)->first();
+            // 🔍 Kiểm tra ngành tồn tại (theo tên hoặc viết tắt)
+            $major = Major::where('major_name', 'LIKE', "%{$majorName}%")
+                ->orWhere('major_abbreviate', strtoupper($majorName))
+                ->first();
+
             if (!$major) {
                 ImportError::create([
                     'typeError' => 'subject',
-                    'fullname' => $subjectName,
-                    'email' => $majorName,
-                    'reason' => 'Ngành không tồn tại trong hệ thống'
+                    'fullname'  => $subjectName,
+                    'email'     => $majorName,
+                    'reason'    => 'Ngành không tồn tại trong hệ thống'
                 ]);
                 $this->failed++;
                 continue;
             }
 
-            // Tạo môn học
+            // ✅ Tạo môn học
             Subject::create([
                 'subject_name' => $subjectName,
-                'major_id' => $major->major_id,
+                'subject_code' => $subjectCode,
+                'major_id'     => $major->major_id,
             ]);
 
             $this->success++;

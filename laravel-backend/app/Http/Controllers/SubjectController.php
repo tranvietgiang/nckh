@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
 use App\Imports\SubjectImport;
+use App\Models\Subject;
 use App\Services\SubjectService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -25,7 +26,8 @@ class SubjectController extends Controller
     }
     public function getSubject($id)
     {
-        $subject = \App\Models\Subject::with('major')->find($id);
+        AuthHelper::roleAmin();
+        $subject = Subject::with('major')->find($id);
 
         if (!$subject) {
             return response()->json(['message_error' => 'Không tìm thấy môn học!'], 404);
@@ -40,6 +42,8 @@ class SubjectController extends Controller
     // 🟢 Thêm môn học
     public function storeSubject(Request $request)
     {
+        AuthHelper::roleAmin();
+
         $result = $this->subjectService->createSubject($request->all());
         $code = $result['success'] ? 201 : 400;
         return response()->json($result, $code);
@@ -48,6 +52,8 @@ class SubjectController extends Controller
     // 🟢 Cập nhật môn học
     public function updateSubject(Request $request, $id)
     {
+        AuthHelper::roleAmin();
+
         $result = $this->subjectService->updateSubject($id, $request->all());
         $code = $result['success'] ? 200 : 400;
         return response()->json($result, $code);
@@ -56,6 +62,8 @@ class SubjectController extends Controller
     // 🟢 Xóa môn học
     public function destroySubject($id)
     {
+        AuthHelper::roleAmin();
+
         $result = $this->subjectService->deleteSubject($id);
         $code = $result['success'] ? 200 : 404;
         return response()->json($result, $code);
@@ -63,6 +71,7 @@ class SubjectController extends Controller
 
     public function import(Request $request)
     {
+        AuthHelper::roleAmin();
 
         if (!$request->hasFile('file')) {
             return response()->json([
