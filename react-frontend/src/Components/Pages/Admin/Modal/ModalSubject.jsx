@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "../../../../config/axios";
 
-export default function ModalSubject({ stateOpen, onClose }) {
+export default function ModalSubject({ stateOpen, onClose, editData = null }) {
   const [majors, setMajors] = useState([]);
   const [formData, setFormData] = useState({
     subject_name: "",
@@ -11,88 +11,90 @@ export default function ModalSubject({ stateOpen, onClose }) {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // 🟢 Load danh sách ngành
+  // 🟢 Load danh sách ngành khi mở modal
   useEffect(() => {
-    if (stateOpen) {
-      fetchMajors();
-    }
+    if (stateOpen) fetchMajors();
   }, [stateOpen]);
 
-  const fetchMajors = () => {
-    axios
-      .get("/get-majors")
-      .then((res) => setMajors(res.data || []))
-      .catch((err) => {
-        console.error("Lỗi tải danh sách ngành:", err);
-        setMajors([]);
-      });
+  const fetchMajors = async () => {
+    try {
+      const res = await axios.get("/get-majors");
+      setMajors(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tải danh sách ngành:", err);
+      setMajors([]);
+    }
   };
 
-  // 🧹 Reset form khi mở modal
+  // 🧹 Nạp dữ liệu hoặc reset form khi mở modal
   useEffect(() => {
     if (stateOpen) {
-      setFormData({
-        subject_name: "",
-        subject_code: "",
-        major_id: "",
-      });
+      if (editData) {
+        // Nếu đang sửa → đổ dữ liệu cũ vào form
+        setFormData({
+          subject_name: editData.subject_name || "",
+          subject_code: editData.subject_code || "",
+          major_id: editData.major_id || "",
+        });
+      } else {
+        // Nếu đang thêm → reset form
+        setFormData({ subject_name: "", subject_code: "", major_id: "" });
+      }
       setErrors({});
     }
-  }, [stateOpen]);
+  }, [stateOpen, editData]);
 
   // ✏️ Xử lý nhập liệu
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
-    }
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ✅ Validate
+  // ✅ Validate form
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.subject_name.trim()) {
-      newErrors.subject_name = "Tên môn học không được để trống";
-    }
-    if (!formData.subject_code.trim()) {
-      newErrors.subject_code = "Mã môn học không được để trống";
-    }
-    if (!formData.major_id) {
-      newErrors.major_id = "Vui lòng chọn ngành";
-    }
+    if (!formData.subject_name.trim())
+      newErrors.subject_name = "Tên môn học không được để trống!";
+    if (!formData.subject_code.trim())
+      newErrors.subject_code = "Mã môn học không được để trống!";
+    if (!formData.major_id) newErrors.major_id = "Vui lòng chọn ngành!";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // 🚀 Submit form
+  // 🚀 Submit form (tự chọn thêm hoặc sửa)
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setLoading(true);
 
+    setLoading(true);
     try {
-      await axios.post("/subjects", formData);
-      alert("✅ Thêm môn học thành công!");
-      if (window.onSubjectActionSuccess) {
-        window.onSubjectActionSuccess();
+      if (editData) {
+        // 🟢 Cập nhật
+        await axios.put(`/update/subjects/${editData.subject_id}`, formData);
+        alert("✅ Cập nhật môn học thành công!");
+      } else {
+        // 🟢 Thêm mới
+        await axios.post("/create/subjects", formData);
+        alert("✅ Thêm môn học thành công!");
       }
+
+      // 🔄 Reload lại danh sách bên ngoài nếu có
+      if (window.onSubjectActionSuccess) window.onSubjectActionSuccess();
       onClose();
     } catch (err) {
-      console.error("Lỗi thêm môn học:", err);
-      if (err.response?.data) {
-        alert(err.response?.data?.message_error);
-      } else {
-        alert("❌ Có lỗi xảy ra khi thêm môn học!");
-      }
+      console.error("Lỗi xử lý môn học:", err);
+      const msg =
+        err.response?.data?.message_error ||
+        "❌ Có lỗi xảy ra khi xử lý môn học!";
+      alert(msg);
     } finally {
       setLoading(false);
     }
   };
 
+  // Nếu modal đóng thì không render gì
   if (!stateOpen) return null;
 
   return (
@@ -101,7 +103,7 @@ export default function ModalSubject({ stateOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">
-            Thêm Môn Học Mới
+            {editData ? "Chỉnh sửa môn học" : "Thêm môn học mới"}
           </h2>
           <button
             onClick={onClose}
@@ -206,7 +208,11 @@ export default function ModalSubject({ stateOpen, onClose }) {
                 loading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              {loading ? "Đang xử lý..." : "Thêm môn học"}
+              {loading
+                ? "Đang xử lý..."
+                : editData
+                ? "Cập nhật môn học"
+                : "Thêm môn học"}
             </button>
           </div>
         </form>

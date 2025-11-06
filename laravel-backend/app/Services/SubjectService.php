@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Major;
 use App\Repositories\SubjectRepository;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -21,40 +22,50 @@ class SubjectService
         return $this->subjectRepo->getAll();
     }
 
-    // Tạo môn học mới
     public function createSubject(array $data)
     {
-        try {
-            // 🔍 Kiểm tra dữ liệu đầu vào
-            if (empty($data['subject_name'])) {
-                return ['success' => false, 'message_error' => 'Tên môn học không được để trống!'];
-            }
-
-            if (empty($data['subject_code'])) {
-                return ['success' => false, 'message_error' => 'Mã môn học không được để trống!'];
-            }
-
-            if (empty($data['major_id'])) {
-                return ['success' => false, 'message_error' => 'Vui lòng chọn ngành!'];
-            }
-
-            // 🔍 Kiểm tra trùng tên môn học
-            $exists = $this->subjectRepo->existsByName($data['subject_name']);
-            if ($exists) {
-                return ['success' => false, 'message_error' => 'Tên môn học này đã tồn tại!'];
-            }
-
-            // 🧱 Tạo mới
-            $created = $this->subjectRepo->createSubject($data);
-            if ($created) {
-                return ['success' => true, 'message_error' => 'Thêm môn học thành công!'];
-            }
-
-            return ['success' => false, 'message_error' => 'Không thể thêm môn học!'];
-        } catch (Exception $e) {
-            Log::error('❌ Lỗi tạo môn học: ' . $e->getMessage());
-            return ['success' => false, 'message_error' => 'Đã xảy ra lỗi trong quá trình thêm môn học!'];
+        // 🧩 1. Kiểm tra dữ liệu bắt buộc
+        if (empty($data['subject_name'])) {
+            return ['success' => false, 'message_error' => 'Tên môn học không được để trống!'];
         }
+
+        if (empty($data['subject_code'])) {
+            return ['success' => false, 'message_error' => 'Mã môn học không được để trống!'];
+        }
+
+        if (empty($data['major_id'])) {
+            return ['success' => false, 'message_error' => 'Vui lòng chọn ngành!'];
+        }
+
+        // 🔍 2. Kiểm tra ngành có tồn tại không
+        $majorExists = Major::where('major_id', $data['major_id'])->exists();
+        if (!$majorExists) {
+            return ['success' => false, 'message_error' => 'Ngành học không tồn tại!'];
+        }
+
+        // 🔍 3. Kiểm tra trùng tên & mã trong cùng ngành
+        if ($this->subjectRepo->existsSameNameCodeMajor($data['subject_name'], $data['subject_code'], $data['major_id'])) {
+            return ['success' => false, 'message_error' => 'Tên và mã môn học này đã tồn tại trong ngành!'];
+        }
+
+        // 🔍 4. Kiểm tra trùng tên khác mã trong ngành
+        if ($this->subjectRepo->existsNameOnly($data['subject_name'], $data['major_id'])) {
+            return ['success' => false, 'message_error' => 'Tên môn học đã tồn tại trong ngành này!'];
+        }
+
+        // 🔍 5. Kiểm tra trùng mã khác tên trong ngành
+        if ($this->subjectRepo->existsCodeOnly($data['subject_code'], $data['major_id'])) {
+            return ['success' => false, 'message_error' => 'Mã môn học đã tồn tại trong ngành này!'];
+        }
+
+        // 🧱 6. Tạo mới môn học
+        $created = $this->subjectRepo->createSubject($data);
+
+        if ($created) {
+            return ['success' => true, 'message_error' => 'Thêm môn học thành công!'];
+        }
+
+        return ['success' => false, 'message_error' => 'Không thể thêm môn học!'];
     }
 
     // Cập nhật môn học
@@ -73,11 +84,11 @@ class SubjectService
                 return ['success' => false, 'message_error' => 'Vui lòng chọn ngành!'];
             }
 
-            // 🔍 Kiểm tra trùng tên (bỏ qua chính nó)
-            $exists = $this->subjectRepo->existsByNameExceptId($data['subject_name'], $id);
-            if ($exists) {
-                return ['success' => false, 'message_error' => 'Tên môn học đã tồn tại!'];
-            }
+            // // 🔍 Kiểm tra trùng tên (bỏ qua chính nó)
+            // $exists = $this->subjectRepo->($data['subject_name'], $data['subject_code'], $data['major_id']);
+            // if ($exists) {
+            //     return ['success' => false, 'message_error' => 'Chưa có sự thay đổi!'];
+            // }
 
             $updated = $this->subjectRepo->updateSubject($id, $data);
             if ($updated > 0) {

@@ -2,6 +2,8 @@
 
 namespace App\Repositories;
 
+use App\Models\Major;
+use App\Models\Subject;
 use Illuminate\Support\Facades\DB;
 
 class SubjectRepository
@@ -11,35 +13,42 @@ class SubjectRepository
     public function getAll()
     {
         return DB::table($this->table)
-            ->orderByDesc('created_at')
+            ->join("majors", "subjects.major_id", "=", "majors.major_id")
+            ->orderByDesc('subjects.created_at')
             ->get();
     }
-
-    public function existsByName($name)
+    public function existsSameNameCodeMajor($name, $code, $majorId)
     {
-        return DB::table($this->table)
-            ->where('subject_name', $name)
+        return Subject::where('subject_name', $name)
+            ->where('subject_code', $code)
+            ->where('major_id', $majorId)
             ->exists();
     }
 
-    public function existsByNameExceptId($name, $id)
+    public function existsNameOnly($name, $majorId)
     {
-        return DB::table($this->table)
-            ->where('subject_name', $name)
-            ->where('subject_id', '!=', $id)
+        return Subject::where('subject_name', $name)
+            ->where('major_id', $majorId)
+            ->exists();
+    }
+
+    public function existsCodeOnly($code, $majorId)
+    {
+        return Subject::where('subject_code', $code)
+            ->where('major_id', $majorId)
             ->exists();
     }
 
     public function createSubject(array $data)
     {
-        return DB::table($this->table)->insert([
-            'subject_name' => $data['subject_name'],
-            'subject_code' => $data['subject_code'],
-            'major_id' => $data['major_id'],
-            'created_at' => now(),
-            'updated_at' => now(),
+
+        return Subject::create([
+            'subject_name' => trim($data['subject_name']),
+            'subject_code' => strtoupper(trim($data['subject_code'])),
+            'major_id'     => $data['major_id'],
         ]);
     }
+
 
     public function updateSubject($id, array $data)
     {

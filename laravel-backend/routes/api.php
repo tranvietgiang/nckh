@@ -119,13 +119,14 @@ Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersCo
 Route::middleware('auth:sanctum')->post('tvg/get-report-by-student', [ReportController::class, 'getReportByStudent']);
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
-//get lấy name major
-Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
 //get lấy report đã nộp của sinh viên
 Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [SubmissionFileController::class, 'checkSubmitted']);
 
 //subject
 Route::get('/get-subjects', [SubjectController::class, 'indexSubject']);
-Route::post('/subjects', [SubjectController::class, 'storeSubject']);
-Route::put('/subjects/{id}', [SubjectController::class, 'updateSubject']);
+Route::post('/create/subjects', [SubjectController::class, 'storeSubject']);
+Route::put('/update/subjects/{id}', [SubjectController::class, 'updateSubject']);
+Route::get('/get-subjects/{id}', [SubjectController::class, 'getSubject']);
 Route::delete('/subjects/{id}', [SubjectController::class, 'destroySubject']);
+
+Route::post('/subjects/import', [SubjectController::class, 'import']);

@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('subjects', function (Blueprint $table) {
             $table->id('subject_id');
-            $table->string("subject_name", 200)->unique();
+            $table->string("subject_name", 200);
             $table->string("subject_code", 10);
             $table->foreignId("major_id")->constrained("majors", "major_id")->onDelete("cascade");
             $table->timestamps();
