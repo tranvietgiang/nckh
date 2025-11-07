@@ -225,8 +225,14 @@ export default function ClassShowManager() {
                               <div className="flex items-center text-gray-600">
                                 <FaClock className="w-4 h-4 mr-2" />
                                 <span>
-                                  Giáo viên: {classItem?.fullname ?? ""}-
-                                  {classItem?.teacher_id}
+                                  Môn học: {classItem?.subject_name ?? ""}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center text-gray-600">
+                                <FaClock className="w-4 h-4 mr-2" />
+                                <span>
+                                  Giáo viên: {classItem?.fullname ?? ""}
                                 </span>
                               </div>
 

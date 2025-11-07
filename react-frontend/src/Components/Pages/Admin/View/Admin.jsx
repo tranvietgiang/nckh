@@ -17,7 +17,7 @@ export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
   const [students, setStudents] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
   const [activeMenu, setActiveMenu] = useState("students");
   const [activeTab, setActiveTab] = useState("students");
   const [teachers, setTeachers] = useState([]);
@@ -32,10 +32,17 @@ export default function AdminManagement() {
   RoleAmin(role);
 
   const handleDelete = async (id, type) => {
-    if (!window.confirm(`Bạn có chắc muốn xóa ${type === "student" ? "sinh viên" : "giảng viên"} này không?`)) return;
+    if (
+      !window.confirm(
+        `Bạn có chắc muốn xóa ${
+          type === "student" ? "sinh viên" : "giảng viên"
+        } này không?`
+      )
+    )
+      return;
 
     try {
-      const res = await axios.delete(`/delete/${id}`);
+      const res = await axios.delete(`/nhhh/delete/${id}`);
       setToastMessage(res.data.message || "✅ Xóa thành công!");
       setShowToast(true);
 
@@ -43,6 +50,7 @@ export default function AdminManagement() {
       if (type === "student") {
         setStudents((prev) => prev.filter((s) => s.user_id !== id));
       } else if (type === "teacher") {
+        // 💡 Sửa lỗi typo "teachers" -> "teacher"
         setTeachers((prev) => prev.filter((t) => t.user_id !== id));
       }
 
@@ -56,7 +64,6 @@ export default function AdminManagement() {
     }
   };
 
-
   useEffect(() => {
     document.title = "Trang Admin";
   }, []);
@@ -64,7 +71,7 @@ export default function AdminManagement() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const res = await axios.get("/submissions");
+        const res = await axios.get("/nhhh/submissions");
         setReports(res.data);
       } catch (error) {
         console.error("❌ Lỗi tải báo cáo:", error);
@@ -77,7 +84,7 @@ export default function AdminManagement() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get("/users");
+        const res = await axios.get("/nhhh/users");
         const allUsers = res.data || [];
         setStudents(allUsers.filter((u) => u.role === "student"));
         setTeachers(allUsers.filter((u) => u.role === "teacher"));
@@ -87,32 +94,73 @@ export default function AdminManagement() {
     };
     fetchData();
   }, []);
-  const handleEditUser = async (id, data) => {
+
+  // khi người dùng bấm "Lưu" trên modal edit.
+  const handleUpdateUser = async (updatedUser) => {
+    // updatedUser là object 'selectedUser' đầy đủ từ state của con
+    const { user_id, ...data } = updatedUser;
+    if (data.password === "") {
+      delete data.password;
+    }
+
     try {
-      const res = await axios.put(`/update/${id}`, data);
-      alert(res.data.message);
+      // 1. Gọi API
+      const res = await axios.put(`/nhhh/update/${user_id}`, data);
+
+      // 2. 🔔 Dùng Toast (thay vì alert)
+      setToastMessage(res.data.message || "✅ Cập nhật thành công!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+
+      // 3. 🔄 Cập nhật lại state ở cha (RẤT QUAN TRỌNG)
+      //    Điều này giúp table tự động refresh dữ liệu mới
+      if (updatedUser.role === "student") {
+        setStudents((prev) =>
+          prev.map((s) => (s.user_id === user_id ? { ...s, ...data } : s))
+        );
+      } else if (updatedUser.role === "teacher") {
+        setTeachers((prev) =>
+          prev.map((t) => (t.user_id === user_id ? { ...t, ...data } : t))
+        );
+      }
     } catch (error) {
       console.error("❌ Lỗi khi cập nhật:", error);
-      alert("❌ Cập nhật thất bại!");
+      // 🔔 Dùng Toast cho lỗi
+      setToastMessage(error.response?.data?.message || "❌ Cập nhật thất bại!");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     }
   };
 
-  //tìm kiếm 
+  // 🧩 Hàm này để mở modal "Thêm"
+  // 🧩 (Logic thêm mới sẽ cần được xây dựng ở đây)
+  const openAddModal = (type) => {
+    // Hiện tại, component con (StudentsTeachersTab) gọi openModal("add")
+    // Chúng ta sẽ alert tạm vì logic 'Thêm' chưa có
+    alert(
+      `Chức năng "Thêm ${
+        type === "students" ? "Sinh Viên" : "Giảng Viên"
+      }" chưa được kết nối.`
+    );
+    // TODO: Mở một modal thêm mới ở đây
+  };
+  //tìm kiếm
   // 🧭 Hàm lọc sinh viên & giảng viên theo searchTerm
   const filteredStudents = students.filter(
     (s) =>
       s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.user_id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredTeachers = teachers.filter(
     (t) =>
       t.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.email?.toLowerCase().includes(searchTerm.toLowerCase())
+      t.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      t.user_id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
 
   /** Sidebar button click → điều hướng */
   const handleButtonClick = (buttonName) => {
@@ -152,10 +200,11 @@ export default function AdminManagement() {
       {/* 🔔 Toast thông báo */}
       {showToast && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${toastMessage.startsWith("✅")
-            ? "bg-green-500 animate-bounce"
-            : "bg-red-500 animate-shake"
-            }`}
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+            toastMessage.startsWith("✅")
+              ? "bg-green-500 animate-bounce"
+              : "bg-red-500 animate-shake"
+          }`}
         >
           {toastMessage}
         </div>
@@ -197,12 +246,13 @@ export default function AdminManagement() {
                   setActiveTab={setActiveTab}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  openModal={handleEditUser}
+                  openModal={() => openAddModal("students")} // 💡 Sửa: Đây là nút "Thêm"
                   showToast={showToast}
                   toastMessage={toastMessage}
                   filteredStudents={filteredStudents}
                   filteredTeachers={[]}
                   handleDelete={(id) => handleDelete(id, "student")}
+                  handleUpdateUser={handleUpdateUser} // 🧩 Thêm: Truyền hàm update vào đúng prop
                 />
               }
             />
@@ -217,18 +267,22 @@ export default function AdminManagement() {
                   setActiveTab={setActiveTab}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  openModal={handleEditUser}
+                  openModal={() => openAddModal("teachers")} // 💡 Sửa: Đây là nút "Thêm"
                   showToast={showToast}
                   toastMessage={toastMessage}
                   filteredStudents={[]}
                   filteredTeachers={filteredTeachers}
-                  handleDelete={(id) => handleDelete(id, "teachers")}
+                  handleDelete={(id) => handleDelete(id, "teacher")} // 💡 Sửa lỗi typo: "teachers" -> "teacher"
+                  handleUpdateUser={handleUpdateUser} // 🧩 Thêm: Truyền hàm update vào đúng prop
                 />
               }
             />
 
             {/* 👇 Route cho Báo cáo */}
-            <Route path="reports" element={<ReportsManagement reports={reports} />} />
+            <Route
+              path="reports"
+              element={<ReportsManagement reports={reports} />}
+            />
 
             <Route path="majors" element={<MajorImportPage />} />
           </Routes>

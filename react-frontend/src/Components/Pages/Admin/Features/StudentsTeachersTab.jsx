@@ -16,13 +16,30 @@ export default function StudentsTeachersTab({
   setActiveTab,
   searchTerm,
   setSearchTerm,
-  openModal,
+  openModal, // Giả sử hàm này dùng để mở modal Thêm/Sửa từ component cha
   showToast,
   toastMessage,
   filteredStudents,
   filteredTeachers,
   handleDelete,
+  handleUpdateUser, // Giả sử hàm này được truyền từ cha để xử lý update
 }) {
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  // 🧩 Mở modal edit
+  const openEditModal = (user) => {
+    // Tạo một bản sao của user để chỉnh sửa, bao gồm cả password rỗng
+    setSelectedUser({ ...user, password: "" });
+    setEditModalOpen(true);
+  };
+
+  // 🧩 Đóng modal edit
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setSelectedUser(null);
+  };
+
   const navigate = useNavigate();
   if (activeMenu !== "students" && activeMenu !== "teachers") return null;
 
@@ -54,6 +71,16 @@ export default function StudentsTeachersTab({
     setCurrentPage(1);
   }, [activeTab]);
 
+  // 🧩 Xử lý submit form edit
+  const handleSubmitEdit = (e) => {
+    e.preventDefault();
+    // Giả sử handleUpdateUser là hàm từ props
+    if (handleUpdateUser) {
+      handleUpdateUser(selectedUser);
+    }
+    closeEditModal();
+  };
+
   return (
     <div>
       <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6">
@@ -66,10 +93,11 @@ export default function StudentsTeachersTab({
                 setActiveMenu("students");
                 navigate("/nckh-admin/students");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "students"
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "students"
                   ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+              }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -83,10 +111,11 @@ export default function StudentsTeachersTab({
                 setActiveMenu("teachers");
                 navigate("/nckh-admin/teachers");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "teachers"
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "teachers"
                   ? "border-indigo-600 text-indigo-600"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+              }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -122,7 +151,7 @@ export default function StudentsTeachersTab({
 
       {/* Toast */}
       {showToast && (
-        <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500 opacity-100">
+        <div className="fixed top-5 right-5 bg-green-500 text-white px-4 py-2 rounded shadow-lg transition-opacity duration-500 opacity-100 z-50">
           {toastMessage}
         </div>
       )}
@@ -186,21 +215,25 @@ export default function StudentsTeachersTab({
                     {item.user_id}
                   </td>
                   <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-900">
-                    {item.role}
+                    {/* Hiển thị Tên thay vì Role cho GV */}
+                    {activeTab === "teachers" ? item.name : item.role}
                   </td>
                   <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
                     {item.email}
                   </td>
                   <td className="hidden lg:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
+                    {/* Hiển thị Khoa (department) cho GV, Chuyên ngành (department) cho SV */}
                     {item.department || ""}
                   </td>
                   <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                    {item.position || ""}
+                    {/* Hiển thị Chức vụ (position) cho GV, Lớp (class_name) cho SV */}
+                    {activeTab === "teachers" ? item.position : item.class_name || ""}
                   </td>
                   <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
                     <div className="flex items-center space-x-2 sm:space-x-4">
+                      {/* === SỬA LỖI 1 === */}
                       <button
-                        onClick={() => openModal("edit", item)}
+                        onClick={() => openEditModal(item)}
                         className="text-indigo-600 hover:text-indigo-900"
                       >
                         <Edit2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -215,6 +248,8 @@ export default function StudentsTeachersTab({
                   </td>
                 </tr>
               ))}
+              {/* === LỖI ĐÃ ĐƯỢC DI CHUYỂN RA NGOÀI TBODY === */}
+              {/* Modal không còn ở đây nữa */}
             </tbody>
           </table>
         </div>
@@ -242,6 +277,154 @@ export default function StudentsTeachersTab({
           </div>
         )}
       </div>
+
+      {/* === MODAL ĐƯỢC DI CHUYỂN RA ĐÂY === */}
+      {/* Nó là một sibling của div 'table' */}
+      {editModalOpen && selectedUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+            <h2 className="text-lg font-semibold mb-4">Chỉnh sửa người dùng</h2>
+            <form onSubmit={handleSubmitEdit}>
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={selectedUser.email}
+                  onChange={(e) =>
+                    setSelectedUser({
+                      ...selectedUser,
+                      email: e.target.value,
+                    })
+                  }
+                  className="w-full border p-2 rounded mt-1"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Họ Tên
+                </label>
+                <input
+                  type="text"
+                  value={selectedUser.name || ""}
+                  onChange={(e) =>
+                    setSelectedUser({
+                      ...selectedUser,
+                      name: e.target.value,
+                    })
+                  }
+                  className="w-full border p-2 rounded mt-1"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Mật khẩu
+                </label>
+                <input
+                  type="password"
+                  placeholder="Nhập để thay đổi, để trống để giữ nguyên"
+                  value={selectedUser.password || ""}
+                  onChange={(e) =>
+                    setSelectedUser({
+                      ...selectedUser,
+                      password: e.target.value,
+                    })
+                  }
+                  className="w-full border p-2 rounded mt-1"
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Role
+                </label>
+                <select
+                  value={selectedUser.role}
+                  onChange={(e) =>
+                    setSelectedUser({
+                      ...selectedUser,
+                      role: e.target.value,
+                    })
+                  }
+                  className="w-full border p-2 rounded mt-1"
+                  disabled // Không cho sửa role
+                >
+                  <option value="student">Student</option>
+                  <option value="teacher">Teacher</option>
+                </select>
+              </div>
+
+              {/* Thêm các trường khác tùy thuộc vào role */}
+              {selectedUser.role === 'student' && (
+                <>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700">Chuyên ngành</label>
+                    <input
+                      type="text"
+                      value={selectedUser.department || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
+                      className="w-full border p-2 rounded mt-1"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700">Lớp</label>
+                    <input
+                      type="text"
+                      value={selectedUser.class_name || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, class_name: e.target.value })}
+                      className="w-full border p-2 rounded mt-1"
+                    />
+                  </div>
+                </>
+              )}
+
+              {selectedUser.role === 'teacher' && (
+                <>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700">Khoa</label>
+                    <input
+                      type="text"
+                      value={selectedUser.department || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
+                      className="w-full border p-2 rounded mt-1"
+                    />
+                  </div>
+                  <div className="mb-3">
+                    <label className="block text-sm font-medium text-gray-700">Chức vụ</label>
+                    <input
+                      type="text"
+                      value={selectedUser.position || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, position: e.target.value })}
+                      className="w-full border p-2 rounded mt-1"
+                    />
+                  </div>
+                </>
+              )}
+
+
+              <div className="flex justify-end space-x-2">
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                >
+                  Hủy
+                </button>
+                {/* === SỬA LỖI 2 === */}
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  Lưu
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

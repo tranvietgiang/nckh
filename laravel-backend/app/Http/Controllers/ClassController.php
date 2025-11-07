@@ -11,6 +11,7 @@ use App\Http\Controllers\MajorsController;
 use Illuminate\Support\Facades\Auth;
 use App\Models\user_profile;
 use App\Imports\ClassImport;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\ClassesService;
 use Maatwebsite\Excel\Facades\Excel;
@@ -28,17 +29,15 @@ class ClassController extends Controller
 
     public function getClassByTeacher()
     {
-        AuthHelper::isLogin();
+        AuthHelper::roleAmin();
         return Classe::getByTeacher();
-        // return \App\Models\Classe::getByTeacher();
-
     }
 
 
     //lấy lớp  học thấy  id giảng viên 
     public function getAllClassTeacher()
     {
-        AuthHelper::isLogin();
+        AuthHelper::roleAmin();
 
         $classes = Classe::all();
 
@@ -70,6 +69,7 @@ class ClassController extends Controller
             empty($data["class_code"]) ||
             empty($data["major_id"])   ||
             empty($data["teacher_id"]) ||
+            empty($data["subject_id"]) ||
             empty($data["semester"])   ||
             empty($data["academic_year"])
         ) {
@@ -95,6 +95,26 @@ class ClassController extends Controller
             return response()->json([
                 "status" => false,
                 "message_error" => "Tên lớp này đã được bạn tạo trước đó!"
+            ]);
+        }
+
+        $sameSubjectAndName = Subject::where("subject_id", $data["subject_id"])->exists();
+
+        if (!$sameSubjectAndName) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "môn học này không tồn tại!"
+            ]);
+        }
+
+        $checkSubjectExistsMajor = DB::table("subjects")
+            ->join("majors", "subjects.major_id", "=", "majors.major_id")
+            ->where("subject_id", $data["subject_id"])->exists();
+
+        if (!$checkSubjectExistsMajor) {
+            return response()->json([
+                "status" => false,
+                "message_error" => "Không tồn tại ngành của môn học này!"
             ]);
         }
 
@@ -125,6 +145,7 @@ class ClassController extends Controller
                 "class_name" => $data["class_name"],
                 "class_code" => $data["class_code"],
                 "teacher_id" => $data["teacher_id"],
+                "subject_id" => $data["subject_id"],
                 "semester" => $data["semester"],
                 "academic_year" => $data["academic_year"],
                 "major_id" => $data["major_id"]
@@ -192,6 +213,7 @@ class ClassController extends Controller
 
     //     return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     // }
+
     public function import(Request $request)
     {
         try {

@@ -18,6 +18,7 @@ class Classe extends Model
         'class_code',
         'teacher_id',
         'major_id',
+        'subject_id',
         'semester',
         'academic_year'
     ];
@@ -32,9 +33,11 @@ class Classe extends Model
         $classes = DB::table('classes')
             ->join('majors', 'classes.major_id', '=', 'majors.major_id')
             ->join('users', 'classes.teacher_id', '=', 'users.user_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->select(
                 'classes.*',
+                'subjects.subject_name',
                 'majors.major_name',
                 'user_profiles.fullname',
             )
