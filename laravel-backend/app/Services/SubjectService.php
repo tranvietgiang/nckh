@@ -105,15 +105,18 @@ class SubjectService
     // 🟢 Xóa môn học
     public function deleteSubject($id)
     {
-        try {
-            $deleted = $this->subjectRepo->deleteSubject($id);
-            if ($deleted > 0) {
-                return ['success' => true, 'message_error' => 'Xóa môn học thành công!'];
-            }
-            return ['success' => false, 'message_error' => 'Không tìm thấy môn học để xóa!'];
-        } catch (Exception $e) {
-            Log::error('❌ Lỗi xóa môn học: ' . $e->getMessage());
-            return ['success' => false, 'message_error' => 'Đã xảy ra lỗi khi xóa môn học!'];
+        $check = $this->subjectRepo->ExistsSubjectInClass($id);
+        if ($check) {
+
+            return ['success' => false, 'message_error' => 'Xóa môn học không thành công, môn học này đã được giảng viên'];
         }
+
+        $deleted = $this->subjectRepo->deleteSubject($id);
+
+        if ($deleted > 0) {
+            return ['success' => true, 'message_error' => 'Xóa môn học thành công!'];
+        }
+
+        return ['success' => false, 'message_error' => 'Không tìm thấy môn học để xóa!'];
     }
 }
