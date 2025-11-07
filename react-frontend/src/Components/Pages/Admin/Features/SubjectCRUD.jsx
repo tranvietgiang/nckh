@@ -12,6 +12,7 @@ export default function SubjectImportPage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedMajorId, setSelectedMajorId] = useState(""); // ✅ chọn ngành
   const fileInputRef = useRef(null);
 
   // 🟢 Load dữ liệu ban đầu
@@ -44,16 +45,14 @@ export default function SubjectImportPage() {
       .catch(() => setSubjectErrors([]));
   };
 
-  // === Xoá lỗi import ===
-
-  // 🔴 Hàm xử lý nút Xóa lỗi
+  // 🔴 Xoá lỗi import
   const handleDeleteError = async () => {
     if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import không?"))
       return;
     try {
       setLoading(true);
       await axios.delete("/subject/import-errors");
-      await fetchSubjectErrors(); // load lại danh sách
+      await fetchSubjectErrors(); // load lại sau khi xóa
     } catch (err) {
       console.error("Lỗi khi xóa lỗi:", err);
     } finally {
@@ -124,7 +123,7 @@ export default function SubjectImportPage() {
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "-");
 
-  // === Hàm lấy màu cho từng ngành ===
+  // === Màu theo ngành
   const getMajorColor = (majorId) => {
     const colors = [
       "text-blue-600 bg-blue-50",
@@ -138,34 +137,55 @@ export default function SubjectImportPage() {
       "text-yellow-600 bg-yellow-50",
       "text-cyan-600 bg-cyan-50",
     ];
-    const index = majorId % colors.length;
+    const index = (majorId ?? 0) % colors.length;
     return colors[index];
   };
 
-  // === Nhóm môn học theo ngành ===
-  const groupedSubjects = subjects.reduce((acc, subject) => {
-    const majorId = subject.major_id;
-    if (!acc[majorId]) {
-      acc[majorId] = {
-        major_name: subject.major_name,
-        subjects: [],
-        color: getMajorColor(majorId),
-      };
-    }
-    acc[majorId].subjects.push(subject);
-    return acc;
-  }, {});
+  // ✅ Lấy danh sách ngành duy nhất
+  const majors = Array.from(
+    new Map(subjects.map((s) => [s.major_id, s.major_name])).entries()
+  ).map(([id, name]) => ({ id, name }));
 
-  // === JSX ===
+  // ✅ Lọc theo ngành được chọn
+  const filteredSubjects =
+    selectedMajorId === ""
+      ? subjects
+      : subjects.filter((s) => s.major_id === Number(selectedMajorId));
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminHeader />
       <div className="flex">
         <div className="flex-1 p-6">
           <h1 className="text-2xl font-bold mb-2">Quản lý Môn Học</h1>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-4">
             Quản lý danh sách các môn học trong hệ thống
           </p>
+
+          {/* 🔽 Select chọn ngành */}
+          <div className="mb-6 flex flex-col sm:flex-row items-center gap-3">
+            <label className="text-gray-700 font-medium">🎓 Chọn ngành:</label>
+            <select
+              value={selectedMajorId}
+              onChange={(e) => setSelectedMajorId(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+            >
+              <option value="">-- Tất cả ngành --</option>
+              {majors.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+            {selectedMajorId && (
+              <button
+                onClick={() => setSelectedMajorId("")}
+                className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+              >
+                ✖ Bỏ lọc
+              </button>
+            )}
+          </div>
 
           {/* ACTION BAR */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -204,8 +224,10 @@ export default function SubjectImportPage() {
               )}
             </div>
           </div>
+
+          {/* 🔴 Danh sách lỗi import (vẫn giữ nguyên) */}
           {subjectErrors?.length > 0 && (
-            <div className="mt-8 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
+            <div className="mt-2 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
               <h3 className="text-lg font-semibold text-red-700 mb-3">
                 ⚠️ Danh sách lỗi import môn học ({subjectErrors.length})
               </h3>
@@ -250,6 +272,7 @@ export default function SubjectImportPage() {
               </table>
             </div>
           )}
+
           {/* Nút thêm */}
           <button
             onClick={() => setOpenModalAdd(true)}
@@ -294,50 +317,50 @@ export default function SubjectImportPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200 text-sm">
-                    {Object.entries(groupedSubjects).map(([, group]) =>
-                      group.subjects.map((s) => (
-                        <tr key={s.subject_id} className="hover:bg-gray-50">
-                          <td className="p-2 text-center font-semibold text-gray-900">
-                            {s.subject_id}
-                          </td>
-                          <td className="p-2">{s.subject_name}</td>
-                          <td className="p-2 text-center">{s.subject_code}</td>
-                          <td className="p-2 text-center">
-                            <span
-                              className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${group.color}`}
+                    {filteredSubjects.map((s) => (
+                      <tr key={s.subject_id} className="hover:bg-gray-50">
+                        <td className="p-2 text-center font-semibold text-gray-900">
+                          {s.subject_id}
+                        </td>
+                        <td className="p-2">{s.subject_name}</td>
+                        <td className="p-2 text-center">{s.subject_code}</td>
+                        <td className="p-2 text-center">
+                          <span
+                            className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getMajorColor(
+                              s.major_id
+                            )}`}
+                          >
+                            {s.major_name}
+                          </span>
+                        </td>
+                        <td className="p-2 text-center text-gray-500">
+                          {formatDate(s.created_at)}
+                        </td>
+                        <td className="p-2 text-center text-gray-500">
+                          {formatDate(s.updated_at)}
+                        </td>
+                        <td className="p-2 text-center">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              onClick={() => handleEdit(s)}
+                              className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
                             >
-                              {s.major_name}
-                            </span>
-                          </td>
-                          <td className="p-2 text-center text-gray-500">
-                            {formatDate(s.created_at)}
-                          </td>
-                          <td className="p-2 text-center text-gray-500">
-                            {formatDate(s.updated_at)}
-                          </td>
-                          <td className="p-2 text-center">
-                            <div className="flex justify-center gap-2">
-                              <button
-                                onClick={() => handleEdit(s)}
-                                className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
-                              >
-                                Sửa
-                              </button>
-                              <button
-                                onClick={() => handleDelete(s.subject_id)}
-                                className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600"
-                              >
-                                Xoá
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
+                              Sửa
+                            </button>
+                            <button
+                              onClick={() => handleDelete(s.subject_id)}
+                              className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600"
+                            >
+                              Xoá
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
 
-                {subjects.length === 0 && (
+                {filteredSubjects.length === 0 && (
                   <div className="py-8 text-center text-gray-500">
                     Không có môn học nào
                   </div>
