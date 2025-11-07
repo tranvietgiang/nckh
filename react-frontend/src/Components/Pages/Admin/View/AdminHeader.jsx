@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-export default function AdminHeader({ setSidebarOpen, setOpenImports }) {
+export default function AdminHeader({ setSidebarOpen }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [openMenu, setOpenMenu] = useState(false);
@@ -83,7 +83,6 @@ export default function AdminHeader({ setSidebarOpen, setOpenImports }) {
     { name: "Giảng Viên", icon: Users, path: "/nckh-admin/teachers" },
     { name: "Báo Cáo", icon: FileText, path: "/nckh-admin/reports" },
     { name: "Ngành", icon: Database, path: "/nckh-admin/majors" },
-    { name: "Import Dữ Liệu", icon: Upload, path: "#import" },
   ];
 
   return (
