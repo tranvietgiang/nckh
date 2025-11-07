@@ -62,6 +62,13 @@ class SubjectRepository
             ]);
     }
 
+    public function ExistsSubjectInClass($id)
+    {
+        return DB::table("subjects")
+            ->join("classes", "subjects.subject_id", "classes.subject_id")
+            ->where("classes.subject_id", $id)->exists();
+    }
+
     public function deleteSubject($id)
     {
         return DB::table($this->table)

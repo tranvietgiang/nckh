@@ -7,6 +7,7 @@ use App\Imports\SubjectImport;
 use App\Models\Subject;
 use App\Services\SubjectService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SubjectController extends Controller
@@ -23,6 +24,16 @@ class SubjectController extends Controller
     {
         $result = $this->subjectService->getAllSubjects();
         return response()->json($result, 200);
+    }
+    // 🟢 Lấy danh sách
+    public function getSubjectByMajor($idMajor)
+    {
+        $result = DB::table("subjects")
+            ->join("majors", "subjects.major_id", "majors.major_id")
+            ->where("majors.major_id", $idMajor)->get();
+        if ($result->count() > 0) {
+            return response()->json($result, 200);
+        }
     }
     public function getSubject($id)
     {

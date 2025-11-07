@@ -60,7 +60,9 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 // Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/tvg/get-classes', [ClassController::class, 'getClassByTeacher']);
+/**tạo lớp học */
 Route::middleware('auth:sanctum')->post('/create-classes', [ClassController::class, 'insertClassNew']);
+/**xóa lớp học */
 Route::middleware('auth:sanctum')->delete('/tvg/classes/{class_id}/teacher/{teacher_id}', [ClassController::class, 'deleteClass']);
 /**lấy ra dữ liệu lớp của giảng viên đang dạy */
 Route::get('/classes/students/{classsId}', [ClassController::class, 'getStudentsByClass']);
@@ -124,6 +126,7 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [Submiss
 
 //subject
 Route::middleware('auth:sanctum')->get('/get-subjects', [SubjectController::class, 'indexSubject']);
+Route::middleware('auth:sanctum')->get('/get-subjects-majors/{idMajor}', [SubjectController::class, 'getSubjectByMajor']);
 Route::middleware('auth:sanctum')->post('/create/subjects', [SubjectController::class, 'storeSubject']);
 Route::middleware('auth:sanctum')->put('/update/subjects/{id}', [SubjectController::class, 'updateSubject']);
 Route::middleware('auth:sanctum')->get('/get-subjects/{id}', [SubjectController::class, 'getSubject']);
@@ -131,3 +134,4 @@ Route::middleware('auth:sanctum')->delete('/subjects/{id}', [SubjectController::
 Route::middleware('auth:sanctum')->post('/subjects/import', [SubjectController::class, 'import']);
 Route::middleware('auth:sanctum')->get('/subjects/import-error', [ErrorsImportController::class, 'importErrSubject']);
 Route::middleware('auth:sanctum')->delete('/subject/import-errors', [ErrorsImportController::class, 'clearImportErrorsSubject']);
+Route::middleware('auth:sanctum')->get('/get-teacher-by-major', [TeacherController::class, 'getAllTeacher']);
