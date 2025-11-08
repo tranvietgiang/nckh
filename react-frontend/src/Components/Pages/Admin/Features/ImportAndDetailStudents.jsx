@@ -144,35 +144,35 @@ export default function ImportAndDetailStudents() {
       setStudents([]);
       return;
     }
-    // const data_students_current = getSafeJSON(
-    //   `data_students_current_${class_id}_${teacher_id}_${major_id}`
-    // );
+    const data_students_current = getSafeJSON(
+      `data_students_current_${class_id}_${teacher_id}_${major_id}`
+    );
 
-    // const total_student_current = getSafeJSON(
-    //   `total_student_current_${class_id}_${teacher_id}_${major_id}`
-    // );
+    const total_student_current = getSafeJSON(
+      `total_student_current_${class_id}_${teacher_id}_${major_id}`
+    );
 
-    // if (
-    //   Array.isArray(data_students_current) &&
-    //   data_students_current.length > 0
-    // ) {
-    //   setStudents(data_students_current);
-    // }
+    if (
+      Array.isArray(data_students_current) &&
+      data_students_current.length > 0
+    ) {
+      setStudents(data_students_current);
+    }
 
-    // if (
-    //   typeof total_student_current === "number" &&
-    //   total_student_current > 0
-    // ) {
-    //   setTotalStudent(total_student_current);
-    // }
+    if (
+      typeof total_student_current === "number" &&
+      total_student_current > 0
+    ) {
+      setTotalStudent(total_student_current);
+    }
 
-    // const get_student_error = getSafeJSON(
-    //   `student_import_error_${class_id}_${teacher_id}_${major_id}`
-    // );
+    const get_student_error = getSafeJSON(
+      `student_import_error_${class_id}_${teacher_id}_${major_id}`
+    );
 
-    // if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
-    //   setStudentErrors(get_student_error);
-    // }
+    if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
+      setStudentErrors(get_student_error);
+    }
 
     axios
       .get(
@@ -226,14 +226,14 @@ export default function ImportAndDetailStudents() {
 
       console.log(res.data);
 
-      if (res.data.status) {
-        alert("✅ Xóa lỗi thành công!");
-        window.location.reload();
-      } else {
-        alert("⚠️ Không thể xóa lỗi! Kiểm tra lại dữ liệu.");
-      }
+      alert("✅ Xóa lỗi thành công!");
+      window.location.reload();
     } catch (error) {
-      alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      if (error.response && error.response.data) {
+        alert(`❌ ${error.response.data.message_error}`);
+      } else {
+        alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      }
       console.log("error", error);
     }
   };

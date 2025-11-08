@@ -94,6 +94,7 @@ export default function PendingReports() {
       console.log("✅ Upload thành công:", res.data);
       alert("📤 Nộp báo cáo thành công!");
 
+      window.location.reload();
       setIsModalOpen(false);
       setSelectedReport(null);
     } catch (err) {

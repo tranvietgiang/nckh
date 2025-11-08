@@ -32,6 +32,15 @@ export default function AdminManagement() {
   RoleAmin(role);
 
   const handleDelete = async (id, type) => {
+    if (
+      !window.confirm(
+        `Bạn có chắc muốn xóa ${
+          type === "student" ? "sinh viên" : "giảng viên"
+        } này không?`
+      )
+    )
+      return;
+
     try {
       const res = await axios.delete(`/nhhh/delete/${id}`);
       setToastMessage(res.data.message || "✅ Xóa thành công!");
@@ -40,7 +49,8 @@ export default function AdminManagement() {
       // 🧹 Cập nhật lại danh sách
       if (type === "student") {
         setStudents((prev) => prev.filter((s) => s.user_id !== id));
-      } else if (type === "teacher") { // 💡 Sửa lỗi typo "teachers" -> "teacher"
+      } else if (type === "teacher") {
+        // 💡 Sửa lỗi typo "teachers" -> "teacher"
         setTeachers((prev) => prev.filter((t) => t.user_id !== id));
       }
 
@@ -128,12 +138,12 @@ export default function AdminManagement() {
     // Hiện tại, component con (StudentsTeachersTab) gọi openModal("add")
     // Chúng ta sẽ alert tạm vì logic 'Thêm' chưa có
     alert(
-      `Chức năng "Thêm ${type === "students" ? "Sinh Viên" : "Giảng Viên"
+      `Chức năng "Thêm ${
+        type === "students" ? "Sinh Viên" : "Giảng Viên"
       }" chưa được kết nối.`
     );
     // TODO: Mở một modal thêm mới ở đây
   };
-
   //tìm kiếm
   // 🧭 Hàm lọc sinh viên & giảng viên theo searchTerm
   const filteredStudents = students.filter(
@@ -190,10 +200,11 @@ export default function AdminManagement() {
       {/* 🔔 Toast thông báo */}
       {showToast && (
         <div
-          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${toastMessage.startsWith("✅")
-              ? "bg-green-500" // Bỏ animate-bounce cho đỡ khó chịu
-              : "bg-red-500" // Bỏ animate-shake
-            }`}
+          className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
+            toastMessage.startsWith("✅")
+              ? "bg-green-500 animate-bounce"
+              : "bg-red-500 animate-shake"
+          }`}
         >
           {toastMessage}
         </div>
@@ -283,4 +294,3 @@ export default function AdminManagement() {
     </div>
   );
 }
-
