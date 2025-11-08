@@ -16,11 +16,12 @@ import StudentsTeachersTab from "./Components/Pages/Admin/Features/StudentsTeach
 import Reports from "./Components/Pages/Admin/Features/Reports";
 import Dashboard from "./Components/Pages/Admin/Features/Dashboard";
 
-import ImportGroups from "./Components/Pages/Teacher/Features/ImportGroups";
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
 import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
-// import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
+import ClassStatistics from "./Components/Pages/Teacher/Features/ClassStatistics";
+import ManagerGroups from "./Components/Pages/Teacher/Features/ManagerGroups";
+import SubjectCrud from "./Components/Pages/Admin/Features/SubjectCRUD";
 
 function App() {
   return (
@@ -33,10 +34,7 @@ function App() {
             {/* Trang chủ sinh viên */}
             <Route path="/nckh-home" element={<StudentDashboard />} />
             {/* Trang import danh sách sinh viên */}
-            <Route
-              path="/nckh-import-class"
-              element={<ImportAndDetailStudents />}
-            />
+            <Route path="/nckh-classes" element={<ImportAndDetailStudents />} />
             {/* Trang đăng nhập */}
             <Route path="/nckh-login" element={<Login />} />
             {/* Trang profile */}
@@ -52,22 +50,22 @@ function App() {
               path="/nckh-teacher-scoringfeedback"
               element={<ScoringFeedback />}
             />
-            {/**Trang quản lý sinh viên và giảng viên trong admin*/}
-            {/* <Route path="/nckh-admin-students" element={<StudentsTeachersTab />} /> */}
-            {/**Trang quản lý báo cáo của sinh viên */}
-            {/* <Route path="/nckh-admin-reports" element={<Reports />} /> */}
-            {/**Trang quản lý thống kê */}
-            {/* <Route path="/nckh-admin-dashboard" element={<Dashboard />} /> */}
             {/* Trang không tồn tại */}
             <Route path="/nckh-404" element={<NotFoundPage />} />
-            {/* Trang import ds nhóm */}
-            <Route path="/nckh-import-group" element={<ImportGroups />} />
             {/* Trang import ds nhóm */}
             <Route path="/nckh-import-major" element={<MajorImportPage />} />
             {/* Trang xem các lớp đang dạy */}
             <Route path="/nckh-show-classes" element={<ClassShowManager />} />
-            {/* Tạo báo cáo */}
+            {/* Tạo môn học */}
+            <Route path="/nckh-subject" element={<SubjectCrud />} />
             <Route path="/nckh-create-report" element={<CreateReports />} />
+            {/* Tạo báo cáo */}
+            <Route
+              path="/nckh-class-stats/:classId"
+              element={<ClassStatistics />}
+            />
+            {/* Quản lý nhóm */}
+            <Route path="/nckh-teacher-groups" element={<ManagerGroups />} />
             /*===============================================END============================================
             */
           </Routes>

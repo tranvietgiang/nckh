@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import axios from "../../../../config/axios";
-import Navbar from "../../../ReUse/Navbar/Navbar";
+import AdminHeader from "../View/AdminHeader";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { getAuth } from "../../../Constants/INFO_USER";
@@ -11,6 +11,8 @@ import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
+
+import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
 
 export default function ImportAndDetailStudents() {
   const [students, setStudents] = useState([]);
@@ -26,17 +28,18 @@ export default function ImportAndDetailStudents() {
   const location = useLocation();
   const class_id = location.state?.class_id;
   const major_id = location.state?.major_id;
+  const role = user?.role;
   const typeView = location.state?.view;
   const teacher_id = location.state?.teacher_id;
   const name_class = location.state?.name_class;
   const checkPage = typeView === 1 ? true : false;
 
-  console.log(location);
   useEffect(() => {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
   }, [checkPage]);
 
   IsLogin(user, token);
+  RoleAdmin(role);
 
   // Hàm tìm kiếm
   const handleSearch = () => {
@@ -83,6 +86,7 @@ export default function ImportAndDetailStudents() {
     setFile(e.target.files[0]);
   };
 
+  console.log(class_id, major_id, teacher_id);
   // Upload và lấy danh sách
   const handleImport = async () => {
     if (!file) {
@@ -99,6 +103,7 @@ export default function ImportAndDetailStudents() {
     formData.append("class_id", class_id);
     formData.append("major_id", major_id);
     formData.append("teacher_id", String(teacher_id));
+
     try {
       // Gửi file tới Laravel API
       const res = await axios.post("/students/import", formData, {
@@ -111,7 +116,6 @@ export default function ImportAndDetailStudents() {
 
       if (failed > 0) {
         setStudentErrors(list_import_error);
-        setSafeJSON(`cache_student_import_error_${class_id}`, JSON.stringify());
       }
 
       alert(
@@ -140,36 +144,44 @@ export default function ImportAndDetailStudents() {
       setStudents([]);
       return;
     }
-    const data_students_current = getSafeJSON("data_students_current");
-    const total_student_current = getSafeJSON("total_student_current");
-    if (
-      Array.isArray(data_students_current) &&
-      data_students_current.length > 0
-    ) {
-      setStudents(data_students_current);
-    }
+    // const data_students_current = getSafeJSON(
+    //   `data_students_current_${class_id}_${teacher_id}_${major_id}`
+    // );
 
-    if (
-      typeof total_student_current === "number" &&
-      total_student_current > 0
-    ) {
-      setTotalStudent(total_student_current);
-    }
+    // const total_student_current = getSafeJSON(
+    //   `total_student_current_${class_id}_${teacher_id}_${major_id}`
+    // );
 
-    const get_student_error = getSafeJSON(
-      `student_import_error_${class_id}_${teacher_id}`
-    );
+    // if (
+    //   Array.isArray(data_students_current) &&
+    //   data_students_current.length > 0
+    // ) {
+    //   setStudents(data_students_current);
+    // }
 
-    if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
-      setStudentErrors(get_student_error);
-    }
+    // if (
+    //   typeof total_student_current === "number" &&
+    //   total_student_current > 0
+    // ) {
+    //   setTotalStudent(total_student_current);
+    // }
+
+    // const get_student_error = getSafeJSON(
+    //   `student_import_error_${class_id}_${teacher_id}_${major_id}`
+    // );
+
+    // if (Array.isArray(get_student_error) && get_student_error?.length > 0) {
+    //   setStudentErrors(get_student_error);
+    // }
 
     axios
-      .get(`/classes/${class_id}/teachers/${teacher_id}/student-errors`)
+      .get(
+        `/classes/${class_id}/teachers/${teacher_id}/major/${major_id}/student-errors`
+      )
       .then((res) => {
         setStudentErrors(res.data);
         setSafeJSON(
-          `student_import_error_${class_id}_${teacher_id}`,
+          `student_import_error_${class_id}_${teacher_id}_${major_id}`,
           JSON.stringify(res.data)
         );
       })
@@ -184,11 +196,11 @@ export default function ImportAndDetailStudents() {
         setStudents(res.data.list_student);
         setTotalStudent(res.data.total_student);
         setSafeJSON(
-          `data_students_current`,
+          `data_students_current_${class_id}_${teacher_id}_${major_id}`,
           JSON.stringify(res.data.list_student)
         );
         setSafeJSON(
-          "total_student_current",
+          `total_student_current_${class_id}_${teacher_id}_${major_id}`,
           JSON.stringify(res.data.totalStudent)
         );
       })
@@ -201,9 +213,34 @@ export default function ImportAndDetailStudents() {
     FetchDataStudentByClass();
   }, [class_id]);
 
+  const handleDeleteError = async () => {
+    const confirmDelete = window.confirm(
+      "Bạn có chắc muốn xóa toàn bộ lỗi của lớp này không?"
+    );
+    if (!confirmDelete) return;
+
+    try {
+      const res = await axios.delete(
+        `/student-errors/classes/${class_id}/teacher/${teacher_id}/major/${major_id}`
+      );
+
+      console.log(res.data);
+
+      if (res.data.status) {
+        alert("✅ Xóa lỗi thành công!");
+        window.location.reload();
+      } else {
+        alert("⚠️ Không thể xóa lỗi! Kiểm tra lại dữ liệu.");
+      }
+    } catch (error) {
+      alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      console.log("error", error);
+    }
+  };
+
   return (
     <>
-      <Navbar />
+      <AdminHeader />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -338,6 +375,16 @@ export default function ImportAndDetailStudents() {
               <h3 className="text-lg font-semibold text-red-700 mb-3">
                 ⚠️ Danh sách sinh viên bị trùng hoặc lỗi ({studentError.length})
               </h3>
+              <button
+                className={`p-1 w-[100px] mb-5 rounded-md text-white ${
+                  studentError.length > 0
+                    ? "bg-red-500 hover:bg-red-600 cursor-pointer"
+                    : "bg-gray-500 cursor-not-allowed"
+                }`}
+                onClick={() => handleDeleteError()}
+              >
+                Xóa lỗi
+              </button>
               <table className="min-w-full divide-y divide-red-200">
                 <thead className="bg-red-100">
                   <tr>

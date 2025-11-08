@@ -6,19 +6,22 @@ import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import axios from "../../../../config/axios";
-
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
   const [classes, setClasses] = useState([]); // ✅ thêm state lớp học
+  const [getNameMajor, setNameMajor] = useState({}); // ✅ thêm state lớp học
   const { user, token } = getAuth();
   const navigate = useNavigate();
 
-  RouterHome(user, token);
+  console.log(user);
+  IsLogin(user, token);
+  RoleTeacher(user?.role);
 
   useEffect(() => {
     document.title = "Trang teacher";
 
-    // ✅ Lấy danh sách lớp mà giảng viên đang dạy
     axios
       .get("/classes", {
         headers: { Authorization: `Bearer ${token}` },
@@ -45,10 +48,23 @@ export default function TeacherDashboard() {
       case "Tạo Thông Báo":
         setOpenNotification(true);
         break;
+      case "Quản lý nhóm":
+        navigate("/nckh-teacher-groups");
+        break;
       default:
         console.log("Chức năng khác");
     }
   };
+  useEffect(() => {
+    axios
+      .get(`/tvg/get-nameMajor/${user?.major_id}`)
+      .then((res) => {
+        setNameMajor(res.data);
+      })
+      .catch((eror) => {
+        console.log(eror);
+      });
+  }, []);
 
   const handleViewStats = (classId) => {
     navigate(`/nckh-class-stats/${classId}`); // ✅ điều hướng sang trang thống kê sinh viên
@@ -71,7 +87,9 @@ export default function TeacherDashboard() {
               👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
             </h2>
             <p className="text-gray-600">Mã GV: {user?.user_id}</p>
-            <p className="text-gray-600">Khoa: CNTT</p>
+            <p className="text-gray-600">
+              Khoa: {getNameMajor?.major_name || ""}
+            </p>
           </div>
           <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
             ✔ Hoạt động
@@ -81,9 +99,7 @@ export default function TeacherDashboard() {
         {/* Tổng quan */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <div className="bg-blue-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-blue-700">
-              {classes.length}
-            </p>
+            <p className="text-5xl font-bold text-blue-700">{classes.length}</p>
             <p className="mt-2 font-medium">Lớp học</p>
           </div>
           <div className="bg-yellow-100 p-4 rounded-xl text-center shadow-sm">
@@ -106,17 +122,21 @@ export default function TeacherDashboard() {
             ⚡ THAO TÁC NHANH
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {["Quản Lý Lớp", "Tạo Báo Cáo", "Chấm Điểm", "Tạo Thông Báo"].map(
-              (item, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleButtonClick(item)}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
-                >
-                  {item}
-                </button>
-              )
-            )}
+            {[
+              "Quản Lý Lớp",
+              "Tạo Báo Cáo",
+              "Chấm Điểm",
+              "Tạo Thông Báo",
+              "Quản lý nhóm",
+            ].map((item, i) => (
+              <button
+                key={i}
+                onClick={() => handleButtonClick(item)}
+                className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
+              >
+                {item}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -127,7 +147,9 @@ export default function TeacherDashboard() {
           </h3>
 
           {classes.length === 0 ? (
-            <p className="text-gray-500 italic">Chưa có lớp nào được phân công.</p>
+            <p className="text-gray-500 italic">
+              Chưa có lớp nào được phân công.
+            </p>
           ) : (
             <div className="space-y-4">
               {classes.map((cls) => (

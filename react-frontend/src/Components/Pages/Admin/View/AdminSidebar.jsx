@@ -25,7 +25,6 @@ export default function AdminSidebar({
     { id: "teachers", label: "Giảng Viên", icon: Users },
     { id: "reports", label: "Báo Cáo", icon: FileText },
     { id: "majors", label: "Ngành", icon: BookOpen },
-    { id: "notifications", label: "Thông Báo", icon: Bell },
     { id: "import", label: "Import Dữ Liệu", icon: FileText },
     { id: "settings", label: "Cài Đặt", icon: Settings },
   ];
@@ -70,7 +69,15 @@ export default function AdminSidebar({
           className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="w-5 h-5" />
-          <span>Đăng Xuất</span>
+          <span
+            onClick={() => {
+              navigate("/nckh-login");
+              localStorage.removeItem("user");
+              localStorage.removeItem("token");
+            }}
+          >
+            Đăng Xuất
+          </span>
         </button>
       </div>
     </aside>

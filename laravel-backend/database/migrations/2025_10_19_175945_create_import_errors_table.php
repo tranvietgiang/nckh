@@ -16,12 +16,32 @@ return new class extends Migration
             $table->string('user_id', 15)->nullable();
             $table->string('fullname', 50)->nullable();
             $table->string('email')->nullable();
-            $table->text('reason', 225)->nullable();
-            $table->foreignId('class_id')->constrained("classes", "class_id")->nullable();
+            $table->text('reason')->nullable();
+
+            // Phân loại lỗi (major, class, group, student, ...)
+            $table->string('typeError', 50)->nullable();
+
+            // Khóa ngoại lớp học
+            $table->unsignedBigInteger('class_id')->nullable();
+            $table->foreign('class_id')
+                ->references('class_id')
+                ->on('classes')
+                ->nullOnDelete();
+
+            // Khóa ngoại ngành học
+            $table->unsignedBigInteger('major_id')->nullable();
+            $table->foreign('major_id')
+                ->references('major_id')
+                ->on('majors')
+                ->nullOnDelete();
+
+            // Giảng viên
             $table->string('teacher_id', 15)->nullable();
             $table->foreign('teacher_id')
-                ->references('user_id')->on('users')
-                ->onDelete('set null');
+                ->references('user_id')
+                ->on('users')
+                ->nullOnDelete();
+
             $table->timestamps();
         });
     }

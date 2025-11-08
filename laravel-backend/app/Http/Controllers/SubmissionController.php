@@ -1,10 +1,12 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Report;
 use Illuminate\Http\Request;
 use App\Models\Submission;
 use Illuminate\Support\Facades\DB;
+
 class SubmissionController extends Controller
 {
     public function indes()
@@ -53,6 +55,4 @@ class SubmissionController extends Controller
             'data' => $submissions
         ]);
     }
-
-
 }

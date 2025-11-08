@@ -3,38 +3,61 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
+use App\Imports\MajorImport;
+use App\Models\Classe;
+use App\Models\ImportError;
 use App\Models\Major;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Services\MajorService;
 
 class MajorsController extends Controller
 {
-    //
+    // Service được inject tự động qua constructor
+    public function __construct(protected MajorService $majorService) {}
 
     public function getMajors()
     {
         AuthHelper::isLogin();
 
-        $getMajor = Major::select("majors.*", "user_profiles.*")
-            ->join("user_profiles", "majors.major_id", "=", "user_profiles.major_id")
-            ->join("users", "user_profiles.user_id", "=", "users.user_id")
-            ->where("users.role", "teacher")
-            ->get();
+        // 👇 Gọi hàm trong Service
+        $result = $this->majorService->getMajors();
 
-        if ($getMajor->count() > 0) {
-            return response()->json($getMajor);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json($result);
     }
 
-    // public function index()
-    // {
-    //     return response()->json(Major::all());
-    // }
+    public function getAllMajors()
+    {
+        $getMajor = Major::orderBy("major_name", "desc")->get();
+
+        if ($getMajor->count() > 0) {
+            return response()->json($getMajor, 200);
+        }
+
+        return response()->json(["message_error" => "Dữ dữ liệu"], 500);
+    }
 
     // 🔹 Thêm 1 ngành thủ công
+
+    public function getMajorsByClass($idTeacher)
+    {
+        AuthHelper::isLogin();
+
+        $getMajors = Classe::select("majors.*", "classes.teacher_id", "classes.major_id")
+            ->join("majors", "classes.major_id", "=", "majors.major_id")
+            ->distinct()
+            ->where("classes.teacher_id", $idTeacher)
+            ->get();
+
+
+        if ($getMajors->count() > 0) {
+            return response()->json($getMajors);
+        }
+
+        return response()->json(['message_error' => 'Không tìm ngành bạn dạy'], 404);
+    }
 
     public function store(Request $request)
     {
@@ -47,7 +70,7 @@ class MajorsController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => '✅ Thêm ngành thành công!',
+            'message' => ' Thêm ngành thành công!',
             'major' => $major
         ]);
     }
@@ -60,42 +83,59 @@ class MajorsController extends Controller
         }
 
         $file = $request->file('file');
-        $spreadsheet = IOFactory::load($file->getRealPath());
-        $sheet = $spreadsheet->getActiveSheet();
-        $rows = $sheet->toArray(null, true, true, true);
 
-        $success = 0;
-        $failed = 0;
-        $errors = [];
+        // Dùng class import chuyên biệt (đã tự lưu lỗi)
+        $import = new MajorImport();
+        Excel::import($import, $file);
 
-        foreach (array_slice($rows, 1) as $row) {
-            $name = trim($row['A']);
-            $abbr = trim($row['B']);
+        $list_import_error = ImportError::where("typeError", "major")->get();
 
-            if (!$name || !$abbr) {
-                $failed++;
-                continue;
-            }
-
-            if (Major::where('major_abbreviate', $abbr)->exists()) {
-                $failed++;
-                $errors[] = "Trùng mã ngành: {$abbr}";
-                continue;
-            }
-
-            Major::create([
-                'major_name' => $name,
-                'major_abbreviate' => $abbr,
+        if ($list_import_error->count() > 0) {
+            return response()->json([
+                'message' => 'Import hoàn tất!',
+                'total_major' => $import->totalMajors,
+                'success' => $import->success ?? 0,
+                'failed'  => $import->failed ?? 0,
+                'list_import_error' => $list_import_error,
             ]);
-            $success++;
         }
 
         return response()->json([
-            'success' => true,
-            'message' => '📥 Import hoàn tất!',
-            'total_success' => $success,
-            'total_failed' => $failed,
-            'errors' => $errors,
+            'message' => 'Import hoàn tất!',
+            'total_major' => $import->totalMajors,
+            'success' => $import->success ?? 0,
+            'failed'  => $import->failed ?? 0,
         ]);
+    }
+
+    public function deleteErrorMajorsImport()
+    {
+        AuthHelper::roleAmin();
+
+        $delete = ImportError::where("typeError", "major")->delete();
+
+        if (!$delete) {
+            return response()->json(["message_error" => "Xóa lỗi không thành công"], 500);
+        }
+    }
+
+    public function getErrorMajorsImport()
+    {
+        AuthHelper::roleAmin();
+
+        $get = ImportError::where("typeError", "major")->get();
+
+        if ($get->count() > 0) {
+            return response()->json($get, 200);
+        }
+
+        return response()->json(["message_error" => "Xóa lỗi không thành công"], 500);
+    }
+
+    public function getNameMajor($majorId)
+    {
+        $name = Major::where("major_id", $majorId)->first();
+
+        return response()->json($name);
     }
 }
