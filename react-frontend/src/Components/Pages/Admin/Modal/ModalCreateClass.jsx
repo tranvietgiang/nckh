@@ -123,6 +123,7 @@ export default function CreateClass({ stateOpen, onClose }) {
     const duplicate = classes.some(
       (cls) => cls.class_code?.toLowerCase() === class_code.toLowerCase()
     );
+
     if (duplicate) {
       alert("❌ Mã lớp đã tồn tại trong hệ thống!");
       return;
@@ -138,16 +139,17 @@ export default function CreateClass({ stateOpen, onClose }) {
       setLoading(true);
       const res = await axios.post("/create-classes", formData);
 
-      if (res.data?.status) {
-        alert("✅ Tạo lớp học thành công!");
-        onClose(false);
-        window.location.reload();
-      } else {
-        alert(`❌ ${res.data?.message_error || "Tạo lớp thất bại!"}`);
-      }
+      alert("✅ Tạo lớp học thành công!");
+      setClasses(res.data?.data_classes);
+      onClose(false);
+      window.location.reload();
     } catch (err) {
       console.log(err);
-      alert("⚠️ Lỗi kết nối đến máy chủ!");
+      if (err.response && err.response.data) {
+        alert(err.response.data.message_error);
+      } else {
+        alert("⚠️ Lỗi kết nối đến máy chủ!");
+      }
     } finally {
       setLoading(false);
     }

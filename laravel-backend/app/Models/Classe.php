@@ -42,7 +42,7 @@ class Classe extends Model
                 'user_profiles.fullname',
             )
             ->where('users.role', 'teacher')
-            ->orderBy('majors.major_name')
+            ->orderBy('classes.created_at', "desc")
             ->distinct()
             ->get();
 

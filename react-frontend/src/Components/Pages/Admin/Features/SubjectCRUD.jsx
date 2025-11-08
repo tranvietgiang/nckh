@@ -12,7 +12,7 @@ export default function SubjectImportPage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedMajorId, setSelectedMajorId] = useState(""); // ✅ chọn ngành
+  const [selectedMajorId, setSelectedMajorId] = useState("");
   const fileInputRef = useRef(null);
 
   // Load dữ liệu ban đầu
@@ -141,12 +141,12 @@ export default function SubjectImportPage() {
     return colors[index];
   };
 
-  // ✅ Lấy danh sách ngành duy nhất
+  //Lấy danh sách ngành duy nhất
   const majors = Array.from(
     new Map(subjects.map((s) => [s.major_id, s.major_name])).entries()
   ).map(([id, name]) => ({ id, name }));
 
-  // ✅ Lọc theo ngành được chọn
+  //Lọc theo ngành được chọn
   const filteredSubjects =
     selectedMajorId === ""
       ? subjects
@@ -375,7 +375,7 @@ export default function SubjectImportPage() {
           </div>
         </div>
 
-        {/* ✅ Modal thêm & sửa */}
+        {/*Modal thêm & sửa */}
         <ModalSubject stateOpen={openModalAdd} onClose={handleCloseAdd} />
         <ModalSubject
           stateOpen={openModalEdit}
