@@ -141,3 +141,6 @@ Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsCo
 
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [SubmissionFileController::class, 'checkSubmitted']);
+
+//import giang vien
+Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import']);

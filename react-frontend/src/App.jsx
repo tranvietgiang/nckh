@@ -15,6 +15,7 @@ import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback
 import StudentsTeachersTab from "./Components/Pages/Admin/Features/StudentsTeachersTab";
 import Reports from "./Components/Pages/Admin/Features/Reports";
 import Dashboard from "./Components/Pages/Admin/Features/Dashboard";
+import ImportTeacher from "./Components/Pages/Admin/Features/ImportTeacher";
 
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
@@ -45,6 +46,8 @@ function App() {
             <Route path="/nckh-class-manager" element={<ClassManager />} />
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            {/* Trang giảng viên */}
+            <Route path="/nckh-admin/import-teacher" element={<ImportTeacher />} />
             {/**Trang chấm điểm GV */}
             <Route
               path="/nckh-teacher-scoringfeedback"
