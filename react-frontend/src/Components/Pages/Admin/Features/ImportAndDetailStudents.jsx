@@ -226,14 +226,14 @@ export default function ImportAndDetailStudents() {
 
       console.log(res.data);
 
-      if (res.data.status) {
-        alert("✅ Xóa lỗi thành công!");
-        window.location.reload();
-      } else {
-        alert("⚠️ Không thể xóa lỗi! Kiểm tra lại dữ liệu.");
-      }
+      alert("✅ Xóa lỗi thành công!");
+      window.location.reload();
     } catch (error) {
-      alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      if (error.response && error.response.data) {
+        alert(`❌ ${error.response.data.message_error}`);
+      } else {
+        alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      }
       console.log("error", error);
     }
   };
