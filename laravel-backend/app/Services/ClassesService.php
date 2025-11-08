@@ -43,7 +43,7 @@ class ClassesService
 
     public function insertClassesService(array $data): array
     {
-        // 1️⃣ Validate dữ liệu đầu vào
+        // 1Validate dữ liệu đầu vào
         $validator = Validator::make($data, [
             'class_name'    => 'required|string|max:255',
             'class_code'    => 'required|string|max:50',
