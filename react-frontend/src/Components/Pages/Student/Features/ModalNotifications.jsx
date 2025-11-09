@@ -86,11 +86,11 @@ export default function ModelNotifications({ stateOpen, onClose }) {
                     <span className="font-semibold text-gray-700">
                       👨‍🏫 Giảng viên:
                     </span>{" "}
-                    {noti.teacher_name || "Không rõ"}
+                    {noti?.teacher_name ?? ""}
                   </p>
                   <p>
                     <span className="font-semibold text-gray-700">🏫 Lớp:</span>{" "}
-                    {noti.class_name || "Không rõ"}
+                    {noti?.class_name ?? ""}
                   </p>
                 </div>
 
