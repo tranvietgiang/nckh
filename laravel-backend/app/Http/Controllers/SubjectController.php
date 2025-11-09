@@ -122,4 +122,13 @@ class SubjectController extends Controller
             'failed' => 0
         ], 500);
     }
+    // search engine meilisearch
+    public function meilisearchSubjects(Request $r)
+    {
+        $q = trim($r->query('q', ''));
+        if ($q === '') return [];
+        // Có thể tăng limit nếu cần
+        // nếu muốn limit   take(200)->get();
+        return Subject::search($q)->get();
+    }
 }
