@@ -25,7 +25,7 @@ class AuthHelper
         return Auth::id();
     }
 
-    public static function roleAmin()
+    public static function getRole()
     {
         if (!Auth::check()) {
             // ❌ Nếu chưa đăng nhập → trả response lỗi
@@ -35,35 +35,52 @@ class AuthHelper
             ], 401);
         }
 
-        if (Auth::user()->role !== "admin") {
+        // ✅ Nếu đăng nhập hợp lệ → trả user_id
+        return Auth::user()->role;
+    }
 
-            return response()->json([
+
+    public static function roleAmin()
+    {
+        if (!Auth::check()) {
+            response()->json([
+                "status" => false,
+                "message_error" => "Vui lòng đăng nhập tài khoản!",
+            ], 401)->send();
+            exit;
+        }
+
+        if (Auth::user()->role !== "admin") {
+            response()->json([
                 "status" => false,
                 "message_error" => "Bạn không có quyền!",
-            ], 401);
+            ], 403)->send();
+            exit;
         }
-        // ✅ Nếu đăng nhập hợp lệ → trả user_id
+
+
         return true;
     }
+
 
     public static function roleTeacher()
     {
         if (!Auth::check()) {
-            // ❌ Nếu chưa đăng nhập → trả response lỗi
-            return response()->json([
+            response()->json([
                 "status" => false,
                 "message_error" => "Vui lòng đăng nhập tài khoản!",
-            ], 401);
+            ], 401)->send();
+            exit;
         }
 
         if (Auth::user()->role !== "teacher") {
-
-            return response()->json([
+            response()->json([
                 "status" => false,
                 "message_error" => "Bạn không có quyền!",
-            ], 401);
+            ], 403)->send();
+            exit;
         }
-        // ✅ Nếu đăng nhập hợp lệ → trả user_id
+
         return true;
     }
 }
