@@ -145,3 +145,5 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [Submiss
 
 //import giang vien
 Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import']);
+//import giang vien
+Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'deleteByClass']);

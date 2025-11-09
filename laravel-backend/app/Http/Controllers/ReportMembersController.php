@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Imports\GroupsImport;
+use App\Models\Classe;
 use App\Models\ImportError;
+use App\Models\Report;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -190,5 +192,28 @@ class ReportMembersController extends Controller
             Log::error('❌ Lỗi lấy nhóm trưởng: ' . $e->getMessage());
             return response()->json(['error' => '❌ Lỗi hệ thống'], 500);
         }
+    }
+    //tvg
+    public function deleteByClass(Request $request)
+    {
+        $classId = $request->input('class_id');
+        $teacherId = $request->input('teacher_id');
+
+        if (!$classId || !$teacherId) {
+            return response()->json(['success' => false, 'message_error' => 'Thiếu dữ liệu!'], 400);
+        }
+
+
+        $delete = report_member::select('reports.teacher_id')
+            ->join("reports", "report_members.report_id", "=", "reports.report_id")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->where("reports.class_id", $classId)
+            ->where("reports.teacher_id", $teacherId)->delete();
+
+        if ($delete > 0) {
+            return response()->json(['success' => true, 'message' => 'Đã xóa toàn bộ nhóm trong lớp.']);
+        }
+
+        return response()->json(['success' => false, 'message_error' => 'Không tìm thấy nhóm nào để xóa.']);
     }
 }
