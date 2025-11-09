@@ -28,5 +28,12 @@ class UserSeeder extends Seeder
                 'role' => $teacher['role'],
             ]);
         }
+
+        User::create([
+            'user_id' => '23211TT2222',
+            'email' => 'wedgiang@gmail.com',
+            'password' => Hash::make('23211TT2222'),
+            'role' => 'student',
+        ]);
     }
 }
