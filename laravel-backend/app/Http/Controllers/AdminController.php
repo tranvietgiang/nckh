@@ -19,10 +19,12 @@ class AdminController extends Controller
     /**
      * Lấy danh sách users
      */
-    public function getUser()
+    public function getAllUsers()
     {
-        return response()->json($this->adminService->getAllUsers());
+        $users = $this->adminService->getAllUsers();
+        return response()->json($users);
     }
+
 
     /**
      * Xóa user

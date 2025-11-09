@@ -1,3 +1,4 @@
+// AdminManagement.jsx
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ModalImport from "../Modal/ModalImport";
@@ -12,19 +13,21 @@ import Dashboard from "../Features/Dashboard";
 import StudentsTeachersTab from "../Features/StudentsTeachersTab";
 import ReportsManagement from "../Features/Reports";
 import MajorImportPage from "../Features/MajorImportPage";
+import ImportTeacher from "../Features/ImportTeacher"; // 👈 thêm dòng này
+
 
 export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
   const [students, setStudents] = useState([]);
+  const [teachers, setTeachers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeMenu, setActiveMenu] = useState("students");
   const [activeTab, setActiveTab] = useState("students");
-  const [teachers, setTeachers] = useState([]);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
-  const navigate = useNavigate();
   const [reports, setReports] = useState([]);
+  const navigate = useNavigate();
   const role = getRole();
   const { user, token } = getAuth();
 
@@ -80,7 +83,6 @@ export default function AdminManagement() {
     fetchReports();
   }, []);
 
-  // 🧭 Gọi API lấy danh sách user
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -95,25 +97,17 @@ export default function AdminManagement() {
     fetchData();
   }, []);
 
-  // khi người dùng bấm "Lưu" trên modal edit.
+
   const handleUpdateUser = async (updatedUser) => {
-    // updatedUser là object 'selectedUser' đầy đủ từ state của con
     const { user_id, ...data } = updatedUser;
-    if (data.password === "") {
-      delete data.password;
-    }
+    if (data.password === "") delete data.password;
 
     try {
-      // 1. Gọi API
       const res = await axios.put(`/nhhh/update/${user_id}`, data);
-
-      // 2. 🔔 Dùng Toast (thay vì alert)
       setToastMessage(res.data.message || "✅ Cập nhật thành công!");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
 
-      // 3. 🔄 Cập nhật lại state ở cha (RẤT QUAN TRỌNG)
-      //    Điều này giúp table tự động refresh dữ liệu mới
       if (updatedUser.role === "student") {
         setStudents((prev) =>
           prev.map((s) => (s.user_id === user_id ? { ...s, ...data } : s))
@@ -125,27 +119,20 @@ export default function AdminManagement() {
       }
     } catch (error) {
       console.error("❌ Lỗi khi cập nhật:", error);
-      // 🔔 Dùng Toast cho lỗi
       setToastMessage(error.response?.data?.message || "❌ Cập nhật thất bại!");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     }
   };
 
-  // 🧩 Hàm này để mở modal "Thêm"
-  // 🧩 (Logic thêm mới sẽ cần được xây dựng ở đây)
+  // ⚡ Khi bấm “Thêm SV/GV” → chuyển sang trang import tương ứng
   const openAddModal = (type) => {
-    // Hiện tại, component con (StudentsTeachersTab) gọi openModal("add")
-    // Chúng ta sẽ alert tạm vì logic 'Thêm' chưa có
-    alert(
-      `Chức năng "Thêm ${
-        type === "students" ? "Sinh Viên" : "Giảng Viên"
-      }" chưa được kết nối.`
-    );
-    // TODO: Mở một modal thêm mới ở đây
+    if (type === "students") navigate("/nckh-admin/import-student");
+    else navigate("/nckh-admin/import-teacher");
   };
-  //tìm kiếm
-  // 🧭 Hàm lọc sinh viên & giảng viên theo searchTerm
+  
+
+  // tìm kiếm
   const filteredStudents = students.filter(
     (s) =>
       s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -162,7 +149,6 @@ export default function AdminManagement() {
       t.user_id?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  /** Sidebar button click → điều hướng */
   const handleButtonClick = (buttonName) => {
     switch (buttonName) {
       case "Trang Chủ":
@@ -190,40 +176,36 @@ export default function AdminManagement() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex">
-      {/* Nền mờ khi mở sidebar trên mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-40 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
-      {/* 🔔 Toast thông báo */}
+
       {showToast && (
         <div
           className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
             toastMessage.startsWith("✅")
               ? "bg-green-500 animate-bounce"
-              : "bg-red-500 animate-shake"
+              : "bg-red-500 animate-shake",
+            toastMessage.startsWith("✅") ? "bg-green-500" : "bg-red-500"
           }`}
         >
           {toastMessage}
         </div>
       )}
 
-      {/* Sidebar trái */}
       <AdminSidebar
         sidebarOpen={sidebarOpen}
         setSidebarOpen={setSidebarOpen}
         handleButtonClick={handleButtonClick}
       />
 
-      {/* Phần nội dung chính */}
       <main className="flex-1 flex flex-col min-h-screen">
-        {/* ✅ Gọi lại AdminHeader và truyền đúng props */}
         <AdminHeader setSidebarOpen={setSidebarOpen} />
 
         <div className="p-6">
-          {/* ⚡ Nội dung thay đổi theo route */}
           <Routes>
             <Route
               path="/"
@@ -246,17 +228,16 @@ export default function AdminManagement() {
                   setActiveTab={setActiveTab}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  openModal={() => openAddModal("students")} // 💡 Sửa: Đây là nút "Thêm"
+                  openModal={() => openAddModal("students")}
                   showToast={showToast}
                   toastMessage={toastMessage}
                   filteredStudents={filteredStudents}
                   filteredTeachers={[]}
                   handleDelete={(id) => handleDelete(id, "student")}
-                  handleUpdateUser={handleUpdateUser} // 🧩 Thêm: Truyền hàm update vào đúng prop
+                  handleUpdateUser={handleUpdateUser}
                 />
               }
             />
-
             <Route
               path="teachers"
               element={
@@ -267,29 +248,24 @@ export default function AdminManagement() {
                   setActiveTab={setActiveTab}
                   searchTerm={searchTerm}
                   setSearchTerm={setSearchTerm}
-                  openModal={() => openAddModal("teachers")} // 💡 Sửa: Đây là nút "Thêm"
+                  openModal={() => openAddModal("teachers")}
                   showToast={showToast}
                   toastMessage={toastMessage}
                   filteredStudents={[]}
                   filteredTeachers={filteredTeachers}
-                  handleDelete={(id) => handleDelete(id, "teacher")} // 💡 Sửa lỗi typo: "teachers" -> "teacher"
-                  handleUpdateUser={handleUpdateUser} // 🧩 Thêm: Truyền hàm update vào đúng prop
+                  handleDelete={(id) => handleDelete(id, "teacher")}
+                  handleUpdateUser={handleUpdateUser}
                 />
               }
             />
-
-            {/* 👇 Route cho Báo cáo */}
-            <Route
-              path="reports"
-              element={<ReportsManagement reports={reports} />}
-            />
-
+            <Route path="reports" element={<ReportsManagement reports={reports} />} />
             <Route path="majors" element={<MajorImportPage />} />
+            {/* 👇 Thêm route mới cho import */}
+            <Route path="import-teacher" element={<ImportTeacher />} />
           </Routes>
         </div>
       </main>
 
-      {/* Modal Import */}
       <ModalImport stateOpen={openImports} onClose={setOpenImports} />
     </div>
   );
