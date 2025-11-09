@@ -5,13 +5,19 @@ namespace App\Http\Controllers;
 use App\Helpers\AuthHelper;
 use App\Models\Classe;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use App\Imports\TeacherImport;
 use App\Models\user_profile;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use App\Services\TeacherService;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 class TeacherController extends Controller
 {
-    //
+    protected $service;
+
 
     public function getAllTeacher(Request $req)
     {
@@ -116,4 +122,33 @@ class TeacherController extends Controller
             'students' => $students,
         ]);
     }
+
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        try {
+            $import = new TeacherImport();
+            $result = Excel::toCollection($import, $request->file('file'));
+
+            // $result[0] là collection của sheet đầu tiên
+            $data = $import->collection($result[0]);
+
+            return response()->json([
+                'message' => $data['failed'] === 0 ? '✅ Import hoàn tất!' : '⚠️ Import có lỗi!',
+                'total' => $data['total'],
+                'success' => $data['success'],
+                'failed' => $data['failed'],
+                'errors' => $data['errors'],
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => '❌ Lỗi import: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

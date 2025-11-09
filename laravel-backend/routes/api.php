@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum')->get('/profiles', [StudentController::class, '
 
 Route::middleware('auth:sanctum')->group(function () {
     // Lấy danh sách user
-    Route::get('/nhhh/users', [AdminController::class, 'getUser']);
+    Route::get('/nhhh/users', [AdminController::class, 'getAllUsers']);
 
     // Xóa user
     Route::delete('/nhhh/delete/{user_id}', [AdminController::class, 'destroy']);
@@ -124,6 +124,7 @@ Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsCo
 //get lấy report đã nộp của sinh viên
 Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [SubmissionFileController::class, 'checkSubmitted']);
 
+
 //subject
 Route::middleware('auth:sanctum')->get('/get-subjects', [SubjectController::class, 'indexSubject']);
 Route::middleware('auth:sanctum')->get('/get-subjects-majors/{idMajor}', [SubjectController::class, 'getSubjectByMajor']);
@@ -135,3 +136,12 @@ Route::middleware('auth:sanctum')->post('/subjects/import', [SubjectController::
 Route::middleware('auth:sanctum')->get('/subjects/import-error', [ErrorsImportController::class, 'importErrSubject']);
 Route::middleware('auth:sanctum')->delete('/subject/import-errors', [ErrorsImportController::class, 'clearImportErrorsSubject']);
 Route::middleware('auth:sanctum')->get('/get-teacher-by-major', [TeacherController::class, 'getAllTeacher']);
+
+//get lấy name major
+Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
+
+//get lấy name major
+Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [SubmissionFileController::class, 'checkSubmitted']);
+
+//import giang vien
+Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import']);
