@@ -6,48 +6,47 @@ use App\Helpers\AuthHelper;
 use App\Models\ImportError;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ErrorImportService;
 
 class ErrorsImportController extends Controller
 {
     //
+    public function __construct(protected ErrorImportService $errorImportService) {}
+
     public function getStudentErrors($class_id, $teacherId, $major_id)
     {
         AuthHelper::isLogin();
 
-        if (!$class_id || !$teacherId || !$major_id) {
-            return response()->json(["message_error" => "Dữ liễu sai"], 402);
+        $result = $this->errorImportService->getStudentErrors([
+            'class_id'   => $class_id,
+            'teacher_id' => $teacherId,
+            'major_id'   => $major_id,
+        ]);
+
+        if ($result['success']) {
+            return response()->json($result['data'], 200);
         }
 
-        $list_import_error = ImportError::where('class_id', $class_id)
-            ->where('teacher_id', $teacherId)
-            ->where('major_id', $major_id)
-            ->where("typeError", 'student')
-            ->get();
-
-        if ($list_import_error->count() > 0) {
-            return response()->json($list_import_error, 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json(['message_error' => $result['message']], 500);
     }
 
-    public function deleteByClass($class_id, $teacherId, $major_id)
+
+    public function deleteErrorImportStudent($class_id, $teacherId, $major_id)
     {
         AuthHelper::isLogin();
+        AuthHelper::roleAmin();
 
-        if (!$class_id || !$teacherId || !$major_id) {
-            return response()->json(["message_error" => "Dữ liễu sai"], 402);
+        $result = $this->errorImportService->deleteErrorImportStudent([
+            'class_id'   => $class_id,
+            'teacher_id' => $teacherId,
+            'major_id'   => $major_id,
+        ]);
+
+        if ($result['success']) {
+            return response()->json([], 200);
         }
 
-        $delete = ImportError::where('class_id', $class_id)
-            ->where('teacher_id', $teacherId)
-            ->where('major_id', $major_id)->delete();
-
-        if ($delete) {
-            return response()->json(["status" => true], 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json(['message_error' => $result['message']], 500);
     }
 
     public function deleteGroupErrors(Request $request)
@@ -79,5 +78,35 @@ class ErrorsImportController extends Controller
         }
 
         return response()->json(['message_error' => 'Lỗi server!']);
+    }
+    public function importErrSubject()
+    {
+        try {
+            $errors = ImportError::where('typeError', 'subject')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            if ($errors->isEmpty()) {
+                return response()->json([
+                    'message' => 'Không có lỗi import nào.'
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $errors
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message_error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function clearImportErrorsSubject()
+    {
+        ImportError::where('typeError', 'subject')->delete();
+        return response()->json(['message' => 'Đã xóa toàn bộ lỗi import môn học'], 200);
     }
 }

@@ -37,9 +37,14 @@ export default function ProfilePage() {
 
     try {
       const res = await axios.get("/profiles");
-      setProfile(res.data);
+      if (role === "teacher") {
+        setProfile(res.data);
+        setSafeJSON("user_profiles", JSON.stringify(res.data));
+      } else {
+        setProfile(res.data[0]);
+        setSafeJSON("user_profiles", JSON.stringify(res.data[0]));
+      }
       console.log(res.data);
-      setSafeJSON("user_profiles", JSON.stringify(res.data));
     } catch (error) {
       console.log(error);
     }
@@ -59,19 +64,11 @@ export default function ProfilePage() {
     }
 
     try {
-      const res = await axios.post(
-        "/change-password", // ✅ API đổi mật khẩu trong Laravel
-        {
-          current_password: currentPassword,
-          new_password: newPassword,
-          new_password_confirmation: confirmPassword,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // ✅ Token Sanctum
-          },
-        }
-      );
+      const res = await axios.post("/change-password", {
+        current_password: currentPassword,
+        new_password: newPassword,
+        new_password_confirmation: confirmPassword,
+      });
 
       alert("✅ " + res.data.message);
 
@@ -143,8 +140,8 @@ export default function ProfilePage() {
                         <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
                           {role === "student" ? (
                             <span>{getProfile?.major_name ?? "lỗi"}</span>
-                          ) : getProfile?.major?.length > 0 ? (
-                            getProfile.major.map((cls, index) => (
+                          ) : getProfile?.majors?.length > 0 ? (
+                            getProfile.majors.map((cls, index) => (
                               <p key={index} className="mb-1">
                                 {cls}
                               </p>
@@ -160,7 +157,7 @@ export default function ProfilePage() {
                         </label>
                         <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
                           {role === "student" ? (
-                            <span>{getProfile?.class_name}</span>
+                            <span>{getProfile?.class_student}</span>
                           ) : getProfile?.classes?.length > 0 ? (
                             getProfile.classes.map((cls, index) => (
                               <p key={index} className="mb-1">

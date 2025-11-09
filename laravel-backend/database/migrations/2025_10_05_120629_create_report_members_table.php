@@ -17,7 +17,8 @@ return new class extends Migration
             $table->enum('report_m_role', ['NT', 'NP', 'TV'])->comment('vai trò trong nhóm');
             $table->integer("rm_code");
             $table->foreignId("report_id")->constrained("reports", "report_id")->onDelete("cascade");
-            $table->string("student_id", 15)->unique();
+            $table->string('student_id');
+            $table->unique(['student_id', 'report_id']); // mỗi sinh viên chỉ có 1 nhóm trong cùng report
             $table->foreign('student_id')->references('user_id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });

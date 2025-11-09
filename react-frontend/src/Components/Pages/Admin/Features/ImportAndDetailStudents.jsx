@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import axios from "../../../../config/axios";
-import Navbar from "../../../ReUse/Navbar/Navbar";
+import AdminHeader from "../View/AdminHeader";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { getAuth } from "../../../Constants/INFO_USER";
@@ -13,7 +13,6 @@ import {
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
-import { CloudFog } from "lucide-react";
 
 export default function ImportAndDetailStudents() {
   const [students, setStudents] = useState([]);
@@ -35,14 +34,12 @@ export default function ImportAndDetailStudents() {
   const name_class = location.state?.name_class;
   const checkPage = typeView === 1 ? true : false;
 
-  console.log(location);
   useEffect(() => {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
   }, [checkPage]);
 
-  RoleAdmin(role);
-
   IsLogin(user, token);
+  RoleAdmin(role);
 
   // Hàm tìm kiếm
   const handleSearch = () => {
@@ -89,6 +86,7 @@ export default function ImportAndDetailStudents() {
     setFile(e.target.files[0]);
   };
 
+  console.log(class_id, major_id, teacher_id);
   // Upload và lấy danh sách
   const handleImport = async () => {
     if (!file) {
@@ -228,21 +226,21 @@ export default function ImportAndDetailStudents() {
 
       console.log(res.data);
 
-      if (res.data.status) {
-        alert("✅ Xóa lỗi thành công!");
-        window.location.reload();
-      } else {
-        alert("⚠️ Không thể xóa lỗi! Kiểm tra lại dữ liệu.");
-      }
+      alert("✅ Xóa lỗi thành công!");
+      window.location.reload();
     } catch (error) {
-      alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      if (error.response && error.response.data) {
+        alert(`❌ ${error.response.data.message_error}`);
+      } else {
+        alert("❌ Lỗi server. Vui lòng thử lại sau!");
+      }
       console.log("error", error);
     }
   };
 
   return (
     <>
-      <Navbar />
+      <AdminHeader />
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
           {/* Header */}

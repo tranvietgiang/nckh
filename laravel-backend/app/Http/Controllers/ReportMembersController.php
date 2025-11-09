@@ -11,6 +11,7 @@ use App\Imports\GroupsImport;
 use App\Models\ImportError;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class ReportMembersController extends Controller
 {
@@ -18,9 +19,15 @@ class ReportMembersController extends Controller
     public function getClassBbyMajorGroup($classId, $majorId)
     {
         AuthHelper::isLogin();
+
         $groups = report_member::from('report_members as rm')
             ->join('reports as r', 'rm.report_id', '=', 'r.report_id')
-            ->join('user_profiles as up', 'rm.student_id', '=', 'up.user_id')
+            // 🧠 JOIN có điều kiện: chỉ lấy user_profile đúng class và major
+            ->join('user_profiles as up', function ($join) use ($classId, $majorId) {
+                $join->on('up.user_id', '=', 'rm.student_id')
+                    ->where('up.class_id', '=', $classId)
+                    ->where('up.major_id', '=', $majorId);
+            })
             ->where('r.class_id', $classId)
             ->where('up.major_id', $majorId)
             ->select([
@@ -29,22 +36,30 @@ class ReportMembersController extends Controller
                 'r.report_name as report_name_group',
                 'rm.rm_name',
                 'up.fullname as leader_name',
-                DB::raw('(select count(*) from report_members rm2 where rm2.report_id = rm.report_id and rm2.rm_code = rm.rm_code) as member_count'),
-                DB::raw('(select count(*) from report_members rm3 where rm3.report_id = rm.report_id and rm3.rm_code = rm.rm_code and rm3.report_m_role = "NP") as deputy_count'),
+                DB::raw('(SELECT COUNT(*) 
+                      FROM report_members rm2 
+                      WHERE rm2.report_id = rm.report_id 
+                        AND rm2.rm_code = rm.rm_code) AS member_count'),
+                DB::raw('(SELECT COUNT(*) 
+                      FROM report_members rm3 
+                      WHERE rm3.report_id = rm.report_id 
+                        AND rm3.rm_code = rm.rm_code 
+                        AND rm3.report_m_role = "NP") AS deputy_count'),
                 'rm.created_at',
             ])
-            ->where('rm.report_m_role', 'NT') // chỉ lấy dòng leader làm đại diện
-            ->orderBy('rm.report_id')->orderBy('rm.rm_code')
+            ->distinct()
+            ->where('rm.report_m_role', 'NT') // chỉ lấy trưởng nhóm đại diện
+            ->orderBy('rm.report_id')
+            ->orderBy('rm.rm_code')
             ->get();
-
-
 
         if ($groups->count() > 0) {
             return response()->json($groups, 200);
         }
 
-        return response()->json(["message_error" => "server lỗi!"], 200);
+        return response()->json(["message_error" => "Không có nhóm nào trong lớp này!"], 200);
     }
+
 
     public function importGroups(Request $request)
     {
@@ -135,5 +150,45 @@ class ReportMembersController extends Controller
         }
 
         return response()->json(["message_error" => "server lỗi!"], 500);
+    }
+
+
+    //tvg
+    public function getLeaderGroup()
+    {
+        $userId = AuthHelper::isLogin();
+
+        $checkLeader = report_member::where('student_id', $userId)
+            ->first();
+
+        if ($checkLeader) {
+            return response()->json($checkLeader, 200);
+        }
+        return response()->json([], 204);
+    }
+
+    //tvg
+    public function getStudentLeader($rm_code, $classId)
+    {
+        try {
+            AuthHelper::isLogin();
+
+            $groupLeader = report_member::select()
+                ->join("reports", "report_members.report_id", "=", "reports.report_id")
+                ->join("classes", "reports.class_id", "=", "classes.class_id")
+                ->where('rm_code', $rm_code)
+                ->where('reports.class_id', $classId)
+                // ->where("report_m_role", "NT")
+                ->get();
+
+            if ($groupLeader) {
+                return response()->json($groupLeader, 200);
+            }
+
+            return response()->json(['message' => 'Không tìm thấy nhóm trưởng'], 404);
+        } catch (\Exception $e) {
+            Log::error('❌ Lỗi lấy nhóm trưởng: ' . $e->getMessage());
+            return response()->json(['error' => '❌ Lỗi hệ thống'], 500);
+        }
     }
 }

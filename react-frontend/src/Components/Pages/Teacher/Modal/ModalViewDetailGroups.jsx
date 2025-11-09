@@ -90,10 +90,7 @@ export default function ModalViewDetailGroups({
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {getMemberOfGroup?.map((g, idx) => (
-                  <tr
-                    key={g.rm_code ?? g.report_member_idx ?? idx}
-                    className="hover:bg-gray-50"
-                  >
+                  <tr key={g.rm_code ?? ""} className="hover:bg-gray-50">
                     <td className="px-6 py-3">{idx + 1}</td>
                     <td className="px-6 py-3">{g?.tv || "—"}</td>
                     <td className="px-6 py-3">{g?.msv || "—"}</td>

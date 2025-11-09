@@ -2,81 +2,34 @@
 
 namespace Database\Seeders;
 
-use App\Models\report_member;
 use Illuminate\Database\Seeder;
-use App\Models\ReportMember;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class ReportMemberSeeder extends Seeder
 {
     public function run(): void
     {
-        // Nhóm 1
-        // report_member::create([
-        //     'rm_name' => 'Nhóm A',
-        //     'report_id' => 1,
-        //     'report_m_role' => 'NT',
-        //     'student_id' => '23211TT1404',
-        //     'rm_code' => 1
-        // ]);
+        $reports = DB::table('reports')->get();
+        $students = DB::table('users')->where('role', 'student')->get();
+        $reportMembers = [];
 
-        report_member::create([
-            'rm_name' => 'Nhóm A',
-            'report_id' => 1,
-            'report_m_role' => 'TV',
-            'student_id' => '23211TT0068',
-            'rm_code' => 1
-        ]);
+        foreach ($reports as $report) {
+            // Lấy ngẫu nhiên 3 sinh viên
+            $selectedStudents = $students->random(min(3, $students->count()));
 
-        // report_member::create([
-        //     'rm_name' => 'Nhóm A',
-        //     'report_id' => 1,
-        //     'report_m_role' => 'TV',
-        //     'student_id' => '22211TT2666',
-        //     'rm_code' => 1
-        // ]);
+            foreach ($selectedStudents as $index => $student) {
+                $reportMembers[] = [
+                    'report_id'     => $report->report_id,
+                    'student_id'    => $student->user_id,
+                    'report_m_role' => $index === 0 ? 'NT' : 'TV', // NT = Nhóm trưởng, TV = Thành viên
+                    'rm_code'       => 'RM-' . strtoupper(uniqid()),
+                    'created_at'    => Carbon::now(),
+                    'updated_at'    => Carbon::now(),
+                ];
+            }
+        }
 
-        // Nhóm 2
-        report_member::create([
-            'rm_name' => 'Nhóm B',
-            'report_id' => 1,
-            'report_m_role' => 'NT',
-            'student_id' => '23211TT0403',
-            'rm_code' => 2
-        ]);
-
-        report_member::create([
-            'rm_name' => 'Nhóm B',
-            'report_id' => 1,
-            'report_m_role' => 'TV',
-            'student_id' => '22211TT4827',
-            'rm_code' => 2
-        ]);
-
-        // Nhóm 3
-        report_member::create([
-            'rm_name' => 'Nhóm C',
-            'report_id' => 1,
-            'report_m_role' => 'NT',
-            'student_id' => '23211TT4312',
-            'rm_code' => 3
-        ]);
-
-        // Nhóm 4
-        report_member::create([
-            'rm_name' => 'Nhóm D',
-            'report_id' => 1,
-            'report_m_role' => 'NT',
-            'student_id' => '21211TT3802',
-            'rm_code' => 4
-        ]);
-
-        // Nhóm 5
-        report_member::create([
-            'rm_name' => 'Nhóm E',
-            'report_id' => 1,
-            'report_m_role' => 'NT',
-            'student_id' => '23211TT2984',
-            'rm_code' => 5
-        ]);
+        DB::table('report_members')->insert($reportMembers);
     }
 }
