@@ -147,3 +147,5 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [Submiss
 Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import']);
 //import giang vien
 Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'deleteByClass']);
+//search engine meilisearch subject
+Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']);

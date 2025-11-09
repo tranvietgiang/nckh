@@ -14,6 +14,59 @@ export default function SubjectImportPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedMajorId, setSelectedMajorId] = useState("");
   const fileInputRef = useRef(null);
+  const [q, setQ] = useState("");
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const timerRef = useRef(null);
+
+  // gõ để tìm (debounce) + Enter để tìm ngay ========= search engine
+  const runSearch = async (value) => {
+    if (!value.trim()) {
+      setSearchRows([]); // xoá tìm kiếm => về dữ liệu gốc
+      return;
+    }
+    setLoadingSearch(true);
+    try {
+      const res = await axios.get(
+        `/search/subjects?q=${encodeURIComponent(value)}`
+      );
+      setSearchRows(res.data || []);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+  const onChange = (e) => {
+    const v = e.target.value;
+    setQ(v);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => runSearch(v), 300);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(q); // Enter => tìm ngay
+    } else if (e.key === "Escape") {
+      setQ("");
+      setSearchRows([]);
+    }
+  };
+
+  /* tập hợp danh sách ngành từ “dữ liệu đang hiển thị” để lọc hợp lý
+  Nếu ô tìm kiếm q có ký tự (sau khi trim) → dùng kết quả tìm kiếm (searchRows).
+  Nếu ô tìm kiếm rỗng → dùng toàn bộ danh sách (subjects).
+  */
+
+  const baseRows = q.trim() ? searchRows : subjects;
+  const filteredByMajor =
+    selectedMajorId === ""
+      ? baseRows
+      : baseRows.filter((s) => String(s.major_id) === String(selectedMajorId));
+
+  // displayedSubjects là dữ liệu hiển thị trong bảng
+  const displayedSubjects = filteredByMajor;
+  //  ========= search engine
 
   // Load dữ liệu ban đầu
   useEffect(() => {
@@ -282,6 +335,44 @@ export default function SubjectImportPage() {
                 )}
               </div>
             </div>
+            {/** search engine-meilisearch */}
+            <div className="w-full max-w-xl flex items-center gap-2">
+              <input
+                value={q}
+                onChange={onChange}
+                onKeyDown={onKeyDown}
+                placeholder="Tìm môn học (tên, mã)…"
+                className="w-full border rounded px-3 py-2"
+              />
+              {q && (
+                <button
+                  onClick={() => {
+                    setQ("");
+                    setSearchRows([]);
+                  }}
+                  className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  title="Xoá tìm kiếm"
+                >
+                  ✖
+                </button>
+              )}
+            </div>
+
+            {/* Badge thống kê */}
+            <div className="mt-2 text-sm text-gray-600">
+              {loadingSearch ? (
+                "🔎 Đang tìm…"
+              ) : q.trim() ? (
+                <>
+                  Kết quả tìm: <b>{displayedSubjects.length}</b> môn học (từ
+                  khoá: “{q}”)
+                </>
+              ) : (
+                <>
+                  Tổng: <b>{subjects.length}</b> môn học
+                </>
+              )}
+            </div>
 
             {/* Bảng */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -321,7 +412,7 @@ export default function SubjectImportPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200 text-sm">
-                      {filteredSubjects.map((s) => (
+                      {displayedSubjects.map((s) => (
                         <tr key={s.subject_id} className="hover:bg-gray-50">
                           <td className="p-2 text-center font-semibold text-gray-900">
                             {s.subject_id}
