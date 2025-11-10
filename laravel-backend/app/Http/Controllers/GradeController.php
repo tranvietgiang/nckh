@@ -102,16 +102,18 @@ class GradeController extends Controller
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->where('submissions.student_id', $userId)
             ->selectRaw('
-            grades.grade_id                                                     AS id,
-            subjects.subject_name                                               AS subject,
-            DATE_FORMAT(COALESCE(submissions.submission_time, submissions.created_at), "%e/%c/%Y") AS submittedDate,
-            CONCAT(COALESCE(grades.score, 0), "/10")                            AS score,
-            "💬 Đã nộp"                                                         AS status,
-            YEAR(COALESCE(submissions.submission_time, submissions.created_at)) AS year
-        ')
-            ->orderByDesc(DB::raw('COALESCE(submissions.submission_time, submissions.created_at)'))
+        grades.grade_id                                                     AS id,
+        subjects.subject_name                                               AS subject,
+        DATE_FORMAT(COALESCE(submissions.submission_time, submissions.created_at), "%e/%c/%Y") AS submittedDate,
+        COALESCE(submissions.submission_time, submissions.created_at)       AS order_date,
+        CONCAT(COALESCE(grades.score, 0), "/10")                            AS score,
+        "💬 Đã nộp"                                                         AS status,
+        YEAR(COALESCE(submissions.submission_time, submissions.created_at)) AS year
+    ')
+            ->orderByDesc('order_date') // dùng alias đã chọn ở trên
             ->distinct()
             ->get();
+
 
         return response()->json($rows, 200);
     }
