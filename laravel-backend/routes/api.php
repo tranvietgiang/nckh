@@ -93,8 +93,11 @@ Route::middleware('auth:sanctum')->post('/change-password', [UserController::cla
 //  tạo báo cáo
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
 
-Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
+// Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
+
+// cả
+//
 
 Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::class, 'getMajors']);
 
@@ -135,3 +138,15 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/{studentIdLeader}/su
 Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
 //get lấy studentId leader
 Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);
+
+// cả
+
+
+Route::middleware('auth:sanctum')->post('/majors/store', [MajorsController::class, 'store']);
+
+  
+    Route::post('/majors', [MajorsController::class, 'store']);
+    // ✏️ Cập nhật
+    Route::put('/majors/update/{id}', [MajorsController::class, 'update']);
+    // 🗑️ Xóa
+    Route::delete('/majors/{major_id}', [MajorsController::class, 'destroy']);

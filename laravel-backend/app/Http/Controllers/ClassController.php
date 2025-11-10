@@ -156,31 +156,31 @@ class ClassController extends Controller
         return response()->json($result, $result['success'] ? 200 : 400);
     }
 
-    public function getClassOfTeacher($selectedMajor)
-    {
-        $useId = AuthHelper::isLogin();
+    // public function getClassOfTeacher($selectedMajor)
+    // {
+    //     $useId = AuthHelper::isLogin();
 
-        $getClasses = Classe::query()
-            ->select(
-                'classes.class_id as class_id_teacher',
-                'classes.class_name',
-                'majors.major_id',
-                'majors.major_name',
-                'majors.major_abbreviate'
-            )
-            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
-            ->where('classes.teacher_id', $useId)
-            ->where('classes.major_id', $selectedMajor)
-            ->groupBy('classes.class_id', 'classes.class_name', 'majors.major_id', 'majors.major_name', 'majors.major_abbreviate')
-            ->get();
+    //     $getClasses = Classe::query()
+    //         ->select(
+    //             'classes.class_id as class_id_teacher',
+    //             'classes.class_name',
+    //             'majors.major_id',
+    //             'majors.major_name',
+    //             'majors.major_abbreviate'
+    //         )
+    //         ->join('majors', 'classes.major_id', '=', 'majors.major_id')
+    //         ->where('classes.teacher_id', $useId)
+    //         ->where('classes.major_id', $selectedMajor)
+    //         ->groupBy('classes.class_id', 'classes.class_name', 'majors.major_id', 'majors.major_name', 'majors.major_abbreviate')
+    //         ->get();
 
 
-        if ($getClasses->count() > 0) {
-            return response()->json($getClasses);
-        }
+    //     if ($getClasses->count() > 0) {
+    //         return response()->json($getClasses);
+    //     }
 
-        return response()->json(['message' => 'Không tìm thấy lớp'], 404);
-    }
+    //     return response()->json(['message' => 'Không tìm thấy lớp'], 404);
+    // }
 
     // public function getClassGroups($majorId)
     // {
