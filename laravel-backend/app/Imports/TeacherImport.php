@@ -19,6 +19,7 @@ class TeacherImport implements ToCollection, WithHeadingRow
     public $success = 0;
     public $failed = 0;
     public $errors = [];
+    public $successList = []; // ✅ NÊN dùng $this->successList thay vì biến cục bộ
 
     public function collection(Collection $rows)
     {
@@ -29,25 +30,28 @@ class TeacherImport implements ToCollection, WithHeadingRow
         foreach ($rows as $index => $row) {
             $this->total++;
 
-            $userId   = trim((string)($row['user_id'] ?? ''));
-            $email    = trim((string)($row['email'] ?? ''));
-            $password = trim((string)($row['password'] ?? '123456'));
-            $fullname = trim((string)($row['fullname'] ?? ''));
-            $phone    = trim((string)($row['phone'] ?? ''));
-            $majorRaw = trim((string)($row['major'] ?? ''));
-            $birth    = trim((string)($row['birthdate'] ?? ''));
+            $userId   = trim((string) ($row['user_id'] ?? ''));
+            $email    = trim((string) ($row['email'] ?? ''));
+            $password = trim((string) ($row['password'] ?? '123456'));
+            $fullname = trim((string) ($row['fullname'] ?? ''));
+            $phone    = trim((string) ($row['phone'] ?? ''));
+            $majorRaw = trim((string) ($row['major'] ?? ''));
+            $birth    = trim((string) ($row['birthdate'] ?? ''));
 
             // 🔹 Kiểm tra dữ liệu bắt buộc
             if (!$userId || !$email || !$fullname || !$majorRaw) {
                 $this->failed++;
                 $reason = "Dòng " . ($index + 2) . " thiếu dữ liệu bắt buộc";
-                $this->errors[] = $reason;
+                $this->errors[] = [
+                    'user_id' => $userId ?: "Không rõ",
+                    'reason' => $reason,
+                ];
 
                 ImportError::create([
-                    'user_id'  => $userId ?: null,
-                    'reason'   => $reason,
+                    'user_id' => $userId ?: null,
+                    'reason' => $reason,
                     'major_id' => null,
-                    'teacher_id'=> $userId ?: null,
+                    'teacher_id' => $userId ?: null,
                 ]);
                 continue;
             }
@@ -56,75 +60,88 @@ class TeacherImport implements ToCollection, WithHeadingRow
             if (User::where('user_id', $userId)->orWhere('email', $email)->exists()) {
                 $this->failed++;
                 $reason = "Dòng " . ($index + 2) . " trùng user_id hoặc email";
-                $this->errors[] = $reason;
+                $this->errors[] = [
+                    'user_id' => $userId,
+                    'reason' => $reason,
+                ];
 
                 ImportError::create([
-                    'user_id'  => $userId,
-                    'reason'   => $reason,
+                    'user_id' => $userId,
+                    'reason' => $reason,
                     'major_id' => null,
-                    'teacher_id'=> $userId,
+                    'teacher_id' => $userId,
                 ]);
                 continue;
             }
 
-            // 🔹 Tìm major
+            // 🔹 Tìm ngành học
             $major = Major::where('major_name', $majorRaw)->first();
             if (!$major) {
                 $this->failed++;
                 $reason = "Dòng " . ($index + 2) . " không tìm thấy ngành: $majorRaw";
-                $this->errors[] = $reason;
+                $this->errors[] = [
+                    'user_id' => $userId,
+                    'reason' => $reason,
+                ];
 
                 ImportError::create([
-                    'user_id'  => $userId,
-                    'reason'   => $reason,
+                    'user_id' => $userId,
+                    'reason' => $reason,
                     'major_id' => null,
-                    'teacher_id'=> $userId,
+                    'teacher_id' => $userId,
                 ]);
                 continue;
             }
-            
-            // 🔹 Insert User + UserProfile
+
+            // 🔹 Insert User + Profile
             try {
                 DB::transaction(function () use ($userId, $email, $password, $fullname, $phone, $birth, $major) {
                     User::create([
                         'user_id' => $userId,
-                        'email'   => $email,
-                        'password'=> Hash::make($password),
-                        'role'    => 'teacher',
+                        'email' => $email,
+                        'password' => Hash::make($password),
+                        'role' => 'teacher',
                     ]);
 
                     user_profile::create([
-                        'user_id'      => $userId,
-                        'fullname'     => $fullname,
-                        'phone'        => $phone,
-                        'birthdate'    => $birth,
-                        'major_id'     => $major->major_id,
-                        'class_student'=> null,
-                        'class_id'     => 1, // default class, nếu không có
+                        'user_id' => $userId,
+                        'fullname' => $fullname,
+                        'phone' => $phone,
+                        'birthdate' => $birth,
+                        'major_id' => $major->major_id,
+                        'class_student' => null,
+                        'class_id' => 1,
                     ]);
                 });
 
                 $this->success++;
-                
+                $this->successList[] = [ // ✅ dùng $this->successList thay vì biến cục bộ
+                    'user_id' => $userId,
+                    'fullname' => $fullname,
+                ];
             } catch (\Throwable $e) {
                 $this->failed++;
-                $reason = "Dòng " . ($this->total + 1) . " lỗi hệ thống: " . $e->getMessage();
-                $this->errors[] = $reason;
+                $reason = "Dòng " . ($index + 2) . " lỗi hệ thống: " . $e->getMessage();
+                $this->errors[] = [
+                    'user_id' => $userId,
+                    'reason' => $reason,
+                ];
 
                 ImportError::create([
-                    'user_id'  => $userId,
-                    'reason'   => $reason,
+                    'user_id' => $userId,
+                    'reason' => $reason,
                     'major_id' => $major->major_id ?? null,
-                    'teacher_id'=> $userId,
+                    'teacher_id' => $userId,
                 ]);
             }
         }
-        
+
         return [
-            'total'   => $this->total,
+            'total' => $this->total,
             'success' => $this->success,
-            'failed'  => $this->failed,
-            'errors'  => $this->errors,
+            'failed' => $this->failed,
+            'errors' => $this->errors,
+            'successList' => $this->successList, // ✅ quan trọng
         ];
     }
 }

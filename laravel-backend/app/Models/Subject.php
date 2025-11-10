@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Laravel\Scout\Searchable;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Subject extends Model
 {
     //   
-    use Searchable;
+    
+    use HasFactory;
 
     protected $table = "subjects";
     protected $primaryKey = 'subject_id';
