@@ -85,8 +85,18 @@ Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 
 Route::middleware('auth:sanctum')->post('/change-password', [UserController::class, 'changePassword']);
 //  tạo báo cáo
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
-Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
+
+
+Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excelf
+
+// cả
+//
+
+
+Route::post('/create-majors', [MajorsController::class, 'store']);  // Thêm thủ công
+Route::put('/update-majors/{id}', [MajorsController::class, 'update']);  // Thêm thủ công
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
+
 Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::class, 'getMajors']);
 
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
@@ -118,6 +128,20 @@ Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController
 //get lấy ra nhóm của mình
 Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
 //get lấy studentId leader
+
+Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);
+
+// cả
+
+
+Route::middleware('auth:sanctum')->post('/majors/store', [MajorsController::class, 'store']);
+
+  
+    Route::post('/majors', [MajorsController::class, 'store']);
+    // ✏️ Cập nhật
+    Route::put('/majors/update/{id}', [MajorsController::class, 'update']);
+    // 🗑️ Xóa
+    Route::delete('/majors/{major_id}', [MajorsController::class, 'destroy']);
 Route::middleware('auth:sanctum')->post('tvg/get-report-by-student', [ReportController::class, 'getReportByStudent']);
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
@@ -159,3 +183,4 @@ Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']
 
 //lấy ra tất cả báo cáo đã hoàn thành
 Route::middleware('auth:sanctum')->get('/get-all-report-graded', [GradeController::class, 'getAllReportGraded']);
+
