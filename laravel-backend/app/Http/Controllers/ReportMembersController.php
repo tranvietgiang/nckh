@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Imports\GroupsImport;
+use App\Models\Classe;
 use App\Models\ImportError;
+use App\Models\Report;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -19,9 +21,15 @@ class ReportMembersController extends Controller
     public function getClassBbyMajorGroup($classId, $majorId)
     {
         AuthHelper::isLogin();
+
         $groups = report_member::from('report_members as rm')
             ->join('reports as r', 'rm.report_id', '=', 'r.report_id')
-            ->join('user_profiles as up', 'rm.student_id', '=', 'up.user_id')
+            // 🧠 JOIN có điều kiện: chỉ lấy user_profile đúng class và major
+            ->join('user_profiles as up', function ($join) use ($classId, $majorId) {
+                $join->on('up.user_id', '=', 'rm.student_id')
+                    ->where('up.class_id', '=', $classId)
+                    ->where('up.major_id', '=', $majorId);
+            })
             ->where('r.class_id', $classId)
             ->where('up.major_id', $majorId)
             ->select([
@@ -30,22 +38,30 @@ class ReportMembersController extends Controller
                 'r.report_name as report_name_group',
                 'rm.rm_name',
                 'up.fullname as leader_name',
-                DB::raw('(select count(*) from report_members rm2 where rm2.report_id = rm.report_id and rm2.rm_code = rm.rm_code) as member_count'),
-                DB::raw('(select count(*) from report_members rm3 where rm3.report_id = rm.report_id and rm3.rm_code = rm.rm_code and rm3.report_m_role = "NP") as deputy_count'),
+                DB::raw('(SELECT COUNT(*) 
+                      FROM report_members rm2 
+                      WHERE rm2.report_id = rm.report_id 
+                        AND rm2.rm_code = rm.rm_code) AS member_count'),
+                DB::raw('(SELECT COUNT(*) 
+                      FROM report_members rm3 
+                      WHERE rm3.report_id = rm.report_id 
+                        AND rm3.rm_code = rm.rm_code 
+                        AND rm3.report_m_role = "NP") AS deputy_count'),
                 'rm.created_at',
             ])
-            ->where('rm.report_m_role', 'NT') // chỉ lấy dòng leader làm đại diện
-            ->orderBy('rm.report_id')->orderBy('rm.rm_code')
+            ->distinct()
+            ->where('rm.report_m_role', 'NT') // chỉ lấy trưởng nhóm đại diện
+            ->orderBy('rm.report_id')
+            ->orderBy('rm.rm_code')
             ->get();
-
-
 
         if ($groups->count() > 0) {
             return response()->json($groups, 200);
         }
 
-        return response()->json(["message_error" => "server lỗi!"], 200);
+        return response()->json(["message_error" => "Không có nhóm nào trong lớp này!"], 200);
     }
+
 
     public function importGroups(Request $request)
     {
@@ -154,14 +170,18 @@ class ReportMembersController extends Controller
     }
 
     //tvg
-    public function getStudentLeader($rm_code)
+    public function getStudentLeader($rm_code, $classId)
     {
         try {
             AuthHelper::isLogin();
 
-            $groupLeader = report_member::where('rm_code', $rm_code)
-                ->where("report_m_role", "NT")
-                ->first();
+            $groupLeader = report_member::select()
+                ->join("reports", "report_members.report_id", "=", "reports.report_id")
+                ->join("classes", "reports.class_id", "=", "classes.class_id")
+                ->where('rm_code', $rm_code)
+                ->where('reports.class_id', $classId)
+                // ->where("report_m_role", "NT")
+                ->get();
 
             if ($groupLeader) {
                 return response()->json($groupLeader, 200);
@@ -172,5 +192,28 @@ class ReportMembersController extends Controller
             Log::error('❌ Lỗi lấy nhóm trưởng: ' . $e->getMessage());
             return response()->json(['error' => '❌ Lỗi hệ thống'], 500);
         }
+    }
+    //tvg
+    public function deleteByClass(Request $request)
+    {
+        $classId = $request->input('class_id');
+        $teacherId = $request->input('teacher_id');
+
+        if (!$classId || !$teacherId) {
+            return response()->json(['success' => false, 'message_error' => 'Thiếu dữ liệu!'], 400);
+        }
+
+
+        $delete = report_member::select('reports.teacher_id')
+            ->join("reports", "report_members.report_id", "=", "reports.report_id")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->where("reports.class_id", $classId)
+            ->where("reports.teacher_id", $teacherId)->delete();
+
+        if ($delete > 0) {
+            return response()->json(['success' => true, 'message' => 'Đã xóa toàn bộ nhóm trong lớp.']);
+        }
+
+        return response()->json(['success' => false, 'message_error' => 'Không tìm thấy nhóm nào để xóa.']);
     }
 }

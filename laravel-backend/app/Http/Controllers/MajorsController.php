@@ -216,4 +216,13 @@ class MajorsController extends Controller
 
         return response()->json($errors, 200);
     }
+
+
+    public function getNameMajor($majorId)
+    {
+        $name = Major::where("major_id", $majorId)->first();
+
+        return response()->json($name);
+    }
 }
+

@@ -79,4 +79,34 @@ class ErrorsImportController extends Controller
 
         return response()->json(['message_error' => 'Lỗi server!']);
     }
+    public function importErrSubject()
+    {
+        try {
+            $errors = ImportError::where('typeError', 'subject')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            if ($errors->isEmpty()) {
+                return response()->json([
+                    'message' => 'Không có lỗi import nào.'
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $errors
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message_error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function clearImportErrorsSubject()
+    {
+        ImportError::where('typeError', 'subject')->delete();
+        return response()->json(['message' => 'Đã xóa toàn bộ lỗi import môn học'], 200);
+    }
 }

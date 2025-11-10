@@ -1,12 +1,21 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import { getUser } from "../../../Constants/INFO_USER";
 import axios from "../../../../config/axios";
 export default function Header() {
   const user = getUser();
+  const [getNamMajor, setNamMajor] = useState();
+
   useEffect(() => {
     axios.get("/profiles");
-  });
+  }, []);
+
+  useEffect(() => {
+    axios.get(`/tvg/get-nameMajor/${user?.major_id}`).then((res) => {
+      setNamMajor(res.data);
+    });
+  }, []);
+
   return (
     <header className="bg-gray-50 min-h-screen">
       <Navbar />
@@ -28,7 +37,7 @@ export default function Header() {
                   👋 Chào {user?.fullname} - {user?.user_id}
                 </h2>
                 <p className="text-gray-600 mt-1 text-base flex items-center">
-                  🎓 CNTT
+                  🎓 {getNamMajor?.major_name ?? ""}
                 </p>
               </div>
               <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium w-full sm:w-auto text-center mt-2 sm:mt-0 flex items-center justify-center">

@@ -6,67 +6,55 @@ export default function MajorImportPage() {
   const [majors, setMajors] = useState([]);
   const [majorErrors, setMajorErrors] = useState([]);
   const [openModalMajor, setOpenModalMajor] = useState(false);
-  const [editingMajor, setEditingMajor] = useState(null); // null = chế độ thêm
+  const [editingMajor, setEditingMajor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // ========= Load khởi động =========
+  // 🟢 Load dữ liệu ban đầu
   useEffect(() => {
     fetchMajors();
     fetchMajorErrors();
   }, []);
 
-  // ========= API =========
-  const fetchMajors = () => {
+  const fetchMajors = async () => {
     setLoading(true);
-    axios
-      .get("/get-majors")
-      .then((res) => setMajors(res.data || []))
-      .catch((err) => {
-        console.error("Lỗi tải danh sách ngành:", err);
-        setMajors([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const res = await axios.get("/get-majors");
+      setMajors(res.data || []);
+    } catch (err) {
+      console.error("❌ Lỗi tải danh sách ngành:", err);
+      setMajors([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchMajorErrors = () => {
-    axios
-      .get("/pc/get-errors/major")
-      .then((res) => setMajorErrors(res.data || []))
-      .catch(() => setMajorErrors([]));
+  const fetchMajorErrors = async () => {
+    try {
+      const res = await axios.get("/pc/get-errors/major");
+      setMajorErrors(res.data || []);
+    } catch {
+      setMajorErrors([]);
+    }
   };
 
-  const handleDeleteError = () => {
+  const handleDeleteError = async () => {
     if (!majorErrors.length) return;
     if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import ngành?")) return;
-
-    axios
-      .delete("/pc/import-errors/major")
-      .then(() => {
-        alert("🗑️ Đã xóa danh sách lỗi import ngành!");
-        setMajorErrors([]);
-      })
-      .catch(() => alert("❌ Không thể xóa lỗi!"));
-  };
-
-  // ========= Import Excel =========
-  const openFileDialog = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0] || null;
-    setSelectedFile(file);
-  };
-
-  const handleUpload = async () => {
-    if (!selectedFile) {
-      alert("❌ Vui lòng chọn file Excel trước!");
-      return;
+    try {
+      await axios.delete("/pc/import-errors/major");
+      alert("🗑️ Đã xóa danh sách lỗi import ngành!");
+      setMajorErrors([]);
+    } catch {
+      alert("❌ Không thể xóa lỗi!");
     }
+  };
 
+  // 📂 Import Excel
+  const handleUpload = async () => {
+    if (!selectedFile) return alert("❌ Vui lòng chọn file Excel trước!");
     const formData = new FormData();
     formData.append("file", selectedFile);
 
@@ -77,14 +65,12 @@ export default function MajorImportPage() {
       });
 
       alert(
-        `${res.data.message || "✅ Import xong!"}\n` +
-        `✅ Thành công: ${res.data.success ?? 0}\n` +
-        `❌ Lỗi: ${res.data.failed ?? 0}`
+        `${res.data.message || "✅ Import xong!"}\n✅ Thành công: ${res.data.success ?? 0}\n❌ Lỗi: ${res.data.failed ?? 0
+        }`
       );
 
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-
       fetchMajors();
       fetchMajorErrors();
     } catch (err) {
@@ -98,17 +84,18 @@ export default function MajorImportPage() {
     }
   };
 
-  // ========= Thao tác từng ngành =========
+  // ✏️ Click "Sửa"
   const handleEdit = (major) => {
-    setEditingMajor(major);
+    setEditingMajor(major); // ✅ truyền object ngành
     setOpenModalMajor(true);
   };
 
+  // 🗑️ Xóa ngành
   const handleDelete = async (majorId) => {
     if (!window.confirm("Bạn có chắc muốn xóa ngành này?")) return;
     try {
-      await axios.delete(`/majors/${majorId}`);
-      alert("🗑️ Xóa ngành thành công!");
+      const res = await axios.delete(`/majors/${majorId}`);
+      alert(res.data?.message || "🗑️ Xóa ngành thành công!");
       fetchMajors();
     } catch (err) {
       const msg = err.response?.data?.message || "❌ Xóa thất bại!";
@@ -116,203 +103,160 @@ export default function MajorImportPage() {
     }
   };
 
-  // ========= Callback sau khi thêm/cập nhật từ modal =========
+  // ✅ Callback sau khi thêm hoặc cập nhật
   const handleMajorSuccess = (res) => {
-    // Cho phép cả 2 trường hợp: res là axios response hoặc string message
-    const msg =
-      res?.data?.message ||
-      (typeof res === "string" ? res : null) ||
-      "✅ Thao tác thành công!";
-    alert(msg);
+    alert(res?.data?.message || "✅ Thao tác thành công!");
     setOpenModalMajor(false);
     setEditingMajor(null);
     fetchMajors();
   };
 
-  // Fallback cho modal cũ gọi window.onMajorActionSuccess()
-  useEffect(() => {
-    window.onMajorActionSuccess = handleMajorSuccess;
-    return () => delete window.onMajorActionSuccess;
-  }, []);
+  const formatDate = (date) =>
+    date ? new Date(date).toLocaleDateString("vi-VN") : "-";
 
-  // ========= Utils =========
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("vi-VN");
-  };
-
-  // ========= UI =========
+  // ================== UI ==================
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex">
-        <div className="flex-1">
-          <div className="p-6">
-            {/* HEADER */}
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">Quản lý Ngành</h1>
-              <p className="text-gray-600 mt-1">Quản lý danh sách các ngành học trong hệ thống</p>
-            </div>
+      <div className="p-6">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Quản lý Ngành</h1>
+          <p className="text-gray-600 mt-1">Quản lý danh sách các ngành học trong hệ thống</p>
+        </div>
 
-            {/* ACTION BAR */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                Tổng {majors?.length || 0} ngành
-              </span>
+        {/* Thanh công cụ */}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+            Tổng {majors?.length || 0} ngành
+          </span>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    id="fileInputMajors"
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
+          <div className="flex gap-2 items-center">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".xlsx,.xls"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+              className="hidden"
+            />
 
-                  <button
-                    onClick={openFileDialog}
-                    className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    📁 Chọn file Excel
-                  </button>
+            <button
+              onClick={() => fileInputRef.current.click()}
+              className="border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50"
+            >
+              📁 Chọn file Excel
+            </button>
 
-                  <button
-                    onClick={handleUpload}
-                    disabled={!selectedFile || importing}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition ${!selectedFile || importing
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700"
-                      }`}
-                  >
-                    {importing ? "Đang import..." : "Import Ngành"}
-                  </button>
-                </div>
+            <button
+              onClick={handleUpload}
+              disabled={!selectedFile || importing}
+              className={`px-4 py-2 rounded-lg text-white ${importing || !selectedFile
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-green-600 hover:bg-green-700"
+                }`}
+            >
+              {importing ? "Đang import..." : "Import Ngành"}
+            </button>
 
-                {selectedFile && (
-                  <div className="text-sm text-gray-600 self-center">
-                    📄 <b>{selectedFile.name}</b>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* NÚT THÊM NGÀNH */}
             <button
               onClick={() => {
-                setEditingMajor(null); // thêm mới
+                setEditingMajor(null);
                 setOpenModalMajor(true);
               }}
-              className="flex items-center gap-2 mb-5 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               ➕ Thêm Ngành
             </button>
-
-            {/* DANH SÁCH LỖI IMPORT */}
-            {majorErrors.length > 0 && (
-              <div className="mt-8 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
-                <h3 className="text-lg font-semibold text-red-700 mb-3">
-                  ⚠️ Danh sách lỗi import ngành ({majorErrors.length})
-                </h3>
-
-                <button
-                  className="p-1 w-[100px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white"
-                  onClick={handleDeleteError}
-                >
-                  Xóa lỗi
-                </button>
-
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-red-200">
-                    <thead className="bg-red-100">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                          Tên ngành
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                          Mã viết tắt
-                        </th>
-                        <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                          Lý do lỗi
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-red-100">
-                      {majorErrors.map((e, i) => (
-                        <tr key={i} className="hover:bg-red-50">
-                          <td className="px-4 py-2 text-sm text-gray-800">{e.fullname || "-"}</td>
-                          <td className="px-4 py-2 text-sm text-gray-800">{e.email || "-"}</td>
-                          <td className="px-4 py-2 text-sm text-red-600">{e.reason}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {/* BẢNG NGÀNH */}
-            <div className="bg-white rounded-lg shadow overflow-hidden">
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên ngành</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã viết tắt</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cập nhật</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {majors.map((major) => (
-                        <tr key={major.major_id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                            {`${major.major_id}`.padStart(2, "0")}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">{major.major_name}</td>
-                          <td className="px-6 py-4 text-sm text-gray-900">{major.major_abbreviate}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{formatDate(major.created_at)}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{formatDate(major.updated_at)}</td>
-                          <td className="px-6 py-4 text-sm flex gap-2">
-                            <button
-                              onClick={() => handleEdit(major)}
-                              className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition"
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              onClick={() => handleDelete(major.major_id)}
-                              className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600 transition"
-                            >
-                              Xóa
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {majors.length === 0 && (
-                    <div className="text-center py-12 text-gray-600">
-                      Không có ngành nào — hãy thêm hoặc import Excel!
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
+        </div>
+
+        {/* Danh sách lỗi import */}
+        {majorErrors.length > 0 && (
+          <div className="bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-red-700 mb-3">
+              ⚠️ Danh sách lỗi import ngành ({majorErrors.length})
+            </h3>
+            <button
+              className="p-1 w-[100px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white"
+              onClick={handleDeleteError}
+            >
+              Xóa lỗi
+            </button>
+            <table className="min-w-full divide-y divide-red-200 text-sm">
+              <thead className="bg-red-100 text-red-700 uppercase text-xs font-semibold">
+                <tr>
+                  <th className="px-4 py-2 text-left">Tên ngành</th>
+                  <th className="px-4 py-2 text-left">Mã viết tắt</th>
+                  <th className="px-4 py-2 text-left">Lý do lỗi</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-red-100">
+                {majorErrors.map((e, i) => (
+                  <tr key={i} className="hover:bg-red-50">
+                    <td className="px-4 py-2">{e.fullname || "-"}</td>
+                    <td className="px-4 py-2">{e.email || "-"}</td>
+                    <td className="px-4 py-2 text-red-600">{e.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Bảng ngành */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+            </div>
+          ) : majors.length === 0 ? (
+            <div className="text-center py-12 text-gray-600">
+              Không có ngành nào — hãy thêm hoặc import Excel!
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên ngành</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã viết tắt</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cập nhật</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {majors.map((major) => (
+                  <tr key={major.major_id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                      {`${major.major_id}`.padStart(2, "0")}
+                    </td>
+                    <td className="px-6 py-4 text-sm">{major.major_name}</td>
+                    <td className="px-6 py-4 text-sm">{major.major_abbreviate}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(major.created_at)}</td>
+                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(major.updated_at)}</td>
+                    <td className="px-6 py-4 text-sm flex gap-2">
+                      <button
+                        onClick={() => handleEdit(major)}
+                        className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600"
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        onClick={() => handleDelete(major.major_id)}
+                        className="bg-red-500 text-white px-3 py-1 rounded text-xs hover:bg-red-600"
+                      >
+                        Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
-      {/* CHỈ render Modal khi mở để tránh overlay chặn click */}
+      {/* Modal thêm/sửa ngành */}
       {openModalMajor && (
         <ModalMajor
           stateOpen={true}
@@ -321,7 +265,7 @@ export default function MajorImportPage() {
             setEditingMajor(null);
           }}
           editingMajor={editingMajor}
-          onSuccess={handleMajorSuccess} // modal có thể gọi props này thay vì window.onMajorActionSuccess
+          onSuccess={handleMajorSuccess}
         />
       )}
     </div>
