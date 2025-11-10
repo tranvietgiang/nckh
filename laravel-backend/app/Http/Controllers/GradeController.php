@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuthHelper;
 use App\Models\Grade;
 use App\Models\Submission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class GradeController extends Controller
 {
@@ -86,5 +88,31 @@ class GradeController extends Controller
             'status' => 'success',
             'data' => $grade
         ]);
+    }
+
+    //tvg
+    public function getAllReportGraded()
+    {
+        $userId = AuthHelper::isLogin();
+
+        $rows = DB::table('grades')
+            ->join('submissions', 'grades.submission_id', '=', 'submissions.submission_id')
+            ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->where('submissions.student_id', $userId)
+            ->selectRaw('
+            grades.grade_id                                                     AS id,
+            subjects.subject_name                                               AS subject,
+            DATE_FORMAT(COALESCE(submissions.submission_time, submissions.created_at), "%e/%c/%Y") AS submittedDate,
+            CONCAT(COALESCE(grades.score, 0), "/10")                            AS score,
+            "💬 Đã nộp"                                                         AS status,
+            YEAR(COALESCE(submissions.submission_time, submissions.created_at)) AS year
+        ')
+            ->orderByDesc(DB::raw('COALESCE(submissions.submission_time, submissions.created_at)'))
+            ->distinct()
+            ->get();
+
+        return response()->json($rows, 200);
     }
 }

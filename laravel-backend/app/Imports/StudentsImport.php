@@ -110,6 +110,9 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
+
+
+
             try {
                 // Kiểm tra MSSV đã tồn tại trong CÙNG NGÀNH chưa
                 $existingStudentInMajor = user_profile::where('user_id', $msv)
@@ -123,6 +126,16 @@ class StudentsImport implements ToCollection, WithHeadingRow
 
                 DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
 
+                    // Kiểm tra MSSV đã tồn tại trong CÙNG NGÀNH chưa
+                    $existingStudentInMajor = user_profile::where('user_id', $msv)
+                        ->where('major_id', $this->majorId)
+                        ->exists();
+
+                    if ($existingStudentInMajor) {
+                        $this->logError($msv, $ten, $email, "sinh viên đã tồn tại trong ngành này.");
+                        continue;
+                    }
+
                     // 1️⃣ Kiểm tra xem có user nào đã dùng email/sdt này chưa
                     $conflict = User::where(function ($q) use ($email, $phone) {
                         $q->where('email', $email);
@@ -133,6 +146,8 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     if ($conflict) {
                         throw new \Exception("Email hoặc số điện thoại đã được dùng bởi MSSV khác.");
                     }
+
+
 
                     // 2️⃣ Nếu user chưa tồn tại thì tạo mới
                     $user = User::where('user_id', $msv)->first();
