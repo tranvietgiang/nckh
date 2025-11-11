@@ -40,7 +40,11 @@ export default function Navbar() {
           ? "/nckh-admin"
           : "/nckh-404",
     },
-    { name: "Team", href: "#", current: false },
+    {
+      name: role === "student" ? "Nhóm của tôi" : "",
+      href: role === "student" ? "" : "/nckh-404",
+      current: false,
+    },
   ];
 
   const [openNotification, setOpenNotification] = useState(false);

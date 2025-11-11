@@ -47,7 +47,10 @@ function App() {
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang giảng viên */}
-            <Route path="/nckh-admin/import-teacher" element={<ImportTeacher />} />
+            <Route
+              path="/nckh-admin/import-teacher"
+              element={<ImportTeacher />}
+            />
             {/**Trang chấm điểm GV */}
             <Route
               path="/nckh-teacher-scoringfeedback"
@@ -62,7 +65,6 @@ function App() {
             {/* Tạo môn học */}
             <Route path="/nckh-subject" element={<SubjectCrud />} />
             <Route path="/nckh-create-report" element={<CreateReports />} />
-            {/* Tạo báo cáo */}
             <Route
               path="/nckh-class-stats/:classId"
               element={<ClassStatistics />}
