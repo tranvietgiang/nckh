@@ -8,115 +8,105 @@ import Footer from "../../Student/Home/Footer";
 import axios from "../../../../config/axios";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
-  const [classes, setClasses] = useState([]); // ✅ thêm state lớp học
-  const [getNameMajor, setNameMajor] = useState({}); // ✅ thêm state lớp học
+  const [classes, setClasses] = useState([]);
+  const [majorInfo, setMajorInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { user, token } = getAuth();
   const navigate = useNavigate();
 
-  console.log(user);
+  // 🧩 Kiểm tra đăng nhập + quyền
   IsLogin(user, token);
   RoleTeacher(user?.role);
 
+  // 🧠 Lấy danh sách lớp của giảng viên
   useEffect(() => {
-    document.title = "Trang teacher";
+    document.title = "Trang giảng viên";
+    if (!token) return;
 
+    setLoading(true);
     axios
       .get("/classes", {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
         if (Array.isArray(res.data)) setClasses(res.data);
+        else setClasses([]);
       })
       .catch((err) => {
         console.error("❌ Lỗi khi tải danh sách lớp:", err);
-      });
+        setClasses([]);
+      })
+      .finally(() => setLoading(false));
   }, [token]);
 
-  const handleButtonClick = (buttonName) => {
-    switch (buttonName) {
-      case "Quản Lý Lớp":
-        navigate("/nckh-class-manager");
-        break;
-      case "Tạo Báo Cáo":
-        navigate("/nckh-create-report");
-        break;
-      case "Chấm Điểm":
-        navigate("/nckh-teacher-scoringfeedback");
-        break;
-      case "Tạo Thông Báo":
-        setOpenNotification(true);
-        break;
-      case "Quản lý nhóm":
-        navigate("/nckh-teacher-groups");
-        break;
-      default:
-        console.log("Chức năng khác");
-    }
-  };
+  // 🧩 Lấy tên ngành của giảng viên
   useEffect(() => {
+    if (!user?.major_id) return;
+
     axios
-      .get(`/tvg/get-nameMajor/${user?.major_id}`)
-      .then((res) => {
-        setNameMajor(res.data);
-      })
-      .catch((eror) => {
-        console.log(eror);
-      });
-  }, []);
+      .get(`/tvg/get-nameMajor/${user.major_id}`)
+      .then((res) => setMajorInfo(res.data))
+      .catch((err) => console.error("❌ Lỗi khi tải ngành:", err));
+  }, [user?.major_id]);
+
+  // ⚡ Thao tác nhanh
+  const handleButtonClick = (name) => {
+    const routes = {
+      "Quản Lý Lớp": "/nckh-class-manager",
+      "Tạo Báo Cáo": "/nckh-create-report",
+      "Chấm Điểm": "/nckh-teacher-scoringfeedback",
+      "Tạo Thông Báo": null, // sẽ bật modal
+      "Quản lý nhóm": "/nckh-teacher-groups",
+    };
+
+    if (name === "Tạo Thông Báo") setOpenNotification(true);
+    else if (routes[name]) navigate(routes[name]);
+    else console.warn("⚠️ Chức năng chưa được định nghĩa:", name);
+  };
 
   const handleViewStats = (classId) => {
-    navigate(`/nckh-class-stats/${classId}`); // ✅ điều hướng sang trang thống kê sinh viên
+    navigate(`/nckh-class-stats/${classId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       <Navbar />
 
-      {/* Header */}
-      <div className="max-w-5xl mx-auto m-[10px] bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
-        <h1 className="text-3xl font-bold text-center">📊 THỐNG KÊ CÁ NHÂN</h1>
+      {/* HEADER */}
+      <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
+        <h1 className="text-3xl font-bold text-center">📊 BẢNG TỔNG QUAN GIẢNG VIÊN</h1>
       </div>
 
-      {/* Thông tin GV */}
+      {/* THÔNG TIN GIẢNG VIÊN */}
       <div className="max-w-5xl mx-auto bg-white shadow-md rounded-2xl mt-6 p-6">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">
               👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
             </h2>
-            <p className="text-gray-600">Mã GV: {user?.user_id}</p>
+            <p className="text-gray-600">Mã GV: {user?.user_code || user?.user_id}</p>
             <p className="text-gray-600">
-              Khoa: {getNameMajor?.major_name || ""}
+              Ngành: {majorInfo?.major_name || "Chưa có thông tin"}
             </p>
           </div>
+
           <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
-            ✔ Hoạt động
+            ✔ Đang hoạt động
           </span>
         </div>
 
-        {/* Tổng quan */}
+        {/* THỐNG KÊ */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-blue-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-blue-700">{classes.length}</p>
-            <p className="mt-2 font-medium">Lớp học</p>
-          </div>
-          <div className="bg-yellow-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-yellow-600">12</p>
-            <p className="mt-2 font-medium">Báo cáo chờ chấm</p>
-          </div>
-          <div className="bg-green-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-green-600">8</p>
-            <p className="mt-2 font-medium">Hoàn thành</p>
-          </div>
-          <div className="bg-purple-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-purple-600">67%</p>
-            <p className="mt-2 font-medium">Tỷ lệ hoàn thành</p>
-          </div>
+          <StatCard color="blue" value={classes.length} label="Lớp học" />
+          <StatCard color="yellow" value="12" label="Báo cáo chờ chấm" />
+          <StatCard color="green" value="8" label="Hoàn thành" />
+          <StatCard color="purple" value="67%" label="Tỷ lệ hoàn thành" />
         </div>
 
-        {/* Thao tác nhanh */}
+        {/* THAO TÁC NHANH */}
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
             ⚡ THAO TÁC NHANH
@@ -128,9 +118,9 @@ export default function TeacherDashboard() {
               "Chấm Điểm",
               "Tạo Thông Báo",
               "Quản lý nhóm",
-            ].map((item, i) => (
+            ].map((item) => (
               <button
-                key={i}
+                key={item}
                 onClick={() => handleButtonClick(item)}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
               >
@@ -140,16 +130,16 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* 📚 Danh sách lớp */}
+        {/* DANH SÁCH LỚP */}
         <div className="mt-10">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
             📚 DANH SÁCH LỚP GIẢNG DẠY
           </h3>
 
-          {classes.length === 0 ? (
-            <p className="text-gray-500 italic">
-              Chưa có lớp nào được phân công.
-            </p>
+          {loading ? (
+            <div className="text-center text-gray-500 py-6">⏳ Đang tải dữ liệu...</div>
+          ) : classes.length === 0 ? (
+            <p className="text-gray-500 italic">Chưa có lớp nào được phân công.</p>
           ) : (
             <div className="space-y-4">
               {classes.map((cls) => (
@@ -162,8 +152,8 @@ export default function TeacherDashboard() {
                       {cls.class_name} ({cls.class_code})
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Ngành: {cls.major_name || "Chưa có"} • Học kỳ:{" "}
-                      {cls.semester} • Niên khóa: {cls.academic_year}
+                      Ngành: {cls.major_name || "Chưa có"} • Học kỳ: {cls.semester} • Niên khóa:{" "}
+                      {cls.academic_year}
                     </p>
                   </div>
 
@@ -171,7 +161,7 @@ export default function TeacherDashboard() {
                     onClick={() => handleViewStats(cls.class_id)}
                     className="text-blue-600 hover:underline font-medium"
                   >
-                    📊 Xem thống kê sinh viên
+                    📊 Xem thống kê
                   </button>
                 </div>
               ))}
@@ -179,7 +169,7 @@ export default function TeacherDashboard() {
           )}
         </div>
 
-        {/* Update Section */}
+        {/* FOOTER NHỎ */}
         <div className="flex justify-between items-center mt-8 border-t pt-4 text-sm text-gray-500">
           <p>🕓 Cập nhật: {new Date().toLocaleDateString("vi-VN")}</p>
           <div className="flex gap-4">
@@ -190,18 +180,38 @@ export default function TeacherDashboard() {
               onClick={() => window.location.reload()}
               className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow"
             >
-              🔄 Cập nhật
+              🔄 Làm mới
             </button>
           </div>
         </div>
       </div>
 
+      {/* Modal Thông Báo */}
       <CreateNotification
         stateOpen={openNotification}
         onClose={setOpenNotification}
       />
 
       <Footer />
+    </div>
+  );
+}
+
+// ==========================
+// ✅ Component con cho card thống kê
+// ==========================
+function StatCard({ color, value, label }) {
+  const colorMap = {
+    blue: "bg-blue-100 text-blue-700",
+    yellow: "bg-yellow-100 text-yellow-700",
+    green: "bg-green-100 text-green-700",
+    purple: "bg-purple-100 text-purple-700",
+  };
+
+  return (
+    <div className={`${colorMap[color]} p-4 rounded-xl text-center shadow-sm`}>
+      <p className={`text-5xl font-bold`}>{value}</p>
+      <p className="mt-2 font-medium">{label}</p>
     </div>
   );
 }

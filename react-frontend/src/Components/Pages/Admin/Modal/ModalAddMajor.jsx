@@ -8,7 +8,7 @@ import {
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
-export default function ModalMajor({ stateOpen, onClose }) {
+export default function ModalMajor({ stateOpen, onClose, editingMajor, onSuccess }) {
   const { user, token } = getAuth();
   IsLogin(user, token);
   const navigate = useNavigate();
@@ -52,12 +52,12 @@ export default function ModalMajor({ stateOpen, onClose }) {
   };
 
   const createMajor = async (data) => {
-    const res = await axios.post("/majors", data);
+    const res = await axios.post("/create-majors", data);
     return res.data;
   };
 
   const updateMajor = async (id, data) => {
-    const res = await axios.put(`/create-majors/${id}`, data);
+    const res = await axios.put(`/update-majors/${id}`, data);
     return res.data;
   };
 
@@ -84,7 +84,7 @@ export default function ModalMajor({ stateOpen, onClose }) {
     const duplicate = majors.some(
       (m) =>
         m.major_abbreviate?.toLowerCase() ===
-          formData.major_abbreviate.toLowerCase() &&
+        formData.major_abbreviate.toLowerCase() &&
         (!isEditing || m.major_id !== formData.major_id)
     );
     if (duplicate) {
@@ -110,7 +110,7 @@ export default function ModalMajor({ stateOpen, onClose }) {
         await fetchMajors();
         window.onMajorActionSuccess?.();
       } else {
-        alert(`❌ ${res.message_error || "Không rõ nguyên nhân"}`);
+        alert(`${res?.message || "❌  Không rõ nguyên nhân"}`);
       }
     } catch (err) {
       console.error("❌ Lỗi xử lý:", err);
@@ -162,6 +162,20 @@ export default function ModalMajor({ stateOpen, onClose }) {
     resetForm();
     onClose(false);
   };
+  useEffect(() => {
+    if (editingMajor) {
+      // ✅ Gán dữ liệu ngành đang sửa vào form
+      setFormData({
+        major_id: editingMajor.major_id,
+        major_name: editingMajor.major_name,
+        major_abbreviate: editingMajor.major_abbreviate,
+      });
+      setIsEditing(true);
+    } else {
+      // ✅ Reset về trạng thái thêm mới
+      resetForm();
+    }
+  }, [editingMajor]);
 
   if (!stateOpen) return null;
 
@@ -210,11 +224,10 @@ export default function ModalMajor({ stateOpen, onClose }) {
                   {majors.map((m) => (
                     <div
                       key={m.major_id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                        isEditing && formData.major_id === m.major_id
-                          ? "border-green-500 bg-green-50"
-                          : "border-gray-200 bg-white hover:border-green-300"
-                      }`}
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${isEditing && formData.major_id === m.major_id
+                        ? "border-green-500 bg-green-50"
+                        : "border-gray-200 bg-white hover:border-green-300"
+                        }`}
                       onClick={() => handleEdit(m)}
                     >
                       <div className="flex justify-between items-start">
@@ -307,8 +320,8 @@ export default function ModalMajor({ stateOpen, onClose }) {
                   {submitLoading
                     ? "⏳ Đang xử lý..."
                     : isEditing
-                    ? "💾 Cập nhật ngành học"
-                    : "✅ Tạo ngành học"}
+                      ? "💾 Cập nhật ngành học"
+                      : "✅ Tạo ngành học"}
                 </button>
               </div>
             </form>
