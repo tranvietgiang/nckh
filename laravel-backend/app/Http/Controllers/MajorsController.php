@@ -148,6 +148,20 @@ class MajorsController extends Controller
                 ], 404);
             }
 
+            $checkClasses = Classe::select('class_id')
+                ->join('majors', 'classes.major_id', '=', 'majors.major_id')
+                ->join("subjects", "classes.subject_id", "=", "subjects.subject_id")
+                ->where('classes.major_id', $major_id)
+                ->exists();
+
+            if ($checkClasses) {
+                return response()->json([
+                    'success' => false,
+                    'message' => '❌ Không thể xóa ngành vì có lớp học liên quan!',
+                ], 400);
+            }
+
+
             $major->delete();
 
             return response()->json([
