@@ -12,12 +12,19 @@ export default function MajorImportPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // 🟢 Load dữ liệu ban đầu
+  // 🔍 SEARCH STATE
+  const [q, setQ] = useState("");
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const typingTimer = useRef(null);
+
+  // 🟢 Load danh sách ngành và lỗi khi khởi động
   useEffect(() => {
     fetchMajors();
     fetchMajorErrors();
   }, []);
 
+  // ======= LẤY DANH SÁCH NGÀNH =======
   const fetchMajors = async () => {
     setLoading(true);
     try {
@@ -31,6 +38,7 @@ export default function MajorImportPage() {
     }
   };
 
+  // ======= LẤY DANH SÁCH LỖI IMPORT NGÀNH =======
   const fetchMajorErrors = async () => {
     try {
       const res = await axios.get("/pc/get-errors/major");
@@ -40,9 +48,56 @@ export default function MajorImportPage() {
     }
   };
 
+  // ======= TÌM KIẾM MEILISEARCH =======
+  const runSearch = async (keyword) => {
+    const query = keyword.trim();
+    if (!query) {
+      setSearchRows([]);
+      await fetchMajors(); // trở lại danh sách gốc
+      return;
+    }
+
+    setLoadingSearch(true);
+    try {
+      const res = await axios.get(
+        `/search/majors?q=${encodeURIComponent(query)}`
+      );
+      setSearchRows(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+      setSearchRows([]);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+  // ✏️ XỬ LÝ GÕ TỪ KHÓA — chỉ tìm khi ngừng gõ 500ms
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setQ(value);
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => {
+      runSearch(value);
+    }, 500);
+  };
+
+  // ↩️ ENTER tìm ngay / ESC xoá
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(q);
+    } else if (e.key === "Escape") {
+      setQ("");
+      setSearchRows([]);
+      fetchMajors();
+    }
+  };
+
+  // ======= XOÁ TOÀN BỘ LỖI =======
   const handleDeleteError = async () => {
     if (!majorErrors.length) return;
-    if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import ngành?")) return;
+    if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import ngành?"))
+      return;
     try {
       await axios.delete("/pc/import-errors/major");
       alert("🗑️ Đã xóa danh sách lỗi import ngành!");
@@ -65,8 +120,9 @@ export default function MajorImportPage() {
       });
 
       alert(
-        `${res.data.message || "✅ Import xong!"}\n✅ Thành công: ${res.data.success ?? 0}\n❌ Lỗi: ${res.data.failed ?? 0
-        }`
+        `${res.data.message || "✅ Import xong!"}\n✅ Thành công: ${
+          res.data.success ?? 0
+        }\n❌ Lỗi: ${res.data.failed ?? 0}`
       );
 
       setSelectedFile(null);
@@ -86,7 +142,7 @@ export default function MajorImportPage() {
 
   // ✏️ Click "Sửa"
   const handleEdit = (major) => {
-    setEditingMajor(major); // ✅ truyền object ngành
+    setEditingMajor(major);
     setOpenModalMajor(true);
   };
 
@@ -109,6 +165,7 @@ export default function MajorImportPage() {
     setOpenModalMajor(false);
     setEditingMajor(null);
     fetchMajors();
+    if (q.trim()) runSearch(q);
   };
 
   const formatDate = (date) =>
@@ -118,9 +175,12 @@ export default function MajorImportPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
+        {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Quản lý Ngành</h1>
-          <p className="text-gray-600 mt-1">Quản lý danh sách các ngành học trong hệ thống</p>
+          <p className="text-gray-600 mt-1">
+            Quản lý danh sách các ngành học trong hệ thống
+          </p>
         </div>
 
         {/* Thanh công cụ */}
@@ -148,10 +208,11 @@ export default function MajorImportPage() {
             <button
               onClick={handleUpload}
               disabled={!selectedFile || importing}
-              className={`px-4 py-2 rounded-lg text-white ${importing || !selectedFile
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-green-600 hover:bg-green-700"
-                }`}
+              className={`px-4 py-2 rounded-lg text-white ${
+                importing || !selectedFile
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
               {importing ? "Đang import..." : "Import Ngành"}
             </button>
@@ -166,6 +227,29 @@ export default function MajorImportPage() {
               ➕ Thêm Ngành
             </button>
           </div>
+        </div>
+
+        {/* Ô tìm kiếm */}
+        <div className="w-full max-w-xl flex items-center gap-2 mb-5">
+          <input
+            value={q}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="🔎 Tìm ngành (tên, viết tắt)..."
+            className="w-full border rounded px-3 py-2"
+          />
+          {q && (
+            <button
+              onClick={() => {
+                setQ("");
+                setSearchRows([]);
+                fetchMajors();
+              }}
+              className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+            >
+              ✖
+            </button>
+          )}
         </div>
 
         {/* Danh sách lỗi import */}
@@ -203,12 +287,14 @@ export default function MajorImportPage() {
 
         {/* Bảng ngành */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {loading ? (
+          {loading || loadingSearch ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+              <span className="ml-2 text-gray-600">
+                {loadingSearch ? "Đang tìm kiếm..." : "Đang tải dữ liệu..."}
+              </span>
             </div>
-          ) : majors.length === 0 ? (
+          ) : (q.trim() ? searchRows : majors).length === 0 ? (
             <div className="text-center py-12 text-gray-600">
               Không có ngành nào — hãy thêm hoặc import Excel!
             </div>
@@ -216,24 +302,42 @@ export default function MajorImportPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên ngành</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mã viết tắt</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ngày tạo</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cập nhật</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thao tác</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    ID
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Tên ngành
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Mã viết tắt
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Ngày tạo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Cập nhật
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {majors.map((major) => (
+                {(q.trim() ? searchRows : majors).map((major) => (
                   <tr key={major.major_id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-bold text-gray-900">
                       {`${major.major_id}`.padStart(2, "0")}
                     </td>
                     <td className="px-6 py-4 text-sm">{major.major_name}</td>
-                    <td className="px-6 py-4 text-sm">{major.major_abbreviate}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(major.created_at)}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{formatDate(major.updated_at)}</td>
+                    <td className="px-6 py-4 text-sm">
+                      {major.major_abbreviate}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatDate(major.created_at)}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">
+                      {formatDate(major.updated_at)}
+                    </td>
                     <td className="px-6 py-4 text-sm flex gap-2">
                       <button
                         onClick={() => handleEdit(major)}
