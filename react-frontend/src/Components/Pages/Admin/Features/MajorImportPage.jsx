@@ -9,7 +9,11 @@ export default function MajorImportPage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [q, setQ] = useState("");
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
   const fileInputRef = useRef(null);
+  const timerRef = useRef(null);
 
   // 🟢 Load danh sách ngành và lỗi khi khởi động
   useEffect(() => {
@@ -18,24 +22,68 @@ export default function MajorImportPage() {
   }, []);
 
   // ======= LẤY DANH SÁCH NGÀNH =======
-  const fetchMajors = () => {
+  const fetchMajors = async () => {
     setLoading(true);
-    axios
-      .get("/get-majors")
-      .then((res) => setMajors(res.data || []))
-      .catch((err) => {
-        console.error("Lỗi tải danh sách ngành:", err);
-        setMajors([]);
-      })
-      .finally(() => setLoading(false));
+    try {
+      const res = await axios.get("/get-majors");
+      setMajors(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tải danh sách ngành:", err);
+      setMajors([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ======= LẤY DANH SÁCH LỖI IMPORT NGÀNH =======
-  const fetchMajorErrors = () => {
-    axios
-      .get("/pc/get-errors/major")
-      .then((res) => setMajorErrors(res.data || []))
-      .catch(() => setMajorErrors([]));
+  const fetchMajorErrors = async () => {
+    try {
+      const res = await axios.get("/pc/get-errors/major");
+      setMajorErrors(res.data || []);
+    } catch {
+      setMajorErrors([]);
+    }
+  };
+
+  // ======= TÌM KIẾM MEILISEARCH =======
+  const runSearch = async (value) => {
+    const keyword = value.trim();
+    if (!keyword) {
+      setSearchRows([]);
+      await fetchMajors();
+      return;
+    }
+
+    setLoadingSearch(true);
+    try {
+      const res = await axios.get(
+        `/search/majors?q=${encodeURIComponent(keyword)}`
+      );
+      setSearchRows(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+      setSearchRows([]);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+  const onChange = (e) => {
+    const v = e.target.value;
+    setQ(v);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => runSearch(v), 300);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(q);
+    } else if (e.key === "Escape") {
+      setQ("");
+      setSearchRows([]);
+      fetchMajors();
+    }
   };
 
   // ======= XOÁ TOÀN BỘ LỖI =======
@@ -54,14 +102,9 @@ export default function MajorImportPage() {
   };
 
   // ======= IMPORT EXCEL =======
-  const openFileDialog = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
+  const openFileDialog = () => fileInputRef.current?.click();
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0] || null;
-    setSelectedFile(file);
-  };
+  const handleFileChange = (e) => setSelectedFile(e.target.files?.[0] || null);
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -89,11 +132,10 @@ export default function MajorImportPage() {
       if (fileInputRef.current) fileInputRef.current.value = "";
 
       // Làm mới danh sách
-      fetchMajors();
-      fetchMajorErrors();
+      await fetchMajors();
+      await fetchMajorErrors();
     } catch (err) {
-      if (err.response?.data?.message) alert(err.response.data.message);
-      else alert("Lỗi kết nối server!");
+      alert(err.response?.data?.message || "Lỗi kết nối server!");
     } finally {
       setImporting(false);
     }
@@ -109,12 +151,13 @@ export default function MajorImportPage() {
 
   const handleMajorSuccess = () => {
     fetchMajors();
+    if (q.trim()) runSearch(q);
   };
 
   useEffect(() => {
     window.onMajorActionSuccess = handleMajorSuccess;
     return () => delete window.onMajorActionSuccess;
-  }, []);
+  }, [q]);
 
   // ======= ĐỊNH DẠNG NGÀY =======
   const formatDate = (dateString) => {
@@ -145,38 +188,33 @@ export default function MajorImportPage() {
               </span>
 
               <div className="flex flex-col sm:flex-row gap-2">
-                {/* Nút Import */}
-                <div className="flex items-center gap-2">
-                  <input
-                    ref={fileInputRef}
-                    id="fileInputMajors"
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-                  <button
-                    onClick={openFileDialog}
-                    className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
-                  >
-                    📁 Chọn file Excel
-                  </button>
+                <button
+                  onClick={openFileDialog}
+                  className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50"
+                >
+                  📁 Chọn file Excel
+                </button>
 
-                  <button
-                    onClick={handleUpload}
-                    disabled={!selectedFile || importing}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white transition ${
-                      !selectedFile || importing
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700"
-                    }`}
-                  >
-                    {importing ? "Đang import..." : "Import Ngành"}
-                  </button>
-                </div>
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || importing}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white ${
+                    !selectedFile || importing
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
+                >
+                  {importing ? "Đang import..." : "Import Ngành"}
+                </button>
 
-                {/* File đã chọn */}
                 {selectedFile && (
                   <div className="text-sm text-gray-600 self-center">
                     📄 <b>{selectedFile.name}</b>
@@ -199,14 +237,12 @@ export default function MajorImportPage() {
                 <h3 className="text-lg font-semibold text-red-700 mb-3">
                   ⚠️ Danh sách lỗi import ngành ({majorErrors.length})
                 </h3>
-
                 <button
                   className="p-1 w-[100px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white"
                   onClick={handleDeleteError}
                 >
                   Xóa lỗi
                 </button>
-
                 <table className="min-w-full divide-y divide-red-200">
                   <thead className="bg-red-100">
                     <tr>
@@ -239,13 +275,36 @@ export default function MajorImportPage() {
                 </table>
               </div>
             )}
+            {/* TÌM KIẾM */}
+            <div className="w-full max-w-xl flex items-center gap-2 mb-5">
+              <input
+                value={q}
+                onChange={onChange}
+                onKeyDown={onKeyDown}
+                placeholder="🔎 Tìm ngành (tên, viết tắt)..."
+                className="w-full border rounded px-3 py-2"
+              />
+              {q && (
+                <button
+                  onClick={() => {
+                    setQ("");
+                    setSearchRows([]);
+                    fetchMajors();
+                  }}
+                  className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                >
+                  ✖
+                </button>
+              )}
+            </div>
+
             {/* BẢNG NGÀNH */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              {loading ? (
+              {loading || loadingSearch ? (
                 <div className="flex justify-center items-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   <span className="ml-2 text-gray-600">
-                    Đang tải dữ liệu...
+                    {loadingSearch ? "Đang tìm kiếm..." : "Đang tải dữ liệu..."}
                   </span>
                 </div>
               ) : (
@@ -273,8 +332,9 @@ export default function MajorImportPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {majors.map((major) => (
+
+                    <tbody className="bg-white divide-y divide-gray-300">
+                      {(q.trim() ? searchRows : majors).map((major) => (
                         <tr key={major.major_id} className="hover:bg-gray-50">
                           <td className="px-6 py-4 text-sm font-bold text-gray-900">
                             {`${major.major_id}`.padStart(2, "0")}
@@ -306,19 +366,6 @@ export default function MajorImportPage() {
 
                   {majors.length === 0 && (
                     <div className="text-center py-12">
-                      <svg
-                        className="mx-auto h-16 w-16 text-gray-400 mb-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
                       <h3 className="text-lg font-medium text-gray-900 mb-2">
                         Không có ngành nào
                       </h3>
