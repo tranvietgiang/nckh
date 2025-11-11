@@ -8,4 +8,7 @@ Imported [App\Models\Subject] models up to ID: 20
 All [App\Models\Subject] records have been imported.
 vagrant@ubuntu-focal:/vagrant$
 
-flush
+  useEffect(() => {
+    window.onMajorActionSuccess = handleMajorSuccess;
+    return () => delete window.onMajorActionSuccess;
+  }, [q]);
