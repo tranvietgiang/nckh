@@ -10,10 +10,8 @@ import { useNavigate } from "react-router-dom";
 export default function ScoringFeedback() {
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
-
   const [reports, setReports] = useState([]);
   const [selectedReportId, setSelectedReportId] = useState("");
-
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
   const [score, setScore] = useState("");
@@ -26,14 +24,24 @@ export default function ScoringFeedback() {
   const { user } = getAuth();
   const idTeacher = user?.user_id ?? null;
 
-  // === Lấy danh sách lớp ===
+  // === Khởi tạo: lấy CSRF cookie trước khi fetch classes ===
   useEffect(() => {
-    fetchClasses();
+    const initialize = async () => {
+      try {
+        // Nếu dùng Sanctum
+        await axios.get("/sanctum/csrf-cookie");
+        fetchClasses();
+      } catch (err) {
+        console.error("Không thể lấy CSRF cookie:", err);
+      }
+    };
+    initialize();
   }, []);
 
+  // === Lấy danh sách lớp ===
   const fetchClasses = async () => {
     try {
-      const res = await axios.get(`/nhhh/classes`);
+      const res = await axios.get("/nhhh/classes"); // đã có baseURL + withCredentials từ config
       setClasses(res.data.data || res.data);
     } catch (err) {
       console.error("Lỗi tải danh sách lớp:", err);
@@ -123,7 +131,7 @@ export default function ScoringFeedback() {
 
   return (
     <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
-      <Navbar></Navbar>
+      <Navbar />
       <RouterBack navigate={navigate} />
 
       <div className="bg-white shadow-md rounded-xl p-4 sm:p-6 relative">
@@ -182,7 +190,6 @@ export default function ScoringFeedback() {
         {selectedClass && reports.length === 0 && (
           <p className="text-gray-500 mt-2">Không có báo cáo nào</p>
         )}
-
 
         {/* Table submissions */}
         {selectedReportId ? (

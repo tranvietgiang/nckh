@@ -91,6 +91,7 @@ Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::cla
 
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 Route::get('/nhhh/classes', [ClassController::class, 'getAllClassTeacher']);
+Route::get('/nhhh/admin/classes', [ClassController::class, 'getAllClassAdmin']);
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
 //thống kê cho giảng viên
 Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsByClass']);
