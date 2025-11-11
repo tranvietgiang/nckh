@@ -16,7 +16,7 @@ export default function ClassManagement() {
   const [studentLoading, setStudentLoading] = useState(false);
   const navigate = useNavigate();
   const { user, token } = getAuth();
-  const teacherId = user?.user_id ?? null;
+  // const teacherId = user?.user_id ?? null;
 
   IsLogin(user, token);
 
@@ -41,7 +41,7 @@ export default function ClassManagement() {
       axios
         .get(`/classes/students/${selectedClass}`)
         .then((res) => {
-          setStudents(res.data);
+          setStudents(res.data.data);
           setStudentLoading(false);
         })
         .catch((err) => {

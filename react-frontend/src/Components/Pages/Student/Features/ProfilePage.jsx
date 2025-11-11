@@ -36,12 +36,15 @@ export default function ProfilePage() {
     }
 
     try {
-      const res = await axios.get("/profiles", {
-        params: { role, user_id },
-      });
-      setProfile(res.data);
+      const res = await axios.get("/profiles");
+      if (role === "teacher") {
+        setProfile(res.data);
+        setSafeJSON("user_profiles", JSON.stringify(res.data));
+      } else {
+        setProfile(res.data[0]);
+        setSafeJSON("user_profiles", JSON.stringify(res.data[0]));
+      }
       console.log(res.data);
-      setSafeJSON("user_profiles", JSON.stringify(res.data));
     } catch (error) {
       console.log(error);
     }
@@ -51,45 +54,36 @@ export default function ProfilePage() {
     fetchDataProfile();
   }, []);
 
-const handlePasswordChange = async (e) => {
-  e.preventDefault();
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
 
-  // Kiểm tra xác nhận mật khẩu mới
-  if (newPassword !== confirmPassword) {
-    alert("❌ Mật khẩu xác nhận không khớp!");
-    return;
-  }
+    // Kiểm tra xác nhận mật khẩu mới
+    if (newPassword !== confirmPassword) {
+      alert("❌ Mật khẩu xác nhận không khớp!");
+      return;
+    }
 
-  try {
-    const res = await axios.post(
-      "/change-password", // ✅ API đổi mật khẩu trong Laravel
-      {
+    try {
+      const res = await axios.post("/change-password", {
         current_password: currentPassword,
         new_password: newPassword,
         new_password_confirmation: confirmPassword,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`, // ✅ Token Sanctum
-        },
-      }
-    );
+      });
 
-    alert("✅ " + res.data.message);
+      alert("✅ " + res.data.message);
 
-    // Reset form
-    setCurrentPassword("");
-    setNewPassword("");
-    setConfirmPassword("");
-    setShowPasswordForm(false);
-  } catch (error) {
-    console.log(error);
-    const msg =
-      error.response?.data?.message || "⚠️ Có lỗi xảy ra khi đổi mật khẩu!";
-    alert(msg);
-  }
-};
-
+      // Reset form
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      setShowPasswordForm(false);
+    } catch (error) {
+      console.log(error);
+      const msg =
+        error.response?.data?.message || "⚠️ Có lỗi xảy ra khi đổi mật khẩu!";
+      alert(msg);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -135,44 +129,48 @@ const handlePasswordChange = async (e) => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {role === "student" ? "Ngành" : "Các ngành đang dạy"}
-                      </label>
-                      <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {role === "student" ? (
-                          <span>{getProfile?.major_name ?? "lỗi"}</span>
-                        ) : getProfile?.major?.length > 0 ? (
-                          getProfile.major.map((cls, index) => (
-                            <p key={index} className="mb-1">
-                              {cls}
-                            </p>
-                          ))
-                        ) : (
-                          <p>Lỗi</p>
-                        )}
+                  {role === "admin" ? (
+                    ""
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {role === "student" ? "Ngành" : "Các ngành đang dạy"}
+                        </label>
+                        <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                          {role === "student" ? (
+                            <span>{getProfile?.major_name ?? "lỗi"}</span>
+                          ) : getProfile?.majors?.length > 0 ? (
+                            getProfile.majors.map((cls, index) => (
+                              <p key={index} className="mb-1">
+                                {cls}
+                              </p>
+                            ))
+                          ) : (
+                            <p>Lỗi</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          {role === "student" ? "Lớp" : "Các lớp đang dạy"}
+                        </label>
+                        <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                          {role === "student" ? (
+                            <span>{getProfile?.class_student}</span>
+                          ) : getProfile?.classes?.length > 0 ? (
+                            getProfile.classes.map((cls, index) => (
+                              <p key={index} className="mb-1">
+                                {cls}
+                              </p>
+                            ))
+                          ) : (
+                            <p>Lỗi</p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {role === "student" ? "Lớp" : "Các lớp đang dạy"}
-                      </label>
-                      <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {role === "student" ? (
-                          <span>{getProfile?.class_name}</span>
-                        ) : getProfile?.classes?.length > 0 ? (
-                          getProfile.classes.map((cls, index) => (
-                            <p key={index} className="mb-1">
-                              {cls}
-                            </p>
-                          ))
-                        ) : (
-                          <p>Lỗi</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -182,25 +180,28 @@ const handlePasswordChange = async (e) => {
                       {getProfile?.email}
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Số điện thoại
-                      </label>
-                      <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {getProfile?.phone}
+                  {role === "admin" ? (
+                    ""
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Số điện thoại
+                        </label>
+                        <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                          {getProfile?.phone}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Ngày sinh
+                        </label>
+                        <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
+                          {getProfile?.birthdate}
+                        </div>
                       </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Ngày sinh
-                      </label>
-                      <div className="p-2 bg-gray-50 rounded-lg border border-gray-200">
-                        {getProfile?.birthdate}
-                      </div>
-                    </div>
-                  </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">

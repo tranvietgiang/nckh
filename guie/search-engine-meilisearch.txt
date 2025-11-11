@@ -1,0 +1,14 @@
+Meilisearch và Elasticsearch,
+docker exec -it project-backend php artisan optimize:clear
+
+vagrant@ubuntu-focal:/vagrant$ docker exec -it project-backend php artisan scout:import "App\Models\Subject" : chạy dòng này
+=> php artisan scout:import "App\Models\Subject"
+hiển thị ra
+Imported [App\Models\Subject] models up to ID: 20
+All [App\Models\Subject] records have been imported.
+vagrant@ubuntu-focal:/vagrant$
+
+  useEffect(() => {
+    window.onMajorActionSuccess = handleMajorSuccess;
+    return () => delete window.onMajorActionSuccess;
+  }, [q]);

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->string('user_id', 15)->primary(); // MSSV hoặc GV001
-            $table->string('email', 150)->unique();
+            $table->string('email', 150);
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password', 200);
             $table->enum('role', ['admin', 'teacher', 'student'])->comment('vai trò người dùng');

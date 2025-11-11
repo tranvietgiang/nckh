@@ -5,123 +5,122 @@ import RouterHome from "../../../ReUse/Router/RouterHome";
 import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
-import ModalImport from "../Features/ModalImport";
+import axios from "../../../../config/axios";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
-  const [openImports, setOpenImports] = useState(false);
+  const [classes, setClasses] = useState([]);
+  const [majorInfo, setMajorInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
   const { user, token } = getAuth();
-  RouterHome(user, token);
-
-  useEffect(() => {
-    document.title = "Trang teacher";
-  }, []);
-
-  // Hàm xử lý click button đơn giản
-  const handleButtonClick = (buttonName) => {
-    // Xử lý theo từng button
-    switch (buttonName) {
-      case "Import":
-        handleImport();
-        break;
-      case "Quản Lý Lớp":
-        handleManageClass();
-        break;
-      case "Tạo Báo Cáo":
-        handleCreateReport();
-        break;
-      case "Chấm Điểm":
-        handleGrading();
-        break;
-      case "Tạo Thông Báo":
-        handleCreateNotification();
-        break;
-      default:
-        console.log("Chức năng khác");
-    }
-  };
-
   const navigate = useNavigate();
-  // Các hàm xử lý đơn giản
 
-  const handleImport = () => {
-    console.log("Xử lý Import Lớp...");
-    // navigate("/nckh-teacher-import");
-    setOpenImports(true);
+  // 🧩 Kiểm tra đăng nhập + quyền
+  IsLogin(user, token);
+  RoleTeacher(user?.role);
+
+  // 🧠 Lấy danh sách lớp của giảng viên
+  useEffect(() => {
+    document.title = "Trang giảng viên";
+    if (!token) return;
+
+    setLoading(true);
+    axios
+      .get("/classes", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        if (Array.isArray(res.data)) setClasses(res.data);
+        else setClasses([]);
+      })
+      .catch((err) => {
+        console.error("❌ Lỗi khi tải danh sách lớp:", err);
+        setClasses([]);
+      })
+      .finally(() => setLoading(false));
+  }, [token]);
+
+  // 🧩 Lấy tên ngành của giảng viên
+  useEffect(() => {
+    if (!user?.major_id) return;
+
+    axios
+      .get(`/tvg/get-nameMajor/${user.major_id}`)
+      .then((res) => setMajorInfo(res.data))
+      .catch((err) => console.error("❌ Lỗi khi tải ngành:", err));
+  }, [user?.major_id]);
+
+  // ⚡ Thao tác nhanh
+  const handleButtonClick = (name) => {
+    const routes = {
+      "Quản Lý Lớp": "/nckh-class-manager",
+      "Tạo Báo Cáo": "/nckh-create-report",
+      "Chấm Điểm": "/nckh-teacher-scoringfeedback",
+      "Tạo Thông Báo": null, // sẽ bật modal
+      "Quản lý nhóm": "/nckh-teacher-groups",
+    };
+
+    if (name === "Tạo Thông Báo") setOpenNotification(true);
+    else if (routes[name]) navigate(routes[name]);
+    else console.warn("⚠️ Chức năng chưa được định nghĩa:", name);
   };
 
-  const handleManageClass = () => {
-    navigate("/nckh-class-manager");
-  };
-
-  const handleCreateReport = () => {
-    console.log("Xử lý Tạo Báo Cáo...");
-  };
-
-  const handleGrading = () => {
-     navigate("/nckh-teacher-scoringfeedback");
-  };
-
-  const handleCreateNotification = () => {
-    setOpenNotification(true);
+  const handleViewStats = (classId) => {
+    navigate(`/nckh-class-stats/${classId}`);
   };
 
   return (
     <div className="min-h-screen bg-gray-100 font-sans">
       <Navbar />
-      {/* Header */}
-      <div className="max-w-5xl mx-auto m-[10px] bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
-        <h1 className="text-3xl font-bold text-center">📊 THỐNG KÊ CÁ NHÂN</h1>
+
+      {/* HEADER */}
+      <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
+        <h1 className="text-3xl font-bold text-center">📊 BẢNG TỔNG QUAN GIẢNG VIÊN</h1>
       </div>
 
-      {/* Teacher Info */}
+      {/* THÔNG TIN GIẢNG VIÊN */}
       <div className="max-w-5xl mx-auto bg-white shadow-md rounded-2xl mt-6 p-6">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div>
-            <h2 className="text-xl font-semibold">👋 Chào Thầy Nguyễn Văn A</h2>
-            <p className="text-gray-600">Mã GV: 23211TT2984</p>
-            <p className="text-gray-600">Khoa: CNTT</p>
+            <h2 className="text-xl font-semibold">
+              👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
+            </h2>
+            <p className="text-gray-600">Mã GV: {user?.user_code || user?.user_id}</p>
+            <p className="text-gray-600">
+              Ngành: {majorInfo?.major_name || "Chưa có thông tin"}
+            </p>
           </div>
+
           <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
-            ✔ Hoạt động
+            ✔ Đang hoạt động
           </span>
         </div>
 
-        {/* Overview Section */}
+        {/* THỐNG KÊ */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <div className="bg-blue-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-blue-700">5</p>
-            <p className="mt-2 font-medium">Lớp học</p>
-          </div>
-          <div className="bg-yellow-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-yellow-600">12</p>
-            <p className="mt-2 font-medium">Báo cáo chờ chấm</p>
-          </div>
-          <div className="bg-green-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-green-600">8</p>
-            <p className="mt-2 font-medium">Hoàn thành</p>
-          </div>
-          <div className="bg-purple-100 p-4 rounded-xl text-center shadow-sm">
-            <p className="text-5xl font-bold text-purple-600">67%</p>
-            <p className="mt-2 font-medium">Tỷ lệ hoàn thành</p>
-          </div>
+          <StatCard color="blue" value={classes.length} label="Lớp học" />
+          <StatCard color="yellow" value="12" label="Báo cáo chờ chấm" />
+          <StatCard color="green" value="8" label="Hoàn thành" />
+          <StatCard color="purple" value="67%" label="Tỷ lệ hoàn thành" />
         </div>
 
-        {/* Quick Actions */}
+        {/* THAO TÁC NHANH */}
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
             ⚡ THAO TÁC NHANH
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              "Import",
               "Quản Lý Lớp",
               "Tạo Báo Cáo",
               "Chấm Điểm",
               "Tạo Thông Báo",
-            ].map((item, i) => (
+              "Quản lý nhóm",
+            ].map((item) => (
               <button
-                key={i}
+                key={item}
                 onClick={() => handleButtonClick(item)}
                 className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg shadow-md transition"
               >
@@ -131,53 +130,88 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
-        {/* Class Reports */}
+        {/* DANH SÁCH LỚP */}
         <div className="mt-10">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            📚 DANH SÁCH LỚP
+            📚 DANH SÁCH LỚP GIẢNG DẠY
           </h3>
-          <div className="space-y-4">
-            {[1, 2].map((item) => (
-              <div
-                key={item}
-                className="border rounded-xl p-4 shadow-sm bg-gray-50"
-              >
-                <p className="font-semibold">
-                  Báo cáo Cuối kỳ - Chuyên đề {item}
-                </p>
-                <p className="text-gray-600 text-sm">
-                  3 ngày nữa | {12 + item}/45 đã nộp
-                </p>
-                <button className="mt-2 text-blue-600 font-medium hover:underline">
-                  👁️ Xem bài nộp
-                </button>
-              </div>
-            ))}
-          </div>
+
+          {loading ? (
+            <div className="text-center text-gray-500 py-6">⏳ Đang tải dữ liệu...</div>
+          ) : classes.length === 0 ? (
+            <p className="text-gray-500 italic">Chưa có lớp nào được phân công.</p>
+          ) : (
+            <div className="space-y-4">
+              {classes.map((cls) => (
+                <div
+                  key={cls.class_id}
+                  className="border rounded-xl p-4 shadow-sm bg-gray-50 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-semibold text-blue-700">
+                      {cls.class_name} ({cls.class_code})
+                    </p>
+                    <p className="text-gray-600 text-sm">
+                      Ngành: {cls.major_name || "Chưa có"} • Học kỳ: {cls.semester} • Niên khóa:{" "}
+                      {cls.academic_year}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => handleViewStats(cls.class_id)}
+                    className="text-blue-600 hover:underline font-medium"
+                  >
+                    📊 Xem thống kê
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Update Section */}
+        {/* FOOTER NHỎ */}
         <div className="flex justify-between items-center mt-8 border-t pt-4 text-sm text-gray-500">
-          <p>🕓 Cập nhật: 15/10/2025</p>
+          <p>🕓 Cập nhật: {new Date().toLocaleDateString("vi-VN")}</p>
           <div className="flex gap-4">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">
               👁️ Xem chi tiết
             </button>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow">
-              🔄 Cập nhật
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow"
+            >
+              🔄 Làm mới
             </button>
           </div>
         </div>
       </div>
 
+      {/* Modal Thông Báo */}
       <CreateNotification
         stateOpen={openNotification}
         onClose={setOpenNotification}
       />
 
-      <ModalImport stateOpen={openImports} onClose={setOpenImports} />
-
       <Footer />
+    </div>
+  );
+}
+
+// ==========================
+// ✅ Component con cho card thống kê
+// ==========================
+function StatCard({ color, value, label }) {
+  const colorMap = {
+    blue: "bg-blue-100 text-blue-700",
+    yellow: "bg-yellow-100 text-yellow-700",
+    green: "bg-green-100 text-green-700",
+    purple: "bg-purple-100 text-purple-700",
+  };
+
+  return (
+    <div className={`${colorMap[color]} p-4 rounded-xl text-center shadow-sm`}>
+      <p className={`text-5xl font-bold`}>{value}</p>
+      <p className="mt-2 font-medium">{label}</p>
     </div>
   );
 }

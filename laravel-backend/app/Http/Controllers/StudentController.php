@@ -7,37 +7,44 @@ use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use App\Services\StudentService;
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
-    //
+
+    public function __construct(protected StudentService $studentService) {}
+
     public function import(Request $request)
     {
         try {
-            $teacherId = AuthHelper::isLogin();
-
+            AuthHelper::isLogin();
             $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls,csv',
                 'major_id' => 'required|integer',
+                'teacher_id' => 'required|string',
                 'class_id' => [
                     'required',
                     'integer',
-                    Rule::exists('classes', 'class_id')->where(function ($q) use ($teacherId) {
-                        $q->where('teacher_id', $teacherId);
+                    Rule::exists('classes', 'class_id')->where(function ($q) use ($request) {
+                        $q->where('teacher_id', $request->input('teacher_id'));
                     }),
                 ],
             ]);
 
             $classId = (int) $validated['class_id'];
             $majorId = (int) $validated['major_id'];
+            $teacherId = (string) $validated['teacher_id'];
 
             // Tạo instance để lấy thống kê sau import
-            $import = new StudentsImport(classId: $classId, teacherId: $teacherId, majorId: $majorId);
+            $import = new StudentsImport(
+                classId: $classId,
+                teacherId: $teacherId,
+                majorId: $majorId
+            );
 
             // Chỉ import 1 lần
             Excel::import($import, $validated['file']);
@@ -70,111 +77,23 @@ class StudentController extends Controller
     }
 
 
+    public function getStudents($class_id, $teacher_id)
+    {
+        AuthHelper::isLogin();
 
-    public function getStudent($selectedClass)
+        $result = $this->studentService->getStudentService($class_id, $teacher_id);
+
+        return response()->json($result, $result['success'] ? 200 : 404);
+    }
+
+
+    public function displayInfo()
     {
         $userId = AuthHelper::isLogin();
+        $role   = AuthHelper::getRole();
 
+        $result = $this->studentService->getProfile($userId, $role);
 
-        $students = User::select(
-            'users.*',
-            'user_profiles.*',
-            'classes.*',
-            "majors.*"
-        )
-            ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->join('classes', 'user_profiles.class_id', '=', 'classes.class_id')
-            ->join('majors', "user_profiles.major_id", "=", "majors.major_id")
-            ->where('users.role', 'student')
-            ->where("user_profiles.class_id", $selectedClass)
-            ->where("classes.teacher_id", $userId)
-            ->get();
-
-        if ($students->count() > 0) {
-            return response()->json([
-                "list_student" => $students,
-                "total_student" => $students->count(),
-            ], 200);
-        }
-
-        return response()->json(["message_error" => "Lỗi phía serve"], 500);
-    }
-
-
-    // public function CheckUserExit()
-    public function  getProfile(Request $request)
-    {
-        $role = $request->input('role') ?? null;
-        $user_id = $request->input('user_id') ?? null;
-
-        if (!$role || !$user_id) {
-            return response()->json(["message_error" => "Thiếu dữ liệu role hoặc user_id"], 402);
-        }
-
-
-        $checkUser = User::where("user_id", $user_id)->where("role", $role)->exists();
-        if (!$checkUser) {
-            return response()->json(["message_error" => "người dùng này không tồn tại!"], 402);
-        }
-
-
-        if ($role === "student") {
-            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
-                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
-                ->leftJoin("majors", "user_profiles.major_id", "=", "majors.major_id")
-                ->where("users.user_id", $user_id)
-                ->where('users.role', $role)
-                ->first();
-
-            if (!$dataProfile) {
-                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
-            }
-            return response()->json($dataProfile, 200);
-        } else if ($role === "teacher") {
-            $dataProfile = User::select("users.*", "user_profiles.*", "classes.*", "majors.*")
-                ->join("user_profiles", "user_profiles.user_id", "=", "users.user_id")
-                ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
-                ->leftJoin("majors", "user_profiles.major_id", "=", "majors.major_id")
-                ->where("users.user_id", $user_id)
-                ->where('users.role', $role)
-                ->get();
-
-            if (!$dataProfile) {
-                return response()->json(["message_error" => "Đã xảy ra lỗi khi lấy thông tin người dùng"], 402);
-            }
-
-            $Info = [
-                "fullname" => $dataProfile[0]->fullname,
-                "user_id" => $dataProfile[0]->user_id,
-                "email" => $dataProfile[0]->email,
-                "phone" => $dataProfile[0]->phone,
-                "birthdate" => $dataProfile[0]->birthdate,
-                "role" => $dataProfile[0]->role,
-                "major" => $dataProfile->pluck('major_name')->unique()->values(),
-                "classes" => $dataProfile->pluck('class_name')->unique()->values(),
-            ];
-            return response()->json($Info, 200);
-        } else if ($role === "admin") {
-        }
-    }
-
-    public function getStudentErrors($selectedClass)
-    {
-        if (!Auth::check()) {
-            return response()->json(["message_error" => "Vui lòng đăng nhập!"], 401);
-        }
-
-        $useId = Auth::id() ?? null;
-
-        if ($useId == null) {
-            return response()->json(["message_error" => "Dữ liệu bị lỗi, vui lòng tải lại trang!"], 402);
-        }
-        $list_import_error = ImportError::where("class_id", $selectedClass)
-            ->where("teacher_id", $useId)->get();
-
-        if ($list_import_error->count() > 0) {
-            return response()->json($list_import_error, 200);
-        }
+        return response()->json($result, $result['success'] ? 200 : 404);
     }
 }
