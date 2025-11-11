@@ -66,12 +66,12 @@ class ReportController extends Controller
                 ], 400);
             }
 
-            file_put_contents(storage_path('app/token.json'), json_encode($token));
+            file_put_contents(storage_path('app/google/token.json'), json_encode($token));
 
             return response()->json([
                 'success' => true,
                 'message' => '✅ Đã xác thực Google Drive thành công!',
-                'token_saved' => 'storage/app/token.json'
+                'token_saved' => 'storage/app/google/token.json'
             ]);
         } catch (\Exception $e) {
             return response()->json(['error' => '❌ Lỗi callback: ' . $e->getMessage()], 500);
@@ -89,7 +89,7 @@ class ReportController extends Controller
         $client->setAccessType('offline');
         $client->setPrompt('consent');
 
-        $tokenPath = storage_path('app/token.json'); // ✅ trùng với handleCallback
+        $tokenPath = storage_path('app/google/token.json'); // ✅ trùng với handleCallback
 
         if (!file_exists($tokenPath)) {
             throw new \Exception("❌ Token chưa tồn tại. Hãy xác thực Google lại.");

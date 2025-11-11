@@ -62,10 +62,9 @@ class ErrorsImportController extends Controller
         return response()->json(['message' => 'Đã xóa lỗi nhóm thành công!']);
     }
 
-    public function getGroupErrors($classId, $majorId)
+    public function getGroupErrors($majorId, $classId)
     {
-        AuthHelper::roleTeacher();
-        $teacherId = Auth::id();
+        $teacherId = AuthHelper::isLogin();
 
         $getGroupError = ImportError::where('teacher_id', $teacherId)
             ->where('class_id', $classId)
@@ -73,12 +72,14 @@ class ErrorsImportController extends Controller
             ->where('typeError', 'group')
             ->get();
 
-        if ($getGroupError->count() > 0) {
-            return response()->json($getGroupError, 200);
+        if ($getGroupError->isEmpty()) {
+            return response()->json(['message_error' => 'Không có lỗi nhóm nào!'], 200);
         }
 
-        return response()->json(['message_error' => 'Lỗi server!']);
+        return response()->json($getGroupError, 200);
     }
+
+
     public function importErrSubject()
     {
         try {
