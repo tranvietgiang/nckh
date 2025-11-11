@@ -150,7 +150,7 @@ export default function MajorImportPage() {
   const handleDelete = async (majorId) => {
     if (!window.confirm("Bạn có chắc muốn xóa ngành này?")) return;
     try {
-      const res = await axios.delete(`/majors/${majorId}`);
+      const res = await axios.delete(`/pc/delete-majors/${majorId}`);
       alert(res.data?.message || "🗑️ Xóa ngành thành công!");
       fetchMajors();
     } catch (err) {
@@ -159,7 +159,7 @@ export default function MajorImportPage() {
     }
   };
 
-  // ✅ Callback sau khi thêm hoặc cập nhật
+  // Callback sau khi thêm hoặc cập nhật
   const handleMajorSuccess = (res) => {
     alert(res?.data?.message || "✅ Thao tác thành công!");
     setOpenModalMajor(false);
