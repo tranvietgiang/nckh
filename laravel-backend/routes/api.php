@@ -85,8 +85,18 @@ Route::middleware('auth:sanctum')->get('/get-report', [ReportController::class, 
 Route::middleware('auth:sanctum')->post('/change-password', [UserController::class, 'changePassword']);
 //  tạo báo cáo
 Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::class, 'createReport']);
-Route::post('/majors/store', [MajorsController::class, 'store']);  // Thêm thủ công
+
+
+Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excelf
+
+// cả//ccc
+//
+
+
+Route::post('/create-majors', [MajorsController::class, 'store']);  // Thêm thủ công
+Route::put('/update-majors/{id}', [MajorsController::class, 'update']);  // Thêm thủ công
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excel
+
 Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::class, 'getMajors']);
 
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
@@ -118,6 +128,20 @@ Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController
 //get lấy ra nhóm của mình
 Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
 //get lấy studentId leader
+
+Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);
+
+// cả
+
+
+Route::middleware('auth:sanctum')->post('/majors/store', [MajorsController::class, 'store']);
+
+
+Route::post('/majors', [MajorsController::class, 'store']);
+// ✏️ Cập nhật
+Route::put('/majors/update/{id}', [MajorsController::class, 'update']);
+// 🗑️ Xóa
+Route::delete('/majors/{major_id}', [MajorsController::class, 'destroy']);
 Route::middleware('auth:sanctum')->post('tvg/get-report-by-student', [ReportController::class, 'getReportByStudent']);
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
@@ -126,16 +150,23 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [Submiss
 
 
 //subject
-Route::middleware('auth:sanctum')->get('/get-subjects', [SubjectController::class, 'indexSubject']);
-Route::middleware('auth:sanctum')->get('/get-subjects-majors/{idMajor}', [SubjectController::class, 'getSubjectByMajor']);
-Route::middleware('auth:sanctum')->post('/create/subjects', [SubjectController::class, 'storeSubject']);
-Route::middleware('auth:sanctum')->put('/update/subjects/{id}', [SubjectController::class, 'updateSubject']);
-Route::middleware('auth:sanctum')->get('/get-subjects/{id}', [SubjectController::class, 'getSubject']);
-Route::middleware('auth:sanctum')->delete('/subjects/{id}', [SubjectController::class, 'destroySubject']);
-Route::middleware('auth:sanctum')->post('/subjects/import', [SubjectController::class, 'import']);
-Route::middleware('auth:sanctum')->get('/subjects/import-error', [ErrorsImportController::class, 'importErrSubject']);
-Route::middleware('auth:sanctum')->delete('/subject/import-errors', [ErrorsImportController::class, 'clearImportErrorsSubject']);
-Route::middleware('auth:sanctum')->get('/get-teacher-by-major', [TeacherController::class, 'getAllTeacher']);
+Route::middleware('auth:sanctum')->group(function () {
+    // Tất cả routes subject
+    Route::get('/get-subjects', [SubjectController::class, 'indexSubject']);
+    Route::get('/get-subjects-majors/{idMajor}', [SubjectController::class, 'getSubjectByMajor']);
+    Route::post('/create/subjects', [SubjectController::class, 'storeSubject']);
+    Route::put('/update/subjects/{id}', [SubjectController::class, 'updateSubject']);
+    Route::get('/get-subjects/{id}', [SubjectController::class, 'getSubject']);
+    Route::delete('/subjects/{id}', [SubjectController::class, 'destroySubject']);
+    Route::post('/subjects/import', [SubjectController::class, 'import']);
+
+    // Routes import errors
+    Route::get('/subjects/import-error', [ErrorsImportController::class, 'importErrSubject']);
+    Route::delete('/subject/import-errors', [ErrorsImportController::class, 'clearImportErrorsSubject']);
+
+    // Route teacher
+    Route::get('/get-teacher-by-major', [TeacherController::class, 'getAllTeacher']);
+});
 
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
@@ -147,3 +178,9 @@ Route::middleware('auth:sanctum')->get('/tvg/get-submission/submitted', [Submiss
 Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import']);
 //import giang vien
 Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'deleteByClass']);
+//search engine meilisearch subject tvg
+Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']);
+Route::get('/search/majors', [MajorsController::class, 'meilisearchMajors']);
+
+//lấy ra tất cả báo cáo đã hoàn thành
+Route::middleware('auth:sanctum')->get('/get-all-report-graded', [GradeController::class, 'getAllReportGraded']);

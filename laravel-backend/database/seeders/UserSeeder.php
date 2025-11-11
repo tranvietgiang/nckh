@@ -17,6 +17,12 @@ class UserSeeder extends Seeder
             ['user_id' => 'gv004', 'email' => 'gv004@tdc.edu.vn', 'password' => 'gv004', 'role' => 'teacher'],
             ['user_id' => 'gv005', 'email' => 'gv005@tdc.edu.vn', 'password' => 'gv005', 'role' => 'teacher'],
             ['user_id' => 'gv006', 'email' => 'gv006@tdc.edu.vn', 'password' => 'gv006', 'role' => 'teacher'],
+            [
+                'user_id' => '23211TT2222',
+                'email' => 'wedgiang@gmail.com',
+                'password' => Hash::make('23211TT2222'),
+                'role' => 'student',
+            ],
             ['user_id' => 'admin', 'email' => 'admin@tdc.edu.vn', 'password' => '1', 'role' => 'admin'],
         ];
 
