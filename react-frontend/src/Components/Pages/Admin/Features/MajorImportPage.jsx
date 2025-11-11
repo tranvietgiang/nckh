@@ -338,7 +338,7 @@ export default function MajorImportPage() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-300">
                       {(searchRows.length > 0 ? searchRows : majors).map(
                         (major) => (
                           <tr key={major.major_id} className="hover:bg-gray-50">
