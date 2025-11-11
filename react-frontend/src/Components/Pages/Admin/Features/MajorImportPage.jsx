@@ -11,7 +11,7 @@ export default function MajorImportPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // 🟢 Load danh sách ngành và lỗi khi khởi động
+  // Load danh sách ngành và lỗi khi khởi động
   useEffect(() => {
     fetchMajors();
     fetchMajorErrors();
@@ -120,6 +120,48 @@ export default function MajorImportPage() {
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("vi-VN");
+  };
+
+  const [q, setQ] = useState("");
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const timerRef = useRef(null);
+
+  const runSearch = async (value) => {
+    const q = value.trim();
+    if (!q) {
+      setSearchRows([]);
+      fetchMajors(); // reset lại danh sách gốc
+      return;
+    }
+
+    setLoadingSearch(true);
+    try {
+      const res = await axios.get(`/search/majors?q=${encodeURIComponent(q)}`);
+      setSearchRows(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+      setSearchRows([]);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+  const onChange = (e) => {
+    const v = e.target.value;
+    setQ(v);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => runSearch(v), 300);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(q); // Enter => tìm ngay
+    } else if (e.key === "Escape") {
+      setQ("");
+      setSearchRows([]);
+    }
   };
 
   // ======= JSX =======
@@ -240,13 +282,35 @@ export default function MajorImportPage() {
               </div>
             )}
 
+            <div className="w-full max-w-xl flex items-center gap-2 mb-4">
+              <input
+                value={q}
+                onChange={onChange}
+                onKeyDown={onKeyDown}
+                placeholder="Tìm môn học (tên, mã)…"
+                className="w-full border rounded px-3 py-2"
+              />
+              {q && (
+                <button
+                  onClick={() => {
+                    setQ("");
+                    setSearchRows([]);
+                  }}
+                  className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  title="Xoá tìm kiếm"
+                >
+                  ✖
+                </button>
+              )}
+            </div>
+
             {/* BẢNG NGÀNH */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
-              {loading ? (
-                <div className="flex justify-center items-center py-12">
+              {loading || loadingSearch ? (
+                <div className="py-12 flex justify-center items-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   <span className="ml-2 text-gray-600">
-                    Đang tải dữ liệu...
+                    {loadingSearch ? "Đang tìm kiếm..." : "Đang tải dữ liệu..."}
                   </span>
                 </div>
               ) : (
@@ -275,33 +339,35 @@ export default function MajorImportPage() {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {majors.map((major) => (
-                        <tr key={major.major_id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-bold text-gray-900">
-                            {`${major.major_id}`.padStart(2, "0")}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {major.major_name}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            {major.major_abbreviate}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            {formatDate(major.created_at)}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-500">
-                            {formatDate(major.updated_at)}
-                          </td>
-                          <td className="px-6 py-4 text-sm">
-                            <button
-                              onClick={() => handleEdit(major)}
-                              className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition"
-                            >
-                              Sửa
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {(searchRows.length > 0 ? searchRows : majors).map(
+                        (major) => (
+                          <tr key={major.major_id} className="hover:bg-gray-50">
+                            <td className="px-6 py-4 text-sm font-bold text-gray-900">
+                              {`${major.major_id}`.padStart(2, "0")}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900">
+                              {major.major_name}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-900">
+                              {major.major_abbreviate}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {formatDate(major.created_at)}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500">
+                              {formatDate(major.updated_at)}
+                            </td>
+                            <td className="px-6 py-4 text-sm">
+                              <button
+                                onClick={() => handleEdit(major)}
+                                className="bg-green-500 text-white px-3 py-1 rounded text-xs hover:bg-green-600 transition"
+                              >
+                                Sửa
+                              </button>
+                            </td>
+                          </tr>
+                        )
+                      )}
                     </tbody>
                   </table>
 

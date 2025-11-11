@@ -138,4 +138,13 @@ class MajorsController extends Controller
 
         return response()->json($name);
     }
+
+    // search engine meilisearch
+    public function meilisearchMajors(Request $r)
+    {
+        $q = trim($r->query('q', ''));
+        if ($q === '') return [];
+
+        return Major::search($q)->get();
+    }
 }

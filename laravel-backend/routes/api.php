@@ -156,6 +156,7 @@ Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import'])
 Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'deleteByClass']);
 //search engine meilisearch subject tvg
 Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']);
+Route::get('/search/majors', [MajorsController::class, 'meilisearchMajors']);
 
 //lấy ra tất cả báo cáo đã hoàn thành
 Route::middleware('auth:sanctum')->get('/get-all-report-graded', [GradeController::class, 'getAllReportGraded']);
