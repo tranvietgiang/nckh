@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+
 class user_profile extends Model
 {
     //
@@ -81,5 +82,24 @@ class user_profile extends Model
             'success' => true,
             'data' => $students,
         ]);
+    }
+
+
+    // Dữ liệu đưa lên index
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'            => $this->id,
+            'user_id'       => $this->user_id,
+            'fullname'      => $this->fullname,
+            'birthdate'     => $this->birthdate,
+            'phone'         => $this->phone,
+            'major_id'      => $this->major_id,
+            'major_name'    => optional($this->major)->major_name,
+            'class_id'      => $this->class_id,
+            'class_student' => $this->class_student,
+            'created_at'    => optional($this->created_at)?->toISOString(),
+            'updated_at'    => optional($this->updated_at)?->toISOString(),
+        ];
     }
 }

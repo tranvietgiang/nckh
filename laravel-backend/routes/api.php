@@ -136,12 +136,12 @@ Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [Rep
 
 Route::middleware('auth:sanctum')->post('/majors/store', [MajorsController::class, 'store']);
 
-  
-    Route::post('/majors', [MajorsController::class, 'store']);
-    // ✏️ Cập nhật
-    Route::put('/majors/update/{id}', [MajorsController::class, 'update']);
-    // 🗑️ Xóa
-    Route::delete('/majors/{major_id}', [MajorsController::class, 'destroy']);
+
+Route::post('/majors', [MajorsController::class, 'store']);
+// ✏️ Cập nhật
+Route::put('/majors/update/{id}', [MajorsController::class, 'update']);
+// 🗑️ Xóa
+Route::delete('/majors/{major_id}', [MajorsController::class, 'destroy']);
 Route::middleware('auth:sanctum')->post('tvg/get-report-by-student', [ReportController::class, 'getReportByStudent']);
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
@@ -180,7 +180,7 @@ Route::post('/nhhh/admin/import-teachers', [TeacherController::class, 'import'])
 Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'deleteByClass']);
 //search engine meilisearch subject tvg
 Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']);
+Route::get('/search/majors', [MajorsController::class, 'meilisearchMajors']);
 
 //lấy ra tất cả báo cáo đã hoàn thành
 Route::middleware('auth:sanctum')->get('/get-all-report-graded', [GradeController::class, 'getAllReportGraded']);
-

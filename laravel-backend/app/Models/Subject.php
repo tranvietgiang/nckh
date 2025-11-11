@@ -29,7 +29,7 @@ class Subject extends Model
             'subject_name' => $this->subject_name,
             'subject_code' => $this->subject_code,
             'major_id'     => $this->major_id,
-            'major_name'   => optional($this->major)->major_name, // 👈 thêm để bảng hiển thị
+            'major_name'   => optional($this->major)->major_name,
             'updated_at'   => optional($this->updated_at)?->toISOString(),
             'created_at'   => optional($this->created_at)?->toISOString(),
         ];
