@@ -89,7 +89,7 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excelf
 
-// cả
+// cả//ccc
 //
 
 
