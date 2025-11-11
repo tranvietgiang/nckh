@@ -13,8 +13,7 @@ export default function MajorImportPage() {
   const [searchRows, setSearchRows] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const fileInputRef = useRef(null);
-  const timerRef = useRef(null);
-
+  const typingTimer = useRef(null);
   // 🟢 Load danh sách ngành và lỗi khi khởi động
   useEffect(() => {
     fetchMajors();
@@ -46,18 +45,21 @@ export default function MajorImportPage() {
   };
 
   // ======= TÌM KIẾM MEILISEARCH =======
-  const runSearch = async (value) => {
-    const keyword = value.trim();
-    if (!keyword) {
+  // 🔍 STATE & TIMER
+
+  // 🔍 SEARCH FUNCTION (Meilisearch)
+  const runSearch = async (keyword) => {
+    const query = keyword.trim();
+    if (!query) {
       setSearchRows([]);
-      await fetchMajors();
+      await fetchMajors(); // trở lại danh sách gốc
       return;
     }
 
     setLoadingSearch(true);
     try {
       const res = await axios.get(
-        `/search/majors?q=${encodeURIComponent(keyword)}`
+        `/search/majors?q=${encodeURIComponent(query)}`
       );
       setSearchRows(res.data || []);
     } catch (err) {
@@ -68,14 +70,19 @@ export default function MajorImportPage() {
     }
   };
 
-  const onChange = (e) => {
-    const v = e.target.value;
-    setQ(v);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => runSearch(v), 300);
+  // ✏️ XỬ LÝ GÕ TỪ KHÓA — chỉ tìm khi ngừng gõ 500ms
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setQ(value);
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+
+    typingTimer.current = setTimeout(() => {
+      runSearch(value);
+    }, 500); // chờ 0.5 giây sau khi ngừng gõ
   };
 
-  const onKeyDown = (e) => {
+  // ↩️ ENTER tìm ngay / ESC xoá
+  const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
       runSearch(q);
@@ -279,8 +286,8 @@ export default function MajorImportPage() {
             <div className="w-full max-w-xl flex items-center gap-2 mb-5">
               <input
                 value={q}
-                onChange={onChange}
-                onKeyDown={onKeyDown}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
                 placeholder="🔎 Tìm ngành (tên, viết tắt)..."
                 className="w-full border rounded px-3 py-2"
               />

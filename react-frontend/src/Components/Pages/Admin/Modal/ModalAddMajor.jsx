@@ -8,7 +8,7 @@ import {
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
-export default function ModalMajor({ stateOpen, onClose, editingMajor, onSuccess }) {
+export default function ModalMajor({ stateOpen, onClose, editingMajor }) {
   const { user, token } = getAuth();
   IsLogin(user, token);
   const navigate = useNavigate();
@@ -84,7 +84,7 @@ export default function ModalMajor({ stateOpen, onClose, editingMajor, onSuccess
     const duplicate = majors.some(
       (m) =>
         m.major_abbreviate?.toLowerCase() ===
-        formData.major_abbreviate.toLowerCase() &&
+          formData.major_abbreviate.toLowerCase() &&
         (!isEditing || m.major_id !== formData.major_id)
     );
     if (duplicate) {
@@ -224,10 +224,11 @@ export default function ModalMajor({ stateOpen, onClose, editingMajor, onSuccess
                   {majors.map((m) => (
                     <div
                       key={m.major_id}
-                      className={`p-4 border rounded-lg cursor-pointer transition-all ${isEditing && formData.major_id === m.major_id
-                        ? "border-green-500 bg-green-50"
-                        : "border-gray-200 bg-white hover:border-green-300"
-                        }`}
+                      className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                        isEditing && formData.major_id === m.major_id
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 bg-white hover:border-green-300"
+                      }`}
                       onClick={() => handleEdit(m)}
                     >
                       <div className="flex justify-between items-start">
@@ -320,8 +321,8 @@ export default function ModalMajor({ stateOpen, onClose, editingMajor, onSuccess
                   {submitLoading
                     ? "⏳ Đang xử lý..."
                     : isEditing
-                      ? "💾 Cập nhật ngành học"
-                      : "✅ Tạo ngành học"}
+                    ? "💾 Cập nhật ngành học"
+                    : "✅ Tạo ngành học"}
                 </button>
               </div>
             </form>
