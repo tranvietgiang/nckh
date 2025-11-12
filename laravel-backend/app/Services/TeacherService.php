@@ -2,50 +2,34 @@
 
 namespace App\Services;
 
-use App\Models\Submission;
 use App\Repositories\TeacherRepository;
-use DB;
 
 class TeacherService
 {
-    protected $repo;
+    protected $teacherRepo;
 
-    public function __construct(TeacherRepository $repo)
+    public function __construct(TeacherRepository $teacherRepo)
     {
-        $this->repo = $repo;
+        $this->teacherRepo = $teacherRepo;
     }
 
-    public function getSubjects($teacherId)
+    public function getSubjects(int $teacherId)
     {
-        if (!$teacherId) return collect();
-        return $this->repo->getSubjectsByTeacherId((int)$teacherId);
+        return $this->teacherRepo->getSubjectsByTeacherId($teacherId);
     }
 
-    public function getClasses($subjectId)
+    public function getClasses(int $subjectId, int $teacherId)
     {
-        return $this->repo->getClassesBySubjectId((int)$subjectId);
+        return $this->teacherRepo->getClassesBySubjectId($subjectId, $teacherId);
     }
 
-    public function getReports($classId)
+    public function getReports(int $classId, int $teacherId)
     {
-        return $this->repo->getReportsByClassId((int)$classId);
+        return $this->teacherRepo->getReportsByClassId($classId, $teacherId);
     }
 
-    public function getSubmissions($reportId)
+    public function getSubmissions(int $reportId, int $teacherId)
     {
-        return $this->repo->getSubmissionsByReportId((int)$reportId);
-    }
-    public function saveGrade(array $data)
-    {
-        return DB::transaction(function () use ($data) {
-            $submission = Submission::findOrFail($data['submission_id']);
-            $submission->score = $data['score'];
-            $submission->feedback = $data['feedback'];
-            $submission->teacher_id = $data['teacher_id'];
-            $submission->status = 'graded';
-            $submission->save();
-
-            return $submission;
-        });
+        return $this->teacherRepo->getSubmissionsByReportId($reportId, $teacherId);
     }
 }

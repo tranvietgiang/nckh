@@ -192,9 +192,11 @@ Route::middleware('auth:sanctum')->get('/get-all-report-graded', [GradeControlle
 
 //chấm báo cáo giảng viên
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/teacher/subjects', [TeacherScoringController::class, 'getSubjects']);
-    Route::get('/teacher/classes/{subjectId}', [TeacherScoringController::class, 'getClasses']);
-    Route::get('/teacher/reports/{classId}', [TeacherScoringController::class, 'getReports']);
-    Route::get('/teacher/submissions/{reportId}', [TeacherScoringController::class, 'getSubmissions']);
+    Route::prefix('teacher')->group(function () {
+        Route::get('/subjects', [TeacherScoringController::class, 'getSubjects']);
+        Route::get('/classes/{subjectId}', [TeacherScoringController::class, 'getClasses']);
+        Route::get('/reports/{classId}', [TeacherScoringController::class, 'getReports']);
+        Route::get('/submissions/{reportId}', [TeacherScoringController::class, 'getSubmissions']);
+    });
     Route::post('/grades', [TeacherScoringController::class, 'storeGrade']);
 });

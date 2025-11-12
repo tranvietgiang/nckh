@@ -40,14 +40,19 @@ export default function ScoringFeedback() {
     // Hàm 1: Chỉ fetch môn học (sẽ được gọi sau khi có CSRF)
     const fetchSubjects = async () => {
       try {
-        // API mới: Lấy các môn học của giảng viên
         const res = await axios.get("/teacher/subjects");
-        setSubjects(res.data || []);
+        console.log("Subjects API response:", res.data);
+
+        // Nếu API trả mảng trực tiếp
+        setSubjects(Array.isArray(res.data.data) ? res.data.data : []);
+
+        // Nếu API trả { data: [...] } thì dùng dòng này thay
+        // setSubjects(Array.isArray(res.data.data) ? res.data.data : []);
       } catch (err) {
         console.error("Lỗi tải danh sách môn học:", err);
-        // LỖI 403 (CORS) CÓ THỂ VẪN XUẤT HIỆN Ở ĐÂY NẾU CHƯA SỬA BACKEND
       }
     };
+
 
     // Hàm 2: Hàm khởi tạo, lấy CSRF trước
     const initialize = async () => {
@@ -87,7 +92,7 @@ export default function ScoringFeedback() {
       try {
         // API mới: Lấy lớp theo môn học
         const res = await axios.get(`/teacher/classes/${selectedSubject}`);
-        setClasses(res.data || []);
+        setClasses(res.data.data || []);
       } catch (err) {
         console.error("Lỗi tải danh sách lớp:", err);
       }
@@ -114,7 +119,7 @@ export default function ScoringFeedback() {
       try {
         // API mới: Lấy báo cáo theo lớp
         const res = await axios.get(`/teacher/reports/${selectedClass}`);
-        setReports(res.data || []);
+        setReports(res.data.data || []);
       } catch (err) {
         console.error("Lỗi tải báo cáo:", err);
       }
