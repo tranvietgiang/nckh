@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "../../../../config/axios";
+import axios from "../../../../config/axios"; // Đảm bảo axios này đã set withCredentials=true
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
@@ -8,14 +8,23 @@ import { Eye, Send, RefreshCw, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ScoringFeedback() {
+  // State cho 3 cấp
+  const [subjects, setSubjects] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState("");
+
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
+
   const [reports, setReports] = useState([]);
   const [selectedReportId, setSelectedReportId] = useState("");
+
+  // State cho submissions và form
   const [submissions, setSubmissions] = useState([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
   const [score, setScore] = useState("");
   const [feedback, setFeedback] = useState("");
+
+  // State chung
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [successMessage, setSuccessMessage] = useState("");
@@ -24,62 +33,118 @@ export default function ScoringFeedback() {
   const { user } = getAuth();
   const idTeacher = user?.user_id ?? null;
 
-  // === Khởi tạo: lấy CSRF cookie trước khi fetch classes ===
+  // === 1. Tải Môn học của Giảng viên khi component mount ===
   useEffect(() => {
-    const initialize = async () => {
+    // TÁCH HÀM:
+    // Hàm 1: Chỉ fetch môn học (sẽ được gọi sau khi có CSRF)
+    const fetchSubjects = async () => {
       try {
-        // Nếu dùng Sanctum
-        await axios.get("/sanctum/csrf-cookie");
-        fetchClasses();
+        // API mới: Lấy các môn học của giảng viên
+        const res = await axios.get("/teacher/subjects");
+        setSubjects(res.data || []);
       } catch (err) {
-        console.error("Không thể lấy CSRF cookie:", err);
+        console.error("Lỗi tải danh sách môn học:", err);
+        // LỖI 403 (CORS) CÓ THỂ VẪN XUẤT HIỆN Ở ĐÂY NẾU CHƯA SỬA BACKEND
       }
     };
-    initialize();
-  }, []);
 
-  // === Lấy danh sách lớp ===
-  const fetchClasses = async () => {
-    try {
-      const res = await axios.get("/nhhh/classes"); // đã có baseURL + withCredentials từ config
-      setClasses(res.data.data || res.data);
-    } catch (err) {
-      console.error("Lỗi tải danh sách lớp:", err);
+    // Hàm 2: Hàm khởi tạo, lấy CSRF trước
+    const initialize = async () => {
+      try {
+        // Lấy base URL từ VITE_API_URL (ví dụ: http://.../api -> http://...)
+        // VITE_API_URL của bạn phải được set là http://192.168.33.11:8000/api
+        const baseUrl = import.meta.env.VITE_API_URL.replace("/api", "");
+        
+        // Dùng đường dẫn đầy đủ, KHÔNG dùng baseURL của axios instance
+        // Bước này để lấy cookie XSRF-TOKEN (Sửa lỗi CSRF Token Mismatch)
+        await axios.get(`${baseUrl}/sanctum/csrf-cookie`);
+
+        // Sau khi có cookie, gọi hàm fetch môn học
+        fetchSubjects();
+
+      } catch (csrfErr) {
+         console.error("LỖI NGHIÊM TRỌNG: Không thể lấy CSRF cookie:", csrfErr);
+         console.error("Kiểm tra xem /sanctum/csrf-cookie có hoạt động không và VITE_API_URL có đúng không");
+      }
     }
-  };
 
-  // === Khi chọn lớp, lấy báo cáo ===
+    initialize(); // Gọi hàm khởi tạo
+  }, []); // Chỉ chạy 1 lần
+
+  // === 2. Khi chọn Môn học, tải danh sách Lớp ===
   useEffect(() => {
-    if (!selectedClass) return;
-    fetchReports(selectedClass);
+    if (!selectedSubject) {
+      setClasses([]); // Xóa danh sách lớp cũ
+      setSelectedClass(""); // Reset
+      setReports([]); // Xóa báo cáo
+      setSelectedReportId("");
+      setSubmissions([]); // Xóa nộp bài
+      return;
+    }
+
+    const fetchClasses = async () => {
+      try {
+        // API mới: Lấy lớp theo môn học
+        const res = await axios.get(`/teacher/classes/${selectedSubject}`);
+        setClasses(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải danh sách lớp:", err);
+      }
+    };
+
+    fetchClasses();
+    // Reset các dropdown con
+    setSelectedClass("");
+    setReports([]);
     setSelectedReportId("");
     setSubmissions([]);
-  }, [selectedClass]);
+  }, [selectedSubject]); // Chạy khi 'selectedSubject' thay đổi
 
-  const fetchReports = async (classId) => {
-    try {
-      const res = await axios.get(`/reports?class_id=${classId}`);
-      setReports(res.data.data || res.data);
-    } catch (err) {
-      console.error("Lỗi tải báo cáo:", err);
-    }
-  };
-
-  // === Khi chọn report, lấy submissions ===
+  // === 3. Khi chọn Lớp, tải danh sách Báo cáo ===
   useEffect(() => {
-    if (!selectedReportId) return;
-    fetchSubmissions(selectedReportId);
-    setSelectedSubmissionId(null);
-  }, [selectedReportId]);
-
-  const fetchSubmissions = async (reportId) => {
-    try {
-      const res = await axios.get(`/submissionsreport?report_id=${reportId}`);
-      setSubmissions(res.data.data || res.data);
-    } catch (err) {
-      console.error("Lỗi tải submissions:", err);
+    if (!selectedClass) {
+      setReports([]); // Xóa báo cáo cũ
+      setSelectedReportId(""); // Reset
+      setSubmissions([]); // Xóa nộp bài
+      return;
     }
-  };
+
+    const fetchReports = async () => {
+      try {
+        // API mới: Lấy báo cáo theo lớp
+        const res = await axios.get(`/teacher/reports/${selectedClass}`);
+        setReports(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải báo cáo:", err);
+      }
+    };
+
+    fetchReports();
+    // Reset dropdown con
+    setSelectedReportId("");
+    setSubmissions([]);
+  }, [selectedClass]); // Chạy khi 'selectedClass' thay đổi
+
+  // === 4. Khi chọn Báo cáo, tải danh sách Submissions ===
+  useEffect(() => {
+    if (!selectedReportId) {
+      setSubmissions([]); // Xóa submissions cũ
+      return;
+    }
+
+    const fetchSubmissions = async () => {
+      try {
+        // API mới: Lấy submissions theo báo cáo
+        const res = await axios.get(`/teacher/submissions/${selectedReportId}`);
+        setSubmissions(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải submissions:", err);
+      }
+    };
+
+    fetchSubmissions();
+    setSelectedSubmissionId(null); // Đóng form chấm điểm cũ (nếu có)
+  }, [selectedReportId]); // Chạy khi 'selectedReportId' thay đổi
 
   // === Mở/đóng form chấm điểm ===
   const handleOpenForm = (sub) => {
@@ -89,7 +154,7 @@ export default function ScoringFeedback() {
       setFeedback("");
     } else {
       setSelectedSubmissionId(sub.submission_id);
-      setScore("");
+      setScore(""); // Reset score/feedback cũ
       setFeedback("");
     }
   };
@@ -97,11 +162,12 @@ export default function ScoringFeedback() {
   // === Chấm điểm & gửi feedback ===
   const handleSubmit = async (submission) => {
     if (score === "" || feedback.trim() === "")
-      return alert("⚠️ Vui lòng nhập đủ điểm và phản hồi!");
+      return alert("⚠️ Vui lòng nhập đủ điểm và phản hồi!"); // Cân nhắc đổi alert sang modal
 
     try {
       setLoading(true);
-      await axios.post("/grades", {
+      // API này bạn cần đảm bảo nó cũng có trong file routes/api.php
+      await axios.post("/grades", { 
         submission_id: submission.submission_id,
         teacher_id: idTeacher,
         score: parseFloat(score),
@@ -109,14 +175,18 @@ export default function ScoringFeedback() {
       });
 
       setSuccessMessage(`✅ Đã chấm điểm cho ${submission.student_name}!`);
-      setSelectedSubmissionId(null);
+      setSelectedSubmissionId(null); // Đóng form
       setScore("");
       setFeedback("");
-      fetchSubmissions(selectedReportId);
+
+      // Tải lại submissions để cập nhật trạng thái
+      const res = await axios.get(`/teacher/submissions/${selectedReportId}`);
+      setSubmissions(res.data || []);
 
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Lỗi khi chấm điểm:", err);
+      // Lỗi "CSRF token mismatch" thường xảy ra ở đây
       alert("❌ Không thể gửi phản hồi!");
     } finally {
       setLoading(false);
@@ -155,41 +225,65 @@ export default function ScoringFeedback() {
           </div>
         )}
 
-        {/* Chọn lớp */}
-        <div className="mb-4">
-          <label className="block mb-2 font-medium text-gray-700">Chọn lớp:</label>
-          <select
-            value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
-          >
-            <option value="">-- Chọn lớp --</option>
-            {classes.map((cls) => (
-              <option key={cls.class_id} value={cls.class_id}>
-                {cls.class_name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Cập nhật JSX: 3 Dropdowns */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {/* 1. Chọn Môn học */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">1. Chọn môn học:</label>
+            <select
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+              className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
+            >
+              <option value="">-- Chọn môn học --</option>
+              {subjects.map((sub) => (
+                <option key={sub.subject_id} value={sub.subject_id}>
+                  {sub.subject_name} ({sub.subject_code})
+                </option>
+              ))}
+            </select>
+          </div>
 
-        {/* Chọn report */}
-        {selectedClass && reports.length > 0 && (
-          <select
-            value={selectedReportId}
-            onChange={(e) => setSelectedReportId(e.target.value)}
-            className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
-          >
-            <option value="">-- Chọn báo cáo --</option>
-            {reports.map((rep) => (
-              <option key={rep.report_id} value={rep.report_id}>
-                {rep.report_name}
-              </option>
-            ))}
-          </select>
-        )}
-        {selectedClass && reports.length === 0 && (
-          <p className="text-gray-500 mt-2">Không có báo cáo nào</p>
-        )}
+          {/* 2. Chọn lớp (chỉ active khi đã chọn môn) */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">2. Chọn lớp:</label>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
+              disabled={!selectedSubject || classes.length === 0} // Disabled nếu chưa chọn môn
+            >
+              <option value="">-- Chọn lớp --</option>
+              {classes.map((cls) => (
+                <option key={cls.class_id} value={cls.class_id}>
+                  {cls.class_name}
+                </option>
+              ))}
+            </select>
+            {!selectedSubject && <p className="text-xs text-gray-400 mt-1">Vui lòng chọn môn học</p>}
+            {selectedSubject && classes.length === 0 && <p className="text-xs text-gray-400 mt-1">Không có lớp</p>}
+          </div>
+
+          {/* 3. Chọn report (chỉ active khi đã chọn lớp) */}
+          <div>
+            <label className="block mb-2 font-medium text-gray-700">3. Chọn báo cáo:</label>
+            <select
+              value={selectedReportId}
+              onChange={(e) => setSelectedReportId(e.target.value)}
+              className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
+              disabled={!selectedClass || reports.length === 0} // Disabled nếu chưa chọn lớp
+            >
+              <option value="">-- Chọn báo cáo --</option>
+              {reports.map((rep) => (
+                <option key={rep.report_id} value={rep.report_id}>
+                  {rep.report_name}
+                </option>
+              ))}
+            </select>
+            {!selectedClass && <p className="text-xs text-gray-400 mt-1">Vui lòng chọn lớp</p>}
+            {selectedClass && reports.length === 0 && <p className="text-xs text-gray-400 mt-1">Không có báo cáo</p>}
+          </div>
+        </div>
 
         {/* Table submissions */}
         {selectedReportId ? (
@@ -301,7 +395,7 @@ export default function ScoringFeedback() {
           )
         ) : (
           <div className="text-gray-500 mt-6">
-            Vui lòng chọn lớp và báo cáo để hiển thị danh sách cần chấm điểm.
+            Vui lòng chọn Môn học, Lớp, và Báo cáo để hiển thị danh sách.
           </div>
         )}
       </div>

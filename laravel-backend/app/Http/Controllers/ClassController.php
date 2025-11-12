@@ -115,16 +115,16 @@ class ClassController extends Controller
         return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     }
 
-    // public function getClassGroups($majorId)
-    // {
-    //     $getClassByTeacher = Classe::where("major_id", $majorId)->get();
+    public function getClassGroups($majorId)
+    {
+        $getClassByTeacher = Classe::where("major_id", $majorId)->get();
 
-    //     if ($getClassByTeacher->count() > 0) {
-    //         return response()->json($getClassByTeacher, 200);
-    //     }
+        if ($getClassByTeacher->count() > 0) {
+            return response()->json($getClassByTeacher, 200);
+        }
 
-    //     return response()->json(['message' => 'Không tìm thấy lớp'], 404);
-    // }
+        return response()->json(['message' => 'Không tìm thấy lớp'], 404);
+    }
 
     public function import(Request $request)
     {

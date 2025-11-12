@@ -6,7 +6,8 @@ import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { useNavigate } from "react-router-dom";
 import ModalViewDetailGroups from "../Modal/ModalViewDetailGroups";
-
+import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function ManagerGroups() {
   const navigate = useNavigate();
   const [majors, setMajors] = useState([]);
@@ -29,6 +30,7 @@ export default function ManagerGroups() {
 
   const user = getUser();
   const teacherId = user?.user_id;
+  useRoleTeacher(user?.role);
 
   // ===== 1) Lấy ngành theo giảng viên =====
   useEffect(() => {
@@ -88,13 +90,20 @@ export default function ManagerGroups() {
 
   // ===== 4) Lấy lỗi khi import =====
   useEffect(() => {
+    console.log(selectedClassId, selectedMajorId);
     if (!selectedMajorId || !selectedClassId) return;
     axios
       .get(
         `/get-group-errors/majors/${selectedMajorId}/classes/${selectedClassId}`
       )
-      .then((res) => setErrorImport(res.data))
-      .catch(() => setErrorImport([]));
+      .then((res) => {
+        setErrorImport(res.data);
+        console.log(res.data);
+      })
+      .catch((err) => {
+        setErrorImport([]);
+        console.log(err);
+      });
   }, [selectedMajorId, selectedClassId]);
 
   // ===== 5) Lấy báo cáo hiện tại =====
@@ -103,7 +112,9 @@ export default function ManagerGroups() {
     axios
       .get(`/get-report/majors/${selectedMajorId}/classes/${selectedClassId}`)
       .then((res) => setNameReport(res.data))
-      .catch(() => setNameReport({}));
+      .catch((error) => {
+        console.log(error);
+      });
   }, [selectedMajorId, selectedClassId]);
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
@@ -202,6 +213,7 @@ export default function ManagerGroups() {
   return (
     <>
       <Navbar />
+      <BackToTop />
       <div className="min-h-screen bg-gray-100 p-8">
         <h1 className="text-2xl font-bold mb-2">👥 Quản lý Nhóm theo Lớp</h1>
         <p className="text-gray-600 mb-6">

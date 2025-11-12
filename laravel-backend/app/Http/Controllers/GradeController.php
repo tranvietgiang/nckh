@@ -95,24 +95,33 @@ class GradeController extends Controller
     {
         $userId = AuthHelper::isLogin();
 
-        $rows = DB::table('grades')
-            ->join('submissions', 'grades.submission_id', '=', 'submissions.submission_id')
-            ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
-            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
-            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
-            ->where('submissions.student_id', $userId)
-            ->selectRaw('
-            grades.grade_id                                                     AS id,
-            subjects.subject_name                                               AS subject,
-            DATE_FORMAT(COALESCE(submissions.submission_time, submissions.created_at), "%e/%c/%Y") AS submittedDate,
-            CONCAT(COALESCE(grades.score, 0), "/10")                            AS score,
-            "💬 Đã nộp"                                                         AS status,
-            YEAR(COALESCE(submissions.submission_time, submissions.created_at)) AS year
-        ')
-            ->orderByDesc(DB::raw('COALESCE(submissions.submission_time, submissions.created_at)'))
-            ->distinct()
-            ->get();
+        // $rows = DB::table('grades')
+        //     ->join('submissions', 'grades.submission_id', '=', 'submissions.submission_id')
+        //     ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
+        //     ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+        //     ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+        //     ->where('submissions.student_id', $userId)
+        //     ->selectRaw('
+        //     grades.grade_id AS id,
+        //     subjects.subject_name AS subject,
+        //     DATE_FORMAT(COALESCE(submissions.submission_time, submissions.created_at), "%e/%c/%Y") AS submittedDate,
+        //     CONCAT(COALESCE(grades.score, 0), "/10") AS score,
+        //     "💬 Đã nộp" AS status,
+        //     YEAR(COALESCE(submissions.submission_time, submissions.created_at)) AS year,
+        //     COALESCE(submissions.submission_time, submissions.created_at) AS sort_time
+        // ')
+        //     ->orderByDesc('sort_time')
+        //     ->distinct()
+        //     ->get();
 
-        return response()->json($rows, 200);
+        // if ($rows->isEmpty()) {
+        //     return response()->json(['message' => 'Không tìm thấy báo cáo đã chấm điểm'], 404);
+        // }
+
+        $a = Submission::select("submissions.*")
+            ->join("submission_files", "submissions.submission_id", "=", "submission_files.submission_id")
+            ->where("submissions.student_id", $userId)
+            ->get();
+        return response()->json($a, 200);
     }
 }
