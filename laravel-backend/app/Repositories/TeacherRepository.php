@@ -2,9 +2,13 @@
 
 namespace App\Repositories;
 
+use App\Models\Classe;
 use App\Models\User;
 use App\Models\user_profile;
 use App\Models\Major;
+use App\Models\Subject;
+use App\Models\Report;
+use App\Models\Submission;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -57,4 +61,27 @@ class TeacherRepository
             return $user;
         });
     }
+
+    public function getSubjectsByTeacherId(int $teacherId)
+    {
+       return Subject::all();
+    }
+
+    public function getClassesBySubjectId(int $subjectId)
+    {
+        return Classe::where('subject_id', $subjectId)->get();
+    }
+
+    public function getReportsByClassId(int $classId)
+    {
+        return Report::where('class_id', $classId)->get();
+    }
+
+    public function getSubmissionsByReportId(int $reportId)
+    {
+        return Submission::where('report_id', $reportId)->get();
+    }
+
+    
+
 }

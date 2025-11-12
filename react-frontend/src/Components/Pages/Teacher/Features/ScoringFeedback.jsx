@@ -31,7 +31,8 @@ export default function ScoringFeedback() {
   const itemsPerPage = 10;
   const navigate = useNavigate();
   const { user } = getAuth();
-  const idTeacher = user?.user_id ?? null;
+  const idTeacher = parseInt(user?.user_id, 10) || 0;
+
 
   // === 1. Tải Môn học của Giảng viên khi component mount ===
   useEffect(() => {
@@ -54,7 +55,7 @@ export default function ScoringFeedback() {
         // Lấy base URL từ VITE_API_URL (ví dụ: http://.../api -> http://...)
         // VITE_API_URL của bạn phải được set là http://192.168.33.11:8000/api
         const baseUrl = import.meta.env.VITE_API_URL.replace("/api", "");
-        
+
         // Dùng đường dẫn đầy đủ, KHÔNG dùng baseURL của axios instance
         // Bước này để lấy cookie XSRF-TOKEN (Sửa lỗi CSRF Token Mismatch)
         await axios.get(`${baseUrl}/sanctum/csrf-cookie`);
@@ -63,8 +64,8 @@ export default function ScoringFeedback() {
         fetchSubjects();
 
       } catch (csrfErr) {
-         console.error("LỖI NGHIÊM TRỌNG: Không thể lấy CSRF cookie:", csrfErr);
-         console.error("Kiểm tra xem /sanctum/csrf-cookie có hoạt động không và VITE_API_URL có đúng không");
+        console.error("LỖI NGHIÊM TRỌNG: Không thể lấy CSRF cookie:", csrfErr);
+        console.error("Kiểm tra xem /sanctum/csrf-cookie có hoạt động không và VITE_API_URL có đúng không");
       }
     }
 
@@ -135,8 +136,11 @@ export default function ScoringFeedback() {
     const fetchSubmissions = async () => {
       try {
         // API mới: Lấy submissions theo báo cáo
-        const res = await axios.get(`/teacher/submissions/${selectedReportId}`);
-        setSubmissions(res.data || []);
+        const res = await axios.get(`/submissionsreport`, {
+          params: { report_id: selectedReportId }
+        });
+        setSubmissions(res.data.data || []);
+
       } catch (err) {
         console.error("Lỗi tải submissions:", err);
       }
@@ -167,7 +171,7 @@ export default function ScoringFeedback() {
     try {
       setLoading(true);
       // API này bạn cần đảm bảo nó cũng có trong file routes/api.php
-      await axios.post("/grades", { 
+      await axios.post("/nhhh/grades", {
         submission_id: submission.submission_id,
         teacher_id: idTeacher,
         score: parseFloat(score),
@@ -180,8 +184,10 @@ export default function ScoringFeedback() {
       setFeedback("");
 
       // Tải lại submissions để cập nhật trạng thái
-      const res = await axios.get(`/teacher/submissions/${selectedReportId}`);
-      setSubmissions(res.data || []);
+      const res = await axios.get(`/submissionsreport`, {
+        params: { report_id: selectedReportId }
+      });
+      setSubmissions(res.data.data || []);
 
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {

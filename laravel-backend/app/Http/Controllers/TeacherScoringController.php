@@ -3,79 +3,104 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Subject; // Import Model Subject
-use App\Models\Classe; // Import Model Class (tên model của bạn có thể khác)
-use App\Models\Report; // Import Model Report
-use App\Models\Submission; // Import Model Submission
-use Illuminate\Support\Facades\Auth;
+use App\Services\TeacherService;
+use Illuminate\Support\Facades\Validator;
 
 class TeacherScoringController extends Controller
 {
-    /**
-     * 1. Lấy các môn học mà giảng viên (đã đăng nhập) dạy
-     */
-    public function getSubjectsForTeacher(Request $request)
+    protected $teacherService;
+
+    public function __construct(TeacherService $teacherService)
     {
-        $teacher = $request->user(); // Lấy thông tin giảng viên đã xác thực
-        
-        // Giả sử giảng viên có 'major_id'
-        // Chúng ta dùng 'major_id' của giảng viên để tìm các môn học
-        if (!$teacher->major_id) {
-            return response()->json(['error' => 'Không tìm thấy thông tin ngành của giảng viên'], 404);
+        $this->teacherService = $teacherService;
+    }
+
+    /**
+     * GET /teacher/subjects
+     */
+    public function getSubjects(Request $request)
+    {
+        $teacherId = $request->user()->user_id ?? null;
+
+        if (!$teacherId) {
+            return response()->json([], 200); // Trả về rỗng nếu không có teacherId
         }
 
-        $subjects = Subject::where('major_id', $teacher->major_id)->get();
-        
+        $subjects = $this->teacherService->getSubjects($teacherId);
         return response()->json($subjects);
     }
 
     /**
-     * 2. Lấy các lớp học dựa trên môn học
+     * GET /teacher/classes/{subjectId}
      */
-    public function getClassesForSubject(Request $request, $subject_id)
+    public function getClasses($subjectId)
     {
-        $teacher_id = $request->user()->id; // Lấy ID giảng viên
+        $subjectId = (int)$subjectId;
+        if (!$subjectId) return response()->json([], 200);
 
-        // Lấy các lớp thuộc môn học VÀ do giảng viên này dạy
-        $classes = Classe::where('subject_id', $subject_id)
-                           // ->where('teacher_id', $teacher_id) // (Quan trọng: Mở comment này nếu bảng 'classes' có 'teacher_id')
-                           ->get();
-
+        $classes = $this->teacherService->getClasses($subjectId);
         return response()->json($classes);
     }
 
     /**
-     * 3. Lấy các báo cáo dựa trên lớp học
+     * GET /teacher/reports/{classId}
      */
-    public function getReportsForClass(Request $request, $class_id)
+    public function getReports($classId)
     {
-        // (Chúng ta có thể check xem giảng viên có quyền xem lớp này không)
-        $reports = Report::where('class_id', $class_id)->get();
+        $classId = (int)$classId;
+        if (!$classId) return response()->json([], 200);
+
+        $reports = $this->teacherService->getReports($classId);
         return response()->json($reports);
     }
 
     /**
-     * 4. Lấy danh sách nộp bài dựa trên báo cáo
+     * GET /teacher/submissions/{reportId}
      */
-    public function getSubmissionsForReport(Request $request, $report_id)
+    public function getSubmissions($reportId)
     {
-        // Lấy submission kèm thông tin 'student'
-        $submissions = Submission::with('student') // Giả sử có quan hệ 'student'
-                                ->where('report_id', $report_id)
-                                ->get();
-                                
-        // Xử lý lại dữ liệu để giống như code cũ của bạn (nếu cần)
-        $formatted = $submissions->map(function($sub) {
-            return [
-                'submission_id' => $sub->submission_id,
-                'student_id' => $sub->student->student_code ?? 'N/A', // Mã SV
-                'student_name' => $sub->student->name ?? 'N/A', // Tên SV
-                'submission_time' => $sub->created_at->format('Y-m-d H:i:s'),
-                'status' => $sub->status,
-                //...
-            ];
-        });
+        $reportId = (int)$reportId;
+        if (!$reportId) return response()->json([], 200);
 
-        return response()->json($formatted);
+        $subs = $this->teacherService->getSubmissions($reportId);
+        return response()->json($subs);
+    }
+
+    /**
+     * POST /grades
+     * body: { submission_id, teacher_id, score, feedback }
+     */
+    public function storeGrade(Request $request)
+    {
+        // Validation
+        $validator = Validator::make($request->all(), [
+            'submission_id' => 'required|integer',
+            'teacher_id'    => 'required|integer',
+            'score'         => 'required|numeric|min:0|max:10',
+            'feedback'      => 'required|string|max:1000',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Dữ liệu không hợp lệ',
+                'errors'  => $validator->errors()
+            ], 422);
+        }
+
+        try {
+            $data = $request->only('submission_id', 'teacher_id', 'score', 'feedback');
+            $result = $this->teacherService->saveGrade($data);
+
+            return response()->json([
+                'message' => 'Đã chấm điểm thành công',
+                'data'    => $result
+            ], 200);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Có lỗi xảy ra khi chấm điểm',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
     }
 }
