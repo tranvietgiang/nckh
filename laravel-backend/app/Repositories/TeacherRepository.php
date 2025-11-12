@@ -2,12 +2,14 @@
 
 namespace App\Repositories;
 
+use App\Models\Classe;
 use App\Models\User;
 use App\Models\user_profile;
 use App\Models\Major;
+use App\Models\Subject;
+use App\Models\Report;
+use App\Models\Submission;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 
 class TeacherRepository
 {
@@ -23,38 +25,48 @@ class TeacherRepository
     }
 
     /**
-     * 🔍 Tìm ngành theo ID hoặc tên
+     * Lấy danh sách môn học của giáo viên
      */
-    public function findMajor($majorRaw)
+    public function getSubjectsByTeacherId(int $teacherId)
     {
-        if (is_numeric($majorRaw)) {
-            return $this->majorModel->find($majorRaw);
-        }
-
-        return $this->majorModel->where('major_name', 'LIKE', "%$majorRaw%")->first();
+        return Subject::whereHas('classes', function ($q) use ($teacherId) {
+            $q->where('teacher_id', $teacherId);
+        })->get();
     }
 
     /**
-     * 🔍 Kiểm tra trùng user_id hoặc email
+     * Lấy danh sách lớp theo môn và giáo viên
      */
-    public function existsUser($userId, $email)
+    public function getClassesBySubjectId(int $subjectId, int $teacherId)
     {
-        return $this->userModel
-            ->where('user_id', $userId)
-            ->orWhere('email', $email)
-            ->exists();
+        return Classe::where('subject_id', $subjectId)
+                     ->where('teacher_id', $teacherId)
+                     ->get();
     }
 
     /**
-     * 💾 Tạo user + profile trong transaction
+     * Lấy danh sách báo cáo theo lớp và giáo viên
      */
-    public function createTeacher(array $userData, array $profileData)
+    public function getReportsByClassId(int $classId, int $teacherId)
     {
-        return DB::transaction(function () use ($userData, $profileData) {
-            $user = $this->userModel->create($userData);
-            $profileData['user_id'] = $user->user_id;
-            $this->profileModel->create($profileData);
-            return $user;
-        });
+        return Report::where('class_id', $classId)
+                     ->whereHas('classe', function($q) use ($teacherId) {
+                         $q->where('teacher_id', $teacherId);
+                     })
+                     ->get();
+    }
+
+    /**
+     * Lấy submissions theo báo cáo và giáo viên
+     */
+    public function getSubmissionsByReportId(int $reportId, int $teacherId)
+    {
+        return Submission::where('report_id', $reportId)
+                         ->whereHas('report', function($q) use ($teacherId) {
+                             $q->whereHas('classe', function($q2) use ($teacherId) {
+                                 $q2->where('teacher_id', $teacherId);
+                             });
+                         })
+                         ->get();
     }
 }

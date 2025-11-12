@@ -48,6 +48,15 @@ class ClassController extends Controller
         return response()->json([], 500);
     }
 
+    public function getAllClassAdmin(Request $request)
+    {
+        // AuthHelper::roleAmin(); // tạm comment
+        $majorId = $request->query('major_id');
+        $classes = $majorId ? Classe::where('major_id', $majorId)->get() : Classe::all();
+        return response()->json($classes);
+    }
+
+
     public function getStudentsByClass($classId)
     {
 
@@ -73,7 +82,7 @@ class ClassController extends Controller
         AuthHelper::roleAmin();
 
         $result = $this->classesService->deleteByClass([
-            'class_id'   => $class_id,
+            'class_id' => $class_id,
             'teacher_id' => $teacherId,
         ]);
 

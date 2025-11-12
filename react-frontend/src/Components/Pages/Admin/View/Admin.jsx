@@ -135,7 +135,6 @@ export default function AdminManagement() {
   // tìm kiếm
   const filteredStudents = students.filter(
     (s) =>
-      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       s.user_id?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -143,7 +142,6 @@ export default function AdminManagement() {
 
   const filteredTeachers = teachers.filter(
     (t) =>
-      t.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       t.user_id?.toLowerCase().includes(searchTerm.toLowerCase())

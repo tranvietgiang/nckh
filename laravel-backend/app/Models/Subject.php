@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use Laravel\Scout\Searchable;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Subject extends Model
 {
     //   
-    use Searchable;
+    
+    use HasFactory;
 
     protected $table = "subjects";
     protected $primaryKey = 'subject_id';
@@ -33,5 +35,10 @@ class Subject extends Model
             'updated_at'   => optional($this->updated_at)?->toISOString(),
             'created_at'   => optional($this->created_at)?->toISOString(),
         ];
+    }
+    // Quan hệ với lớp
+    public function classes(): HasMany
+    {
+        return $this->hasMany(Classe::class, 'subject_id', 'subject_id');
     }
 }

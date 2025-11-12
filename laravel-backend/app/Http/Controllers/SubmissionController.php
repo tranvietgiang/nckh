@@ -39,13 +39,15 @@ class SubmissionController extends Controller
             ], 400);
         }
 
-        // Lấy submissions và join bảng user_profiles
+        // Left join để luôn lấy submissions dù không có profile
         $submissions = Submission::where('report_id', $reportId)
-            ->join('user_profiles', 'submissions.student_id', '=', 'user_profiles.user_id')
+            ->leftJoin('user_profiles', function ($join) {
+                $join->on('submissions.student_id', '=', DB::raw('CAST(user_profiles.user_id AS CHAR)'));
+            })
             ->select(
                 'submissions.submission_id',
                 'submissions.student_id',
-                'user_profiles.fullname as student_name',
+                DB::raw('COALESCE(user_profiles.fullname, submissions.student_id) as student_name'),
                 'submissions.submission_time',
                 'submissions.status'
             )
@@ -55,4 +57,5 @@ class SubmissionController extends Controller
             'data' => $submissions
         ]);
     }
+
 }
