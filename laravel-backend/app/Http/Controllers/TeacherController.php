@@ -143,6 +143,7 @@ class TeacherController extends Controller
                 'success' => $data['success'],
                 'failed' => $data['failed'],
                 'errors' => $data['errors'],
+                'successList' => $data['successList']
             ]);
         } catch (\Throwable $e) {
             return response()->json([

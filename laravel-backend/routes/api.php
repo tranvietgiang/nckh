@@ -19,6 +19,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SubmissionFileController;
+use App\Http\Controllers\TeacherScoringController;
 
 /**Xác thực người dùng */
 Route::post('/auth/check-login', [AuthController::class, 'authRole']);
@@ -49,9 +50,12 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 /**Chấm điểm và phản hồi */
-Route::get('/grades', [GradeController::class, 'index']);
-Route::post('/grades', [GradeController::class, 'store']);
-Route::get('/grades/{submission_id}', [GradeController::class, 'show']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/nhhh/grades', [GradeController::class, 'index']);
+    Route::post('/nhhh/grades', [GradeController::class, 'store']);
+    Route::get('/nhhh/grades/{submission_id}', [GradeController::class, 'show']);
+});
+
 
 /**Lấy thông tin sinh viên đã nộp */
 Route::get('/submissions', [SubmissionController::class, 'indes']);
@@ -101,6 +105,7 @@ Route::middleware('auth:sanctum')->get('/tvg/get-majors', [MajorsController::cla
 
 Route::get('/classes', [ClassController::class, 'getAllClassTeacher']);
 Route::get('/nhhh/classes', [ClassController::class, 'getAllClassTeacher']);
+Route::get('/nhhh/admin/classes', [ClassController::class, 'getAllClassAdmin']);
 Route::get('/teachers', [TeacherController::class, 'getAllTeacher']);
 //thống kê cho giảng viên
 Route::get('/classes/{classId}/students', [ClassController::class, 'getStudentsByClass']);
@@ -184,3 +189,14 @@ Route::get('/search/majors', [MajorsController::class, 'meilisearchMajors']);
 
 //lấy ra tất cả báo cáo đã hoàn thành
 Route::middleware('auth:sanctum')->get('/get-all-report-graded', [GradeController::class, 'getAllReportGraded']);
+
+//chấm báo cáo giảng viên
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('teacher')->group(function () {
+        Route::get('/subjects', [TeacherScoringController::class, 'getSubjects']);
+        Route::get('/classes/{subjectId}', [TeacherScoringController::class, 'getClasses']);
+        Route::get('/reports/{classId}', [TeacherScoringController::class, 'getReports']);
+        Route::get('/submissions/{reportId}', [TeacherScoringController::class, 'getSubmissions']);
+    });
+    Route::post('/grades', [TeacherScoringController::class, 'storeGrade']);
+});

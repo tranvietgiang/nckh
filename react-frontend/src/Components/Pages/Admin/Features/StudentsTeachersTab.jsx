@@ -48,15 +48,12 @@ export default function StudentsTeachersTab({
   const itemsPerPage = 10;
 
   // ⚙️ Xác định dữ liệu và tổng trang
-  const data =
-    activeTab === "students" ? filteredStudents : filteredTeachers;
+  const data = activeTab === "students" ? filteredStudents : filteredTeachers;
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // ⚙️ Cắt dữ liệu theo trang
-  const paginatedData = data.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const uniqueData = Array.from(new Map(data.map(u => [u.user_id, u])).values());
+  const paginatedData = uniqueData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // ⚙️ Xử lý chuyển trang
   const handlePrevPage = () => {
@@ -220,11 +217,11 @@ export default function StudentsTeachersTab({
                     {item.email}
                   </td>
                   <td className="hidden lg:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                    {/* Hiển thị Khoa (department) cho GV, Chuyên ngành (department) cho SV */}
+                    {/* Hiển thị Khoa cho GV, Chuyên ngành cho SV */}
                     {item.major_name}
                   </td>
                   <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                    {/* Hiển thị Chức vụ (position) cho GV, Lớp (class_name) cho SV */}
+                    {/* Hiển thị Chức vụ cho GV, Lớp cho SV */}
                     {activeTab === "teachers" ? item.profile?.position : item.class_student || ""}
                   </td>
                   <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
@@ -309,7 +306,7 @@ export default function StudentsTeachersTab({
                   value={selectedUser.fullname || ""}
                   onChange={(e) =>
                     setSelectedUser({
-                      ...selectedUser.profile,
+                      ...selectedUser,
                       fullname: e.target.value,
                     })
                   }
