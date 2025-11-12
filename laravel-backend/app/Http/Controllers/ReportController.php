@@ -424,4 +424,36 @@ class ReportController extends Controller
 
         return response()->json($getName, 200);
     }
+
+
+    public function getReportsByMajorClassSubjectTeacher($selectedMajor, $selectedSubject, $selectedClass, $selectedYear)
+    {
+
+        AuthHelper::roleTeacher();
+        $teacherId = Auth::id();
+
+        $reports = DB::table('reports')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
+            ->where('majors.major_id', $selectedMajor)
+            ->where('subjects.subject_id', $selectedSubject)
+            ->where('classes.class_id', $selectedClass)
+            ->where('classes.academic_year', $selectedYear)
+            ->where('classes.teacher_id', $teacherId)
+            ->select('reports.*')
+            ->distinct()
+            ->get();
+
+        if ($reports->isEmpty()) {
+            return response()->json([
+                'message' => 'Không tìm thấy báo cáo nào với các tiêu chí đã chọn.'
+            ], 404);
+        }
+
+        return response()->json(
+            $reports,
+            200
+        );
+    }
 }

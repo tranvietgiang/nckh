@@ -42,7 +42,6 @@ export default function PendingReports() {
       .post("/tvg/get-report-by-student")
       .then((res) => {
         setReports(res.data);
-        console.log("📄 Report data:", res.data);
       })
       .catch((error) => {
         console.log("❌ Lỗi khi load report:", error);
@@ -202,6 +201,11 @@ export default function PendingReports() {
                   </p>
                   <p>
                     <strong>Hạn nộp:</strong>{" "}
+                    {new Date(report.end_date).toLocaleDateString("vi-VN")}
+                  </p>
+                  {console.log(report)}
+                  <p>
+                    <strong>Ngày nộp:</strong>{" "}
                     {new Date(report.end_date).toLocaleDateString("vi-VN")}
                   </p>
 

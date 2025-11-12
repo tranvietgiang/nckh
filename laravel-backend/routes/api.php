@@ -200,3 +200,12 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/grades', [TeacherScoringController::class, 'storeGrade']);
 });
+
+Route::middleware('auth:sanctum')->get('/getSubject-major-class-teacher/{majorId}', [SubjectController::class, 'getSubjectByMajorByTeacher']);
+Route::middleware('auth:sanctum')->get('/classes-by-subject/{majorId}/{subjectId}', [SubjectController::class, 'getSubjectByMajorByClass']);
+Route::middleware('auth:sanctum')->get('/years-by-class/{classId}', [ClassController::class, 'getYearsByClass']);
+
+Route::middleware('auth:sanctum')->get(
+    '/reports-filter/{selectedMajor}/{selectedSubject}/{selectedClass}/{selectedYear}',
+    [ReportController::class, 'getReportsByMajorClassSubjectTeacher']
+);

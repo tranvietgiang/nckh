@@ -13,22 +13,22 @@ class TeacherService
         $this->teacherRepo = $teacherRepo;
     }
 
-    public function getSubjects(int $teacherId)
+    public function getSubjects(string $teacherId)
     {
         return $this->teacherRepo->getSubjectsByTeacherId($teacherId);
     }
 
-    public function getClasses(int $subjectId, int $teacherId)
+    public function getClasses(int $subjectId, string $teacherId)
     {
         return $this->teacherRepo->getClassesBySubjectId($subjectId, $teacherId);
     }
 
-    public function getReports(int $classId, int $teacherId)
+    public function getReports(int $classId, string $teacherId)
     {
         return $this->teacherRepo->getReportsByClassId($classId, $teacherId);
     }
 
-    public function getSubmissions(int $reportId, int $teacherId)
+    public function getSubmissions(int $reportId, string $teacherId)
     {
         return $this->teacherRepo->getSubmissionsByReportId($reportId, $teacherId);
     }

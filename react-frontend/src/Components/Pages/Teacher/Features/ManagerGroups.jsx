@@ -9,6 +9,10 @@ import ModalViewDetailGroups from "../Modal/ModalViewDetailGroups";
 import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function ManagerGroups() {
+  useEffect(() => {
+    document.title = "Quản lý Nhóm ";
+  }, []);
+
   const navigate = useNavigate();
   const [majors, setMajors] = useState([]);
   const [selectedMajorId, setSelectedMajorId] = useState("");
@@ -90,8 +94,10 @@ export default function ManagerGroups() {
 
   // ===== 4) Lấy lỗi khi import =====
   useEffect(() => {
-    console.log(selectedClassId, selectedMajorId);
-    if (!selectedMajorId || !selectedClassId) return;
+    if (!selectedMajorId || !selectedClassId) {
+      setErrorImport([]);
+      return;
+    }
     axios
       .get(
         `/get-group-errors/majors/${selectedMajorId}/classes/${selectedClassId}`
@@ -400,33 +406,41 @@ export default function ManagerGroups() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {groups.map((g, idx) => (
-                    <tr
-                      key={g.rm_code ?? g.report_member_idx ?? idx}
-                      className="hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-3">{idx + 1}</td>
-                      <td className="px-6 py-3 font-medium text-gray-900">
-                        {g?.rm_name ?? "-"}
-                      </td>
-                      <td className="px-6 py-3">{g?.leader_name || "—"}</td>
-                      <td className="px-6 py-3">
-                        {g.member_count ?? g.members_count ?? 0}
-                      </td>
-                      <td className="px-6 py-3">{formatDate(g.created_at)}</td>
-                      <td className="px-6 py-3">
-                        <button
-                          onClick={() => {
-                            handleViewDetail(g?.rm_code);
-                            setStatusOpen(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                        >
-                          Xem chi tiết
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {groups.map((g, idx) => {
+                    return (
+                      <tr
+                        key={g.rm_code ?? g.report_member_idx ?? idx}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="px-6 py-3">{idx + 1}</td>
+                        <td className="px-6 py-3 font-medium text-gray-900">
+                          {g?.rm_name ?? "-"}
+                        </td>
+                        <td className={`px-6 py-3 `}>
+                          {g?.leader_name || "—"}
+                          {g.role === "NT" && " (Trưởng nhóm)"}
+                          {g.role === "NP" && " (Phó nhóm)"}
+                        </td>
+                        <td className="px-6 py-3">
+                          {g.member_count ?? g.members_count ?? 0}
+                        </td>
+                        <td className="px-6 py-3">
+                          {formatDate(g.created_at)}
+                        </td>
+                        <td className="px-6 py-3">
+                          <button
+                            onClick={() => {
+                              handleViewDetail(g?.rm_code);
+                              setStatusOpen(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                          >
+                            Xem chi tiết
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -154,7 +154,19 @@ class ClassController extends Controller
         }
     }
 
-    // public function allClassId(){
-    //     $getAllClassId = Classe::where()
-    // }
+    public function getYearsByClass()
+    {
+        AuthHelper::roleTeacher();
+
+        $years = Classe::select('academic_year')
+            ->distinct()
+            ->orderBy('academic_year', 'desc')
+            ->get();
+
+        if ($years->count() > 0) {
+            return response()->json($years, 200);
+        }
+
+        return response()->json([], 500);
+    }
 }

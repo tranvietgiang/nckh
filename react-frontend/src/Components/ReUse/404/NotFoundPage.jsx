@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 const user = JSON.parse(localStorage.getItem("user")) ?? null;
 const role = user?.role ?? null;
 export default function NotFoundPage() {
+  useEffect(() => {
+    document.title = "404 Trang không tồn tại";
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-lg w-full text-center">

@@ -48,8 +48,8 @@ class MajorsController extends Controller
 
         $majors = Classe::select('majors.*', 'classes.teacher_id', 'classes.major_id')
             ->join('majors', 'classes.major_id', '=', 'majors.major_id')
-            ->distinct()
             ->where('classes.teacher_id', $idTeacher)
+            ->distinct()
             ->get();
 
         if ($majors->isEmpty()) {
