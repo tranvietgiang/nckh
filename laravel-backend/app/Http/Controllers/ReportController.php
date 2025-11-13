@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
 use App\Models\Classe;
+use App\Models\Grade;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
@@ -287,6 +288,14 @@ class ReportController extends Controller
                 'file_type' => $file->getClientOriginalExtension(),
             ]);
 
+            Grade::create([
+                'submission_id' => $submission->submission_id,
+                'teacher_id' => $teacherId,
+                'score' => 0,
+                'feedback' => null,
+                "graded_at" => null,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ Upload trực tiếp Google Drive thành công!',
@@ -423,5 +432,35 @@ class ReportController extends Controller
         }
 
         return response()->json($getName, 200);
+    }
+
+
+    public function getReportsByMajorClassSubjectTeacher($selectedMajor, $selectedSubject, $selectedClass, $selectedYear)
+    {
+        AuthHelper::roleTeacher();
+        $teacherId = Auth::id();
+
+        $reports = DB::table('reports')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
+            ->where('majors.major_id', $selectedMajor)
+            ->where('subjects.subject_id', $selectedSubject)
+            ->where('classes.class_id', $selectedClass)
+            ->where('classes.academic_year', $selectedYear)
+            ->where('classes.teacher_id', $teacherId)
+            ->distinct()
+            ->select(
+                "reports.*"
+            )
+            ->get();
+
+        if ($reports->isEmpty()) {
+            return response()->json([
+                'message' => 'Không tìm thấy báo cáo nào với các tiêu chí đã chọn.'
+            ], 404);
+        }
+
+        return response()->json($reports, 200);
     }
 }

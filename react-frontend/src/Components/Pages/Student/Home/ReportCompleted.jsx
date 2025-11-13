@@ -9,7 +9,7 @@ export default function CompleteReports() {
     axios
       .get("/get-all-report-graded")
       .then((res) => {
-        const rows = Array.isArray(res.data) ? res.data : [];
+        const rows = Array.isArray(res.data.data) ? res.data : [];
 
         // ✅ lấy numericScore nếu có; nếu không thì tách "x/10" thành số x
         const toNumber = (r) =>

@@ -115,12 +115,14 @@ class StudentsImport implements ToCollection, WithHeadingRow
 
             try {
                 // Kiểm tra MSSV đã tồn tại trong CÙNG NGÀNH chưa
-                $existingStudentInMajor = user_profile::where('user_id', $msv)
+                $existingStudentInMajor =
+                    user_profile::where('user_id', $msv)
+                    ->where('class_id', $this->classId)
                     ->where('major_id', $this->majorId)
                     ->exists();
 
                 if ($existingStudentInMajor) {
-                    $this->logError($msv, $ten, $email, "sinh viên đã tồn tại trong ngành này.");
+                    $this->logError($msv, $ten, $email, "sinh viên này đã tồn tại trong lớp.");
                     continue;
                 }
 
