@@ -8,6 +8,10 @@ import { Eye, Send, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export default function ScoringFeedback() {
+  useEffect(() => {
+    document.title = "Quản lý chấm điểm & phản hồi";
+  }, []);
+
   const [majors, setMajors] = useState([]);
   const [selectedMajor, setSelectedMajor] = useState("");
 
@@ -161,19 +165,13 @@ export default function ScoringFeedback() {
 
     const fetchSubmissions = async () => {
       try {
-        const res = await axios.get(`/submissionsreport`, {
-          params: {
-            report_id: selectedReportId,
-            major_id: selectedMajor,
-            subject_id: selectedSubject,
-            class_id: selectedClass,
-            year_id: selectedYear,
-            teacher_id: idTeacher,
-          },
-        });
-        setSubmissions(res.data.data || []);
+        const res = await axios.get(
+          `/submission-filter/${selectedMajor}/${selectedSubject}/${selectedClass}/${selectedYear}/${selectedReportId}`
+        );
+        setSubmissions(res.data || []);
       } catch (err) {
         console.error("Lỗi tải submissions:", err);
+        setSubmissions([]);
       }
     };
     fetchSubmissions();
@@ -186,31 +184,34 @@ export default function ScoringFeedback() {
 
     try {
       setLoading(true);
-      await axios.post("/nhhh/grades", {
+
+      await axios.post("/grades/update", {
         submission_id: submission.submission_id,
         teacher_id: idTeacher,
-        score: parseFloat(score),
-        feedback,
-        major_id: selectedMajor,
-        subject_id: selectedSubject,
-        class_id: selectedClass,
-        year_id: selectedYear,
         report_id: selectedReportId,
+        class_id: selectedClass,
+        subject_id: selectedSubject,
+        major_id: selectedMajor,
+        academic_year: selectedYear,
+        score: parseFloat(score),
+        feedback: feedback.trim(),
       });
 
-      setSuccessMessage(`✅ Đã chấm điểm cho ${submission.student_name}!`);
+      setSuccessMessage(`✅ Đã chấm điểm thành công`);
       setSelectedSubmissionId(null);
       setScore("");
       setFeedback("");
 
-      const res = await axios.get(`/submissionsreport`, {
-        params: { report_id: selectedReportId },
-      });
-      setSubmissions(res.data.data || []);
+      // Refresh list
+      const refresh = await axios.get(
+        `/submission-filter/${selectedMajor}/${selectedSubject}/${selectedClass}/${selectedYear}/${selectedReportId}`
+      );
+      setSubmissions(refresh.data || []);
+
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (err) {
       console.error("Lỗi khi chấm điểm:", err);
-      alert("❌ Không thể gửi phản hồi!");
+      alert(`❌ ${err.response?.data?.message || "Chấm điểm thất bại!"}`);
     } finally {
       setLoading(false);
     }
@@ -307,7 +308,9 @@ export default function ScoringFeedback() {
               </label>
               <select
                 value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
+                onChange={(e) => {
+                  setSelectedYear(e.target.value);
+                }}
                 className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
                 disabled={!selectedClass}
               >
@@ -350,8 +353,8 @@ export default function ScoringFeedback() {
                   <table className="w-full text-sm text-left text-gray-600">
                     <thead className="bg-gray-200 text-gray-700 uppercase text-xs">
                       <tr>
-                        <th className="px-3 py-2">Mã SV</th>
-                        <th className="px-3 py-2">Tên SV</th>
+                        <th className="px-3 py-2">Tên nhóm</th>
+                        <th className="px-3 py-2">Mã SV nhóm trưởng</th>
                         <th className="px-3 py-2">Thời gian nộp</th>
                         <th className="px-3 py-2">Trạng thái</th>
                         <th className="px-3 py-2 text-center">Thao tác</th>
@@ -368,12 +371,12 @@ export default function ScoringFeedback() {
                             }`}
                           >
                             <td className="px-3 py-2 font-medium">
-                              {sub.student_id}
+                              {sub?.rm_name ?? "N/A"}
                             </td>
-                            <td className="px-3 py-2">{sub.student_name}</td>
+                            <td className="px-3 py-2">{sub.student_id}</td>
                             <td className="px-3 py-2">{sub.submission_time}</td>
                             <td className="px-3 py-2 text-blue-600 font-semibold">
-                              {sub.status}
+                              {sub.score === 0 ? "Chưa chấm" : ""}
                             </td>
                             <td className="px-3 py-2 text-center">
                               <button
@@ -393,6 +396,13 @@ export default function ScoringFeedback() {
                               </button>
                             </td>
                           </tr>
+                          <a
+                            href={sub?.file_path ?? ""}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Xem báo cáo
+                          </a>
 
                           {selectedSubmissionId === sub.submission_id && (
                             <tr className="bg-gray-50">

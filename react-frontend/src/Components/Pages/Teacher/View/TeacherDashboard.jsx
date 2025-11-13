@@ -17,11 +17,11 @@ export default function TeacherDashboard() {
   const { user, token } = getAuth();
   const navigate = useNavigate();
 
-  // 🧩 Kiểm tra đăng nhập + quyền
+  // Kiểm tra đăng nhập + quyền
   IsLogin(user, token);
   RoleTeacher(user?.role);
 
-  // 🧠 Lấy danh sách lớp của giảng viên
+  // Lấy danh sách lớp của giảng viên
   useEffect(() => {
     document.title = "Trang giảng viên";
     if (!token) return;
@@ -56,8 +56,9 @@ export default function TeacherDashboard() {
   const handleButtonClick = (name) => {
     const routes = {
       "Quản Lý Lớp": "/nckh-class-manager",
+      "Quản Lý Báo Cáo": "/nckh-report-manager",
       "Tạo Báo Cáo": "/nckh-create-report",
-      "Chấm Điểm": "/nckh-teacher-scoringfeedback",
+      "Chấm Báo cáo": "/nckh-teacher-scoringfeedback",
       "Tạo Thông Báo": null, // sẽ bật modal
       "Quản lý nhóm": "/nckh-teacher-groups",
     };
@@ -77,7 +78,9 @@ export default function TeacherDashboard() {
 
       {/* HEADER */}
       <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
-        <h1 className="text-3xl font-bold text-center">📊 BẢNG TỔNG QUAN GIẢNG VIÊN</h1>
+        <h1 className="text-3xl font-bold text-center">
+          📊 BẢNG TỔNG QUAN GIẢNG VIÊN
+        </h1>
       </div>
 
       {/* THÔNG TIN GIẢNG VIÊN */}
@@ -87,7 +90,9 @@ export default function TeacherDashboard() {
             <h2 className="text-xl font-semibold">
               👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
             </h2>
-            <p className="text-gray-600">Mã GV: {user?.user_code || user?.user_id}</p>
+            <p className="text-gray-600">
+              Mã GV: {user?.user_code || user?.user_id}
+            </p>
             <p className="text-gray-600">
               Ngành: {majorInfo?.major_name || "Chưa có thông tin"}
             </p>
@@ -109,13 +114,13 @@ export default function TeacherDashboard() {
         {/* THAO TÁC NHANH */}
         <div className="mt-8">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            ⚡ THAO TÁC NHANH
+            THAO TÁC NHANH
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               "Quản Lý Lớp",
-              "Tạo Báo Cáo",
-              "Chấm Điểm",
+              "Quản Lý Báo Cáo",
+              "Chấm Báo cáo",
               "Tạo Thông Báo",
               "Quản lý nhóm",
             ].map((item) => (
@@ -133,13 +138,17 @@ export default function TeacherDashboard() {
         {/* DANH SÁCH LỚP */}
         <div className="mt-10">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
-            📚 DANH SÁCH LỚP GIẢNG DẠY
+            DANH SÁCH LỚP GIẢNG DẠY
           </h3>
 
           {loading ? (
-            <div className="text-center text-gray-500 py-6">⏳ Đang tải dữ liệu...</div>
+            <div className="text-center text-gray-500 py-6">
+              ⏳ Đang tải dữ liệu...
+            </div>
           ) : classes.length === 0 ? (
-            <p className="text-gray-500 italic">Chưa có lớp nào được phân công.</p>
+            <p className="text-gray-500 italic">
+              Chưa có lớp nào được phân công.
+            </p>
           ) : (
             <div className="space-y-4">
               {classes.map((cls) => (
@@ -152,8 +161,8 @@ export default function TeacherDashboard() {
                       {cls.class_name} ({cls.class_code})
                     </p>
                     <p className="text-gray-600 text-sm">
-                      Ngành: {cls.major_name || "Chưa có"} • Học kỳ: {cls.semester} • Niên khóa:{" "}
-                      {cls.academic_year}
+                      Ngành: {cls.major_name || "Chưa có"} • Học kỳ:{" "}
+                      {cls.semester} • Niên khóa: {cls.academic_year}
                     </p>
                   </div>
 
@@ -161,7 +170,7 @@ export default function TeacherDashboard() {
                     onClick={() => handleViewStats(cls.class_id)}
                     className="text-blue-600 hover:underline font-medium"
                   >
-                    📊 Xem thống kê
+                    Xem thống kê
                   </button>
                 </div>
               ))}
@@ -171,16 +180,16 @@ export default function TeacherDashboard() {
 
         {/* FOOTER NHỎ */}
         <div className="flex justify-between items-center mt-8 border-t pt-4 text-sm text-gray-500">
-          <p>🕓 Cập nhật: {new Date().toLocaleDateString("vi-VN")}</p>
+          <p>Cập nhật: {new Date().toLocaleDateString("vi-VN")}</p>
           <div className="flex gap-4">
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">
-              👁️ Xem chi tiết
+              Xem chi tiết
             </button>
             <button
               onClick={() => window.location.reload()}
               className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow"
             >
-              🔄 Làm mới
+              Làm mới
             </button>
           </div>
         </div>

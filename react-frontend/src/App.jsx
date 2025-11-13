@@ -19,10 +19,11 @@ import ImportTeacher from "./Components/Pages/Admin/Features/ImportTeacher";
 
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
-import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
+import CreateReports from "./Components/Pages/Teacher/Modal/ModalCreateReports";
 import ClassStatistics from "./Components/Pages/Teacher/Features/ClassStatistics";
 import ManagerGroups from "./Components/Pages/Teacher/Features/ManagerGroups";
 import SubjectCrud from "./Components/Pages/Admin/Features/SubjectCRUD";
+import ReportManager from "./Components/Pages/Teacher/Features/ReportManager";
 
 function App() {
   return (
@@ -71,6 +72,10 @@ function App() {
             />
             {/* Quản lý nhóm */}
             <Route path="/nckh-teacher-groups" element={<ManagerGroups />} />
+            /*===============================================END============================================
+            */
+            {/* Quản lý nhóm */}
+            <Route path="/nckh-report-manager" element={<ReportManager />} />
             /*===============================================END============================================
             */
           </Routes>

@@ -35,6 +35,7 @@ export default function PendingReports() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [submissionMap, setSubmissionMap] = useState({}); // ✅ lưu trạng thái + file_path
+  const [submitFailed, setSubmitFailed] = useState(false);
 
   // 🔹 Lấy danh sách báo cáo
   useEffect(() => {
@@ -86,6 +87,8 @@ export default function PendingReports() {
 
     try {
       setUploading(true);
+      setSubmitFailed(false); // reset trước mỗi lần submit
+
       const res = await axios.post("/drive-upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -99,6 +102,8 @@ export default function PendingReports() {
     } catch (err) {
       console.error("❌ Upload lỗi:", err.response?.data || err.message);
       alert(err.response?.data?.message_error || "Nộp báo cáo thất bại!");
+      // 👉 Gắn cờ FAILED → modal KHÔNG bị đóng
+      setSubmitFailed(true);
     } finally {
       setUploading(false);
     }

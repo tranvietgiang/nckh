@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\AuthHelper;
 use App\Models\Classe;
+use App\Models\Grade;
 use Illuminate\Http\Request;
 use App\Models\Report;
 use Illuminate\Support\Facades\Auth;      // ✅ đúng cho Auth facade
@@ -287,6 +288,14 @@ class ReportController extends Controller
                 'file_type' => $file->getClientOriginalExtension(),
             ]);
 
+            Grade::create([
+                'submission_id' => $submission->submission_id,
+                'teacher_id' => $teacherId,
+                'score' => 0,
+                'feedback' => null,
+                "graded_at" => null,
+            ]);
+
             return response()->json([
                 'success' => true,
                 'message' => '✅ Upload trực tiếp Google Drive thành công!',
@@ -428,7 +437,6 @@ class ReportController extends Controller
 
     public function getReportsByMajorClassSubjectTeacher($selectedMajor, $selectedSubject, $selectedClass, $selectedYear)
     {
-
         AuthHelper::roleTeacher();
         $teacherId = Auth::id();
 
@@ -441,8 +449,10 @@ class ReportController extends Controller
             ->where('classes.class_id', $selectedClass)
             ->where('classes.academic_year', $selectedYear)
             ->where('classes.teacher_id', $teacherId)
-            ->select('reports.*')
             ->distinct()
+            ->select(
+                "reports.*"
+            )
             ->get();
 
         if ($reports->isEmpty()) {
@@ -451,9 +461,6 @@ class ReportController extends Controller
             ], 404);
         }
 
-        return response()->json(
-            $reports,
-            200
-        );
+        return response()->json($reports, 200);
     }
 }
