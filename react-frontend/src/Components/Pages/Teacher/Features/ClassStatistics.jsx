@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
+import { getAuth } from "../../../Constants/INFO_USER";
 
 export default function ClassStatistics() {
   const { classId } = useParams();
@@ -8,22 +9,32 @@ export default function ClassStatistics() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔍 State cho tìm kiếm và lọc
+  // 🔍 Tìm kiếm + lọc
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Tất cả");
 
+  // 🧩 Lấy thông tin user
+  const { user, token } = getAuth();
+  const teacherId = user?.user_id;
+
+  // ==========================
+  // 🔥 LẤY DANH SÁCH SINH VIÊN
+  // ==========================
   useEffect(() => {
+    if (!teacherId) return;
+
     axios
-      .get(`/classes/${classId}/students`)
+      .get(`/classes/${classId}/teachers/${teacherId}/students`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((res) => {
-        setStudents(res.data.data);
-        setLoading(false);
+        setStudents(res.data.list_student || []);
       })
       .catch((err) => {
         console.error("❌ Lỗi khi tải danh sách sinh viên:", err);
-        setLoading(false);
-      });
-  }, [classId]);
+      })
+      .finally(() => setLoading(false));
+  }, [classId, teacherId]);
 
   if (loading)
     return <p className="text-center mt-10 text-gray-600">⏳ Đang tải dữ liệu...</p>;
@@ -41,26 +52,30 @@ export default function ClassStatistics() {
       </div>
     );
 
-  // ✅ Tính toán thống kê
+  // ==========================
+  // 📊 Thống kê số liệu
+  // ==========================
   const total = students.length;
   const submitted = students.filter((s) => s.status === "Đã nộp").length;
   const graded = students.filter((s) => s.status === "Đã chấm").length;
   const rejected = students.filter((s) => s.status === "Bị từ chối").length;
   const notSubmitted = students.filter((s) => s.status === "Chưa nộp").length;
 
-  // ✅ Lọc dữ liệu theo ô tìm kiếm & dropdown trạng thái
+  // 🔍 Lọc theo tên, mã và trạng thái
   const filteredStudents = students.filter((sv) => {
     const matchNameOrId =
       sv.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sv.user_id.toString().includes(searchTerm);
+
     const matchStatus =
       statusFilter === "Tất cả" ? true : sv.status === statusFilter;
+
     return matchNameOrId && matchStatus;
   });
 
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-8">
-      {/* Nút quay lại */}
+      {/* Quay lại */}
       <button
         onClick={() => navigate(-1)}
         className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
@@ -98,9 +113,8 @@ export default function ClassStatistics() {
         </div>
       </div>
 
-      {/* Bộ lọc tìm kiếm + trạng thái */}
+      {/* Bộ lọc */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-        {/* Ô tìm kiếm */}
         <input
           type="text"
           placeholder="🔍 Tìm theo tên hoặc mã sinh viên..."
@@ -109,7 +123,6 @@ export default function ClassStatistics() {
           className="border p-2 rounded w-full md:w-1/2"
         />
 
-        {/* Dropdown lọc trạng thái */}
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -127,13 +140,14 @@ export default function ClassStatistics() {
       <table className="w-full border border-gray-200 text-sm">
         <thead className="bg-gray-100">
           <tr>
-            <th className="border p-2">#</th>
-            <th className="border p-2 text-left">Mã SV</th>
-            <th className="border p-2 text-left">Họ tên</th>
-            <th className="border p-2 text-left">Email</th>
+            <th className="border p-2 text-center">#</th>
+            <th className="border p-2">Mã SV</th>
+            <th className="border p-2">Họ tên</th>
+            <th className="border p-2">Email</th>
             <th className="border p-2 text-center">Trạng thái</th>
           </tr>
         </thead>
+
         <tbody>
           {filteredStudents.length > 0 ? (
             filteredStudents.map((sv, i) => (
@@ -143,15 +157,14 @@ export default function ClassStatistics() {
                 <td className="border p-2">{sv.fullname}</td>
                 <td className="border p-2">{sv.email}</td>
                 <td
-                  className={`border p-2 text-center font-semibold ${
-                    sv.status === "Đã nộp"
+                  className={`border p-2 text-center font-semibold ${sv.status === "Đã nộp"
                       ? "text-green-600"
                       : sv.status === "Đã chấm"
-                      ? "text-blue-600"
-                      : sv.status === "Bị từ chối"
-                      ? "text-red-600"
-                      : "text-gray-500"
-                  }`}
+                        ? "text-blue-600"
+                        : sv.status === "Bị từ chối"
+                          ? "text-red-600"
+                          : "text-gray-500"
+                    }`}
                 >
                   {sv.status}
                 </td>

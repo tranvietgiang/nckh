@@ -49,13 +49,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/nhhh/update/{user_id}', [AdminController::class, 'updateUser']);
 });
 
-/**Chấm điểm và phản hồi */
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/nhhh/grades', [GradeController::class, 'index']);
-    Route::post('/nhhh/grades', [GradeController::class, 'store']);
-    Route::get('/nhhh/grades/{submission_id}', [GradeController::class, 'show']);
-});
-
 
 /**Lấy thông tin sinh viên đã nộp */
 Route::get('/submissions', [SubmissionController::class, 'indes']);
@@ -108,10 +101,6 @@ Route::middleware('auth:sanctum')->post('/reports/create', [ReportController::cl
 
 
 Route::post('/majors/import', [MajorsController::class, 'import']); // Import Excelf
-
-// cả//ccc
-//
-
 
 Route::post('/create-majors', [MajorsController::class, 'store']);  // Thêm thủ công
 Route::put('/update-majors/{id}', [MajorsController::class, 'update']);  // Thêm thủ công
@@ -216,3 +205,19 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/grades', [TeacherScoringController::class, 'storeGrade']);
 });
+
+Route::middleware('auth:sanctum')->get('/getSubject-major-class-teacher/{majorId}', [SubjectController::class, 'getSubjectByMajorByTeacher']);
+Route::middleware('auth:sanctum')->get('/classes-by-subject/{majorId}/{subjectId}', [SubjectController::class, 'getSubjectByMajorByClass']);
+Route::middleware('auth:sanctum')->get('/years-by-class/{classId}', [ClassController::class, 'getYearsByClass']);
+
+Route::middleware('auth:sanctum')->get(
+    '/reports-filter/{selectedMajor}/{selectedSubject}/{selectedClass}/{selectedYear}',
+    [ReportController::class, 'getReportsByMajorClassSubjectTeacher']
+);
+
+Route::middleware('auth:sanctum')->get(
+    '/submission-filter/{selectedMajor}/{selectedSubject}/{selectedClass}/{selectedYear}/{selectedReportId}',
+    [SubmissionController::class, 'getSubmissionsByMajorClassSubjectTeacher']
+);
+
+Route::middleware('auth:sanctum')->post('/grades/update', [GradeController::class, 'gradingAndFeedBack']);

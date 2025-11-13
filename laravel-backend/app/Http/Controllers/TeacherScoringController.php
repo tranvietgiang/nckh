@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuthHelper;
 use Illuminate\Http\Request;
 use App\Services\TeacherService;
 use Illuminate\Support\Facades\Auth;
@@ -18,7 +19,8 @@ class TeacherScoringController extends Controller
     // Lấy danh sách môn học
     public function getSubjects()
     {
-        $teacherId = (int) Auth::id(); // ép kiểu sang int
+        $teacherId = Auth::id(); // ép kiểu sang int
+        AuthHelper::roleTeacher();
         $subjects = $this->teacherService->getSubjects($teacherId);
         return response()->json([
             'data' => $subjects
