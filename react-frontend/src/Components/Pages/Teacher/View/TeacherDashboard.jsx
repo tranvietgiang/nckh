@@ -24,11 +24,12 @@ export default function TeacherDashboard() {
   // Lấy danh sách lớp của giảng viên
   useEffect(() => {
     document.title = "Trang giảng viên";
-    if (!token) return;
+    if (!token || !user?.major_id) return;
 
     setLoading(true);
+
     axios
-      .get("/classes", {
+      .get(`/get-class-by-major/${user.major_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
@@ -40,7 +41,7 @@ export default function TeacherDashboard() {
         setClasses([]);
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  }, [token, user?.major_id]);
 
   // 🧩 Lấy tên ngành của giảng viên
   useEffect(() => {
@@ -206,9 +207,7 @@ export default function TeacherDashboard() {
   );
 }
 
-// ==========================
-// ✅ Component con cho card thống kê
-// ==========================
+// Component thống kê
 function StatCard({ color, value, label }) {
   const colorMap = {
     blue: "bg-blue-100 text-blue-700",
@@ -219,7 +218,7 @@ function StatCard({ color, value, label }) {
 
   return (
     <div className={`${colorMap[color]} p-4 rounded-xl text-center shadow-sm`}>
-      <p className={`text-5xl font-bold`}>{value}</p>
+      <p className="text-5xl font-bold">{value}</p>
       <p className="mt-2 font-medium">{label}</p>
     </div>
   );
