@@ -10,7 +10,7 @@ export default function ReportsManagement() {
   const [selectedMajor, setSelectedMajor] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedReport, setSelectedReport] = useState("");
-  const [selectedYear, setSelectedYear] = useState(""); // thêm state chọn năm
+  const [selectedYear, setSelectedYear] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
@@ -28,7 +28,10 @@ export default function ReportsManagement() {
 
   // 🔹 Khi chọn ngành hoặc năm → lấy danh sách lớp
   useEffect(() => {
-    if (!selectedMajor) return;
+    if (!selectedMajor) {
+      setClasses([]); // Nếu bỏ chọn ngành thì reset lớp
+      return;
+    }
 
     const params = { major_id: selectedMajor };
     if (selectedYear) params.year = selectedYear; // gửi year nếu có
@@ -45,7 +48,10 @@ export default function ReportsManagement() {
 
   // 🔹 Khi chọn lớp hoặc năm → lấy danh sách báo cáo
   useEffect(() => {
-    if (!selectedClass) return;
+    if (!selectedClass) {
+      setReports([]); // Nếu bỏ chọn lớp thì reset báo cáo
+      return;
+    }
 
     const params = { class_id: selectedClass };
     if (selectedYear) params.year = selectedYear;
@@ -54,23 +60,55 @@ export default function ReportsManagement() {
       .get("/reports", { params })
       .then((res) => {
         setReports(res.data.data || res.data);
-        setSelectedReport("");
-        setSubmissions([]);
       })
       .catch((err) => console.error("❌ Lỗi khi tải báo cáo:", err));
   }, [selectedClass, selectedYear]);
 
-  // 🔹 Khi chọn báo cáo → lấy danh sách submissions
+  // 🔹 [SỬA] Khi chọn báo cáo HOẶC chọn năm → lấy danh sách submissions
   useEffect(() => {
-    if (!selectedReport) return;
-    axios
-      .get(`/submissionsreport?report_id=${selectedReport}`)
-      .then((res) => {
-        setSubmissions(res.data.data || res.data);
-        setCurrentPage(1);
-      })
-      .catch((err) => console.error("❌ Lỗi khi tải submissions:", err));
-  }, [selectedReport]);
+    // Flow 1: ĐÃ chọn báo cáo
+    if (selectedReport) {
+      const params = {
+        report_id: selectedReport,
+      };
+      if (selectedYear) {
+        params.year = selectedYear; // Thêm year làm bộ lọc
+      }
+
+      axios
+        .get(`/submissionsreport`, { params }) 
+        .then((res) => {
+          setSubmissions(res.data.data || res.data);
+          setCurrentPage(1);
+        })
+        .catch((err) => {
+          console.error("❌ Lỗi khi tải submissions:", err);
+          setSubmissions([]);
+        });
+    }
+    // Flow 2: CHỈ chọn năm (không chọn ngành/báo cáo)
+    else if (selectedYear && !selectedMajor && !selectedReport) {
+      axios
+        .get("/nhhh/submission/reports", { // API mới của bạn
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          params: { year: selectedYear },
+        })
+        .then((res) => {
+          setSubmissions(res.data.data || res.data);
+          setCurrentPage(1);
+        })
+        .catch((err) => {
+          console.error("❌ Lỗi khi tải submissions theo năm:", err);
+          setSubmissions([]);
+        });
+    }
+    // Flow 3: Không chọn gì cả (hoặc bỏ chọn)
+    else {
+      setSubmissions([]); // Clear danh sách nếu không rơi vào 2 trường hợp trên
+    }
+  }, [selectedReport, selectedYear, selectedMajor]); 
 
   // 🔹 Phân trang
   const indexOfLast = currentPage * itemsPerPage;
@@ -86,32 +124,7 @@ export default function ReportsManagement() {
 
       {/* Bộ chọn năm - ngành - lớp - báo cáo */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {/* Chọn năm */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Năm học
-          </label>
-          <select
-            value={selectedYear}
-            onChange={(e) => {
-              setSelectedYear(e.target.value);
-              setSelectedClass("");
-              setSelectedReport("");
-              setClasses([]);
-              setReports([]);
-              setSubmissions([]);
-            }}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">-- Chọn năm --</option>
-            {years.map((y) => (
-              <option key={y} value={y}>
-                {y}
-              </option>
-            ))}
-          </select>
-        </div>
-
+        
         {/* Chọn ngành */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -125,7 +138,6 @@ export default function ReportsManagement() {
               setSelectedReport("");
               setClasses([]);
               setReports([]);
-              setSubmissions([]);
             }}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
           >
@@ -147,7 +159,7 @@ export default function ReportsManagement() {
             value={selectedClass}
             onChange={(e) => {
               setSelectedClass(e.target.value);
-              setSelectedReport("");
+              setSelectedReport(""); 
             }}
             disabled={!selectedMajor}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
@@ -180,23 +192,57 @@ export default function ReportsManagement() {
             ))}
           </select>
         </div>
+
+        {/* Chọn năm */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Năm học
+          </label>
+          <select
+            value={selectedYear}
+            onChange={(e) => {
+              setSelectedYear(e.target.value);
+            }}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">-- Chọn năm --</option>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Bảng danh sách submissions */}
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 overflow-x-auto">
-        {!selectedMajor ? (
-          <p className="text-gray-500 text-sm">Vui lòng chọn ngành học.</p>
-        ) : !selectedClass ? (
-          <p className="text-gray-500 text-sm">Vui lòng chọn lớp học.</p>
-        ) : !selectedReport ? (
-          <p className="text-gray-500 text-sm">Vui lòng chọn báo cáo.</p>
+        {/* Cập nhật logic hiển thị */}
+        {!selectedYear && !selectedMajor ? (
+          <p className="text-gray-500 text-sm">Vui lòng chọn Ngành học hoặc Năm học.</p>
+        ) : selectedMajor && !selectedClass ? (
+          <p className="text-gray-500 text-sm">Vui lòng chọn Lớp học.</p>
+        ) : selectedClass && !selectedReport ? (
+          <p className="text-gray-500 text-sm">Vui lòng chọn Báo cáo.</p>
+        
+        // [ĐÃ SỬA] Cập nhật logic hiển thị khi không có submissions
         ) : submissions.length === 0 ? (
-          <p className="text-gray-500 text-sm">Chưa có bài nộp nào cho báo cáo này.</p>
+          
+          selectedYear ? (
+            <p className="text-gray-500 text-sm">
+              Không có báo cáo nào tồn tại cho năm {selectedYear}.
+            </p>
+          ) : (
+            <p className="text-gray-500 text-sm">Không có bài nộp nào phù hợp.</p>
+          )
+
         ) : (
           <>
             <table className="w-full border-collapse text-sm sm:text-base">
               <thead>
                 <tr className="bg-blue-100 text-blue-700 text-left">
+                  {/* [THÊM MỚI] Cột tên báo cáo */}
+                  <th className="p-2">Tên báo cáo</th> 
                   <th className="p-2">Mã SV</th>
                   <th className="p-2">Tên sinh viên</th>
                   <th className="p-2">Trạng thái</th>
@@ -209,6 +255,8 @@ export default function ReportsManagement() {
                     key={index}
                     className="border-b hover:bg-gray-50 transition-colors"
                   >
+                    {/* [THÊM MỚI] Dữ liệu tên báo cáo */}
+                    <td className="p-2">{sub.report_name}</td> 
                     <td className="p-2">{sub.student_id}</td>
                     <td className="p-2">{sub.student_name}</td>
                     <td
