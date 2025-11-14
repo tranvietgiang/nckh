@@ -200,3 +200,7 @@ Route::middleware('auth:sanctum')->get(
 );
 
 Route::middleware('auth:sanctum')->post('/grades/update', [GradeController::class, 'gradingAndFeedBack']);
+
+
+//cả -- Route lấy tất cả reports của giảng viên
+Route::middleware('auth:sanctum')->get('/teacher/reports', [ReportController::class, 'getTeacherReports']);
