@@ -1,25 +1,26 @@
 import axios from "../../../../config/axios";
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { IoMdClose } from "react-icons/io";
+import {
+  getSafeJSON,
+  setSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
+import { getAuth } from "../../../Constants/INFO_USER";
 
 export default function CompleteReports() {
   const [completedReports, setCompletedReports] = useState([]);
   const [hasInvalidScore, setHasInvalidScore] = useState(false);
   const [feedBackIdReport, setFeedBackIdReport] = useState(null);
   const [getNameTeacher, setNameTeacher] = useState(null);
+  const [getNameGroup, setNameGroup] = useState(null);
   const refIdFeedBack = useRef(null);
-  useEffect(() => {
-    if (refIdFeedBack.current) {
-      console.log("Submission ID:", refIdFeedBack.current.textContent);
-    }
-  }, []);
+
   useEffect(() => {
     axios
       .get("/get-all-report-graded")
       .then((res) => {
         const rows = Array.isArray(res.data) ? res.data : [];
 
-        // ✅ lấy numericScore nếu có; nếu không thì tách "x/10" thành số x
         const toNumber = (r) =>
           typeof r.numericScore === "number"
             ? r.numericScore
@@ -27,7 +28,6 @@ export default function CompleteReports() {
 
         setCompletedReports(rows);
 
-        // 👇 kiểm tra có dòng nào điểm > 10 hoặc < 0 hay NaN không
         const invalid = rows.some((r) => {
           const n = toNumber(r);
           return isNaN(n) || n > 10 || n < 0;
@@ -54,13 +54,22 @@ export default function CompleteReports() {
 
   useEffect(() => {
     if (!feedBackIdReport) return;
-    console.log("Feedback Visible ID:", feedBackIdReport);
+    const cacheNameTeacher = getSafeJSON("cacheNameTeacher") || {};
+    if (cacheNameTeacher[feedBackIdReport]) {
+      setNameTeacher(cacheNameTeacher[feedBackIdReport]);
+      return;
+    }
 
     axios
       .get(`/get-teacher-name-by-submission/${feedBackIdReport}`)
       .then((res) => {
         if (res.data.submission_id === feedBackIdReport) {
-          setNameTeacher(res.data.teacher_name || "Không rõ");
+          setNameTeacher(res.data?.teacher_name);
+          const updatedCache = {
+            ...cacheNameTeacher,
+            [feedBackIdReport]: res.data?.teacher_name,
+          };
+          setSafeJSON("cacheNameTeacher", updatedCache);
         }
       })
       .catch((err) => {
@@ -68,6 +77,22 @@ export default function CompleteReports() {
         setNameTeacher("Không rõ");
       });
   }, [feedBackIdReport]);
+
+  const user = getAuth();
+  const useId = user?.user_id;
+
+  useEffect(() => {
+    axios
+      .get(`get-report-member-by-id/${useId}`)
+      .then((res) => {
+        console.log(res.data);
+        setNameGroup(res.data || []);
+      })
+      .catch((err) => {
+        setNameGroup([]);
+        console.log(err);
+      });
+  }, []);
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-8 mt-2">
       <div className="max-w-6xl mx-auto">
@@ -102,10 +127,6 @@ export default function CompleteReports() {
                         <strong>Môn: </strong>
                         {report.subject_name}
                       </span>
-                      <span className="font-semibold">
-                        <strong className="px-1">Nhóm:</strong>
-                        {report?.group_name ?? "chưa làm"}
-                      </span>
                     </div>
                   </div>
                   <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold border border-green-200">
@@ -124,9 +145,9 @@ export default function CompleteReports() {
                         <span className="text-blue-600 font-bold">📅</span>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-500">Đã nộp</p>
+                        <p className="text-sm text-gray-500">Nhóm</p>
                         <p className="font-semibold text-gray-800">
-                          {report.submittedDate}
+                          {getNameGroup?.getNameGroup ?? "Chưa có thông tin"}
                         </p>
                       </div>
                     </div>
@@ -201,8 +222,36 @@ export default function CompleteReports() {
                   >
                     <IoMdClose />
                   </span>
-                  <p>Từ: {getNameTeacher ?? null}</p>
-                  <p>{report?.feedback ?? ""}</p>
+                  <div className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
+                    <p className="font-semibold text-gray-700 mb-2">
+                      GV:
+                      <span className="font-normal text-blue-600 break-all whitespace-pre-wrap">
+                        {getNameTeacher ?? "Chưa có thông tin"}
+                      </span>
+                    </p>
+
+                    <div className="mt-3">
+                      <p className="font-semibold text-gray-700 mb-2">
+                        Lời phản hồi:
+                      </p>
+
+                      <div className="bg-gray-50 border border-gray-200 rounded-md p-3 min-h-[80px]">
+                        <div className="text-gray-700 whitespace-pre-wrap break-words text-sm">
+                          {report?.feedback ? (
+                            report.feedback.length > 600 ? (
+                              <span className="text-red-500">
+                                ❌ Quá 600 ký tự
+                              </span>
+                            ) : (
+                              report.feedback
+                            )
+                          ) : (
+                            "Chưa có phản hồi"
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))
@@ -227,11 +276,6 @@ export default function CompleteReports() {
               <div className="text-sm text-gray-600">Tỷ lệ hoàn thành</div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-4 text-center text-sm text-gray-500">
-          Cập nhật lần cuối: {new Date().toLocaleDateString("vi-VN")}
         </div>
       </div>
     </div>

@@ -70,6 +70,7 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
   };
 
   const handleClose = () => {
+    if (uploading) return;
     setSelectedFile(null);
     setDragActive(false);
     onClose();
