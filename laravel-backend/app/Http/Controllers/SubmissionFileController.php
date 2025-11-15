@@ -13,36 +13,51 @@ class SubmissionFileController extends Controller
 {
     public function checkSubmitted()
     {
-
         $studentId = AuthHelper::isLogin();
 
-        // Lấy tất cả nhóm mà sinh viên này tham gia
         $data = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+
+            // 🔥 lấy submission mới nhất
+            ->leftJoin('submissions', function ($join) {
+                $join->on('reports.report_id', '=', 'submissions.report_id')
+                    ->whereRaw('submissions.submission_id = (
+                    SELECT s2.submission_id 
+                    FROM submissions s2 
+                    WHERE s2.report_id = reports.report_id 
+                    ORDER BY s2.submission_id DESC 
+                    LIMIT 1
+                )');
+            })
+
+            ->leftJoin('submission_files', 'submissions.submission_id', '=', 'submission_files.submission_id')
+
+            ->where('report_members.student_id', $studentId)
+
             ->select(
                 'report_members.rm_code',
                 'report_members.rm_name',
                 'reports.report_id',
                 'reports.report_name',
-                'reports.teacher_id',
                 'reports.end_date',
                 'classes.class_id',
                 'classes.class_name',
-                'submission_files.file_path',
                 'submissions.submission_time',
-                DB::raw("CASE WHEN submission_files.file_id IS NOT NULL THEN 'submitted' ELSE 'pending' END AS status")
+                'submission_files.file_path',
+                DB::raw("CASE WHEN submission_files.file_id IS NOT NULL 
+                        THEN 'submitted' 
+                        ELSE 'pending' 
+                    END AS status")
             )
-            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
-            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
-            ->leftJoin('submissions', function ($join) {
-                $join->on('reports.report_id', '=', 'submissions.report_id');
-            })
-            ->leftJoin('submission_files', 'submissions.submission_id', '=', 'submission_files.submission_id')
-            ->where('report_members.student_id', $studentId)
+
             ->orderBy('reports.report_id', 'asc')
             ->get();
 
         if ($data->isEmpty()) {
-            return response()->json(['message' => 'Sinh viên này chưa thuộc nhóm nào hoặc chưa có báo cáo.'], 404);
+            return response()->json([
+                'message' => 'Sinh viên này chưa thuộc nhóm nào hoặc chưa có báo cáo.'
+            ], 404);
         }
 
         return response()->json($data, 200);

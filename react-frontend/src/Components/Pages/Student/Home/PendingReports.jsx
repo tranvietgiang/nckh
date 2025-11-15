@@ -39,7 +39,7 @@ export default function PendingReports() {
   // 🔹 Lấy danh sách báo cáo
   useEffect(() => {
     axios
-      .post("/tvg/get-report-by-student")
+      .get("/tvg/get-report-by-student")
       .then((res) => {
         setReports(res.data);
       })
@@ -63,6 +63,7 @@ export default function PendingReports() {
             file_path: item.file_path,
           };
         });
+        console.log(res.data);
         setSubmissionMap(map);
         console.log("✅ Submission map:", map);
       })
@@ -195,10 +196,11 @@ export default function PendingReports() {
 
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>
-                    <strong>Môn học:</strong> {report.report_name}
+                    <strong>Môn học:</strong>{" "}
+                    {report?.subject_name ?? "Chưa có thông tin"}
                   </p>
                   <p>
-                    <strong>Giáo viên phụ trách:</strong> {report.teacher_id}
+                    <strong>Giáo viên phụ trách:</strong> {report.fullname}
                   </p>
                   <p>
                     <strong>Hạn nộp:</strong>

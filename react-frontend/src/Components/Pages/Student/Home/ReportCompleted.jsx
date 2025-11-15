@@ -1,11 +1,10 @@
 import axios from "../../../../config/axios";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { IoMdClose } from "react-icons/io";
 import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
-import { getAuth } from "../../../Constants/INFO_USER";
 
 export default function CompleteReports() {
   const [completedReports, setCompletedReports] = useState([]);
@@ -13,7 +12,6 @@ export default function CompleteReports() {
   const [feedBackIdReport, setFeedBackIdReport] = useState(null);
   const [getNameTeacher, setNameTeacher] = useState(null);
   const [getNameGroup, setNameGroup] = useState(null);
-  const refIdFeedBack = useRef(null);
 
   useEffect(() => {
     axios
@@ -78,21 +76,19 @@ export default function CompleteReports() {
       });
   }, [feedBackIdReport]);
 
-  const user = getAuth();
-  const useId = user?.user_id;
-
   useEffect(() => {
     axios
-      .get(`get-report-member-by-id/${useId}`)
+      .get(`/get-name-group-by-student`)
       .then((res) => {
-        console.log(res.data);
         setNameGroup(res.data || []);
+        console.log(res.data);
       })
       .catch((err) => {
         setNameGroup([]);
         console.log(err);
       });
   }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-8 mt-2">
       <div className="max-w-6xl mx-auto">
@@ -111,150 +107,145 @@ export default function CompleteReports() {
               liên hệ giáo viên bộ môn
             </div>
           ) : (
-            completedReports?.map((report, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
-              >
-                {/* Report Header */}
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      Học kỳ: {report.hoc_ky}
-                    </h2>
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <span className="font-semibold">
-                        <strong>Môn: </strong>
-                        {report.subject_name}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-semibold border border-green-200">
-                    {report.status}
-                  </div>
-                </div>
+            completedReports?.map((report, index) => {
+              const group = getNameGroup?.find(
+                (g) => g.report_id === report.report_id
+              );
 
-                {/* Divider */}
-                <div className="border-t border-gray-200 my-4"></div>
-
-                {/* Report Details - Horizontal Layout for Laptop */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                        <span className="text-blue-600 font-bold">📅</span>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Nhóm</p>
-                        <p className="font-semibold text-gray-800">
-                          {getNameGroup?.getNameGroup ?? "Chưa có thông tin"}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                        <span className="text-green-600 font-bold">🎓</span>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Năm học</p>
-                        <p className="font-semibold text-gray-800">
-                          {report.year}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                        <span className="text-purple-600 font-bold">⭐</span>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Điểm số</p>
-                        <p
-                          className={`font-bold ${getScoreColor(
-                            report.score
-                          )} px-3 py-1 rounded-lg`}
-                        >
-                          {report.score}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
-                        <span className="text-gray-600 font-bold">📊</span>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Trạng thái</p>
-                        <p className="font-semibold text-gray-800">
-                          Đã chấm xong
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <span className="opacity-0" ref={refIdFeedBack}>
-                  {report?.submission_id ?? null}
-                </span>
+              return (
                 <div
-                  onClick={() => setFeedBackIdReport(report?.submission_id)}
-                  className="flex items-center text-center justify-center p-2 border-t border-gray-200 hover:bg-gray-50 rounded-lg cursor-pointer"
+                  key={index}
+                  className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
                 >
-                  <p
-                    onClick={() => setFeedBackIdReport(report?.submission_id)}
-                    className="font-semibold text-gray-800"
-                  >
-                    Xem phản hồi
-                  </p>
-                </div>
-                <div
-                  className={`${
-                    report.submission_id === feedBackIdReport
-                      ? "block"
-                      : "hidden"
-                  }`}
-                >
-                  <span
-                    className="text-xl text-gray-600 hover:text-red-600 float-right cursor-pointer"
-                    onClick={() => setFeedBackIdReport(false)}
-                  >
-                    <IoMdClose />
-                  </span>
-                  <div className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
-                    <p className="font-semibold text-gray-700 mb-2">
-                      GV:
-                      <span className="font-normal text-blue-600 break-all whitespace-pre-wrap">
-                        {getNameTeacher ?? "Chưa có thông tin"}
-                      </span>
-                    </p>
+                  {/* Header */}
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="flex-1">
+                      <h2 className="text-xl font-bold text-gray-800 mb-2">
+                        Học kỳ: {report.hoc_ky}
+                      </h2>
+                      <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <span className="font-semibold">
+                          <strong>Môn: </strong>
+                          {report.subject_name}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
 
-                    <div className="mt-3">
-                      <p className="font-semibold text-gray-700 mb-2">
-                        Lời phản hồi:
-                      </p>
+                  {/* Divider */}
+                  <div className="border-t border-gray-200 my-4"></div>
 
-                      <div className="bg-gray-50 border border-gray-200 rounded-md p-3 min-h-[80px]">
-                        <div className="text-gray-700 whitespace-pre-wrap break-words text-sm">
-                          {report?.feedback ? (
-                            report.feedback.length > 600 ? (
-                              <span className="text-red-500">
-                                ❌ Quá 600 ký tự
-                              </span>
-                            ) : (
-                              report.feedback
-                            )
-                          ) : (
-                            "Chưa có phản hồi"
-                          )}
+                  {/* Body */}
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-blue-600 font-bold">👥</span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Nhóm</p>
+                          <p className="font-semibold text-gray-800">
+                            {group?.rm_name ?? "Chưa có thông tin"}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-green-600 font-bold">⏳</span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Thời hạn nộp</p>
+                          <p className="font-semibold text-gray-800">
+                            {report?.thoi_gian_nop ?? "Chưa có thông tin"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-purple-600 font-bold">⭐</span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Điểm số</p>
+                          <p
+                            className={`font-bold ${getScoreColor(
+                              report.score
+                            )} px-3 py-1 rounded-lg`}
+                          >
+                            {report.score}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center">
+                        <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center mr-3">
+                          <span className="text-gray-600 font-bold">📊</span>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Trạng thái</p>
+                          <p className="font-semibold text-gray-800">
+                            Đã chấm xong
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Toggle Feedback */}
+                  <div
+                    onClick={() => setFeedBackIdReport(report?.submission_id)}
+                    className="flex items-center text-center justify-center p-2 border-t border-gray-200 hover:bg-gray-50 rounded-lg cursor-pointer"
+                  >
+                    <p className="font-semibold text-gray-800">Xem phản hồi</p>
+                  </div>
+
+                  {/* Feedback Box */}
+                  {report.submission_id === feedBackIdReport && (
+                    <div>
+                      <span
+                        className="text-xl text-gray-600 hover:text-red-600 float-right cursor-pointer"
+                        onClick={() => setFeedBackIdReport(false)}
+                      >
+                        <IoMdClose />
+                      </span>
+                      <div className="border border-gray-300 rounded-lg p-4 bg-white shadow-sm">
+                        <p className="font-semibold text-gray-700 mb-2">
+                          GV:
+                          <span className="font-normal text-blue-600 break-words mx-2">
+                            {getNameTeacher ?? "Chưa có thông tin"}
+                          </span>
+                        </p>
+
+                        <div className="mt-3">
+                          <p className="font-semibold text-gray-700 mb-2">
+                            Lời phản hồi:
+                          </p>
+
+                          <div className="bg-gray-50 border border-gray-200 rounded-md p-3 min-h-[80px]">
+                            <div className="text-gray-700 whitespace-pre-wrap break-words text-sm">
+                              {report?.feedback ? (
+                                report.feedback.length > 600 ? (
+                                  <span className="text-red-500">
+                                    ❌ Quá 600 ký tự
+                                  </span>
+                                ) : (
+                                  report.feedback
+                                )
+                              ) : (
+                                "Chưa có phản hồi"
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
