@@ -10,13 +10,15 @@ use App\Imports\TeacherImport;
 use App\Models\user_profile;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Submission;
 use App\Services\TeacherService;
 use Maatwebsite\Excel\Facades\Excel;
 
 
 class TeacherController extends Controller
 {
-    protected $service;
+
+    public function __construct(protected TeacherService $service) {}
 
 
     public function getAllTeacher(Request $req)
@@ -152,4 +154,42 @@ class TeacherController extends Controller
         }
     }
 
+    public function getNameTeacherBySubmission($submissionId)
+    {
+        AuthHelper::isLogin();
+
+        if (!$submissionId) {
+            return response()->json([
+                'status' => 'error',
+                'message_error' => 'Thiếu ID bài nộp.',
+            ], 400);
+        }
+
+        $checkSubmission = Submission::where('submission_id', $submissionId)
+            ->first();
+
+        if (!$checkSubmission) {
+            return response()->json([
+                'status' => 'error',
+                'message_error' => 'Bài nộp không tồn tại.',
+            ], 404);
+        }
+
+        $teacher = Submission::select('submissions.submission_id', 'user_profiles.fullname as teacher_name')
+            ->join('grades', 'submissions.submission_id', '=', 'grades.submission_id')
+            ->join('user_profiles', 'grades.teacher_id', '=', 'user_profiles.user_id')
+            ->join('users', 'user_profiles.user_id', '=', 'users.user_id')
+            ->where('submissions.submission_id', $submissionId)
+            ->where('users.role', 'teacher')
+            ->first();
+
+        if (!$teacher) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Không tìm thấy giáo viên cho bài nộp này.',
+            ], 404);
+        }
+
+        return response()->json($teacher, 200);
+    }
 }

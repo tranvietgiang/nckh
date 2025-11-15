@@ -41,7 +41,7 @@ export default function Header() {
                 </p>
               </div>
               <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium w-full sm:w-auto text-center mt-2 sm:mt-0 flex items-center justify-center">
-                ✅ Hoạt động
+                Hoạt động
               </div>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function Header() {
               {/* Lớp học */}
               <div className="bg-blue-50 p-4 sm:p-5 rounded-lg text-center border border-blue-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 mb-1 flex items-center justify-center">
-                  🏫 2
+                  2
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">
                   Lớp học
@@ -63,7 +63,7 @@ export default function Header() {
               {/* BC cần nộp */}
               <div className="bg-yellow-50 p-4 sm:p-5 rounded-lg text-center border border-yellow-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-600 mb-1 flex items-center justify-center">
-                  📝 2
+                  2
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">
                   BC cần nộp
@@ -73,7 +73,7 @@ export default function Header() {
               {/* Hoàn thành */}
               <div className="bg-green-50 p-4 sm:p-5 rounded-lg text-center border border-green-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-green-600 mb-1 flex items-center justify-center">
-                  ✅ 2
+                  2
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">
                   Hoàn thành
@@ -83,7 +83,7 @@ export default function Header() {
               {/* Tỷ lệ */}
               <div className="bg-purple-50 p-4 sm:p-5 rounded-lg text-center border border-purple-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-purple-600 mb-1 flex items-center justify-center">
-                  📈 100%
+                  100%
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">Tỷ lệ</div>
               </div>
@@ -93,7 +93,7 @@ export default function Header() {
             <div className="mt-6 sm:mt-8">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-sm font-medium text-gray-700 flex items-center">
-                  🎯 Tiến độ hoàn thành
+                  Tiến độ hoàn thành
                 </span>
                 <span className="text-sm font-medium text-gray-700">100%</span>
               </div>
@@ -109,7 +109,7 @@ export default function Header() {
           {/* Additional Info */}
           <div className="p-4 bg-gray-50 border-t border-gray-200">
             <div className="text-center text-xs text-gray-500 flex items-center justify-center">
-              🔄 Cập nhật: {new Date().toLocaleDateString("vi-VN")}
+              Cập nhật: {new Date().toLocaleDateString("vi-VN")}
             </div>
           </div>
         </div>
@@ -117,11 +117,9 @@ export default function Header() {
         {/* Quick Actions */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-6xl mx-auto">
           <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center">
-            <span className="mr-2">👁️</span>
             Xem chi tiết
           </button>
           <button className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center">
-            <span className="mr-2">🔄</span>
             Cập nhật
           </button>
         </div>

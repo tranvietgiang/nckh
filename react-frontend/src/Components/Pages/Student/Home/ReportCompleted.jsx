@@ -1,28 +1,29 @@
 import axios from "../../../../config/axios";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { IoMdClose } from "react-icons/io";
 
 export default function CompleteReports() {
   const [completedReports, setCompletedReports] = useState([]);
-  const [hasInvalidScore, setHasInvalidScore] = useState(false); // 👈 cờ báo lỗi điểm
-
+  const [hasInvalidScore, setHasInvalidScore] = useState(false);
+  const [feedBackIdReport, setFeedBackIdReport] = useState(null);
+  const [getNameTeacher, setNameTeacher] = useState(null);
+  const refIdFeedBack = useRef(null);
+  useEffect(() => {
+    if (refIdFeedBack.current) {
+      console.log("Submission ID:", refIdFeedBack.current.textContent);
+    }
+  }, []);
   useEffect(() => {
     axios
       .get("/get-all-report-graded")
       .then((res) => {
-        const rows = Array.isArray(res.data.data) ? res.data : [];
+        const rows = Array.isArray(res.data) ? res.data : [];
 
         // ✅ lấy numericScore nếu có; nếu không thì tách "x/10" thành số x
         const toNumber = (r) =>
           typeof r.numericScore === "number"
             ? r.numericScore
             : Number(String(r.score || "").split("/")[0]);
-
-        // (tuỳ chọn) nếu muốn kẹp về 0..10 ở client:
-        // const safeRows = rows.map((r) => {
-        //   const n = toNumber(r);
-        //   const clamped = Math.max(0, Math.min(10, isNaN(n) ? 0 : n));
-        //   return { ...r, numericScore: clamped, score: `${clamped.toFixed(1)}/10` };
-        // });
 
         setCompletedReports(rows);
 
@@ -31,10 +32,8 @@ export default function CompleteReports() {
           const n = toNumber(r);
           return isNaN(n) || n > 10 || n < 0;
         });
-        setHasInvalidScore(invalid);
 
-        // debug:
-        // console.log("invalid score?", invalid);
+        setHasInvalidScore(invalid);
       })
       .catch((err) => {
         setCompletedReports([]);
@@ -53,6 +52,22 @@ export default function CompleteReports() {
     return "text-red-600 bg-red-50";
   };
 
+  useEffect(() => {
+    if (!feedBackIdReport) return;
+    console.log("Feedback Visible ID:", feedBackIdReport);
+
+    axios
+      .get(`/get-teacher-name-by-submission/${feedBackIdReport}`)
+      .then((res) => {
+        if (res.data.submission_id === feedBackIdReport) {
+          setNameTeacher(res.data.teacher_name || "Không rõ");
+        }
+      })
+      .catch((err) => {
+        console.log("Lỗi lấy tên giáo viên:", err);
+        setNameTeacher("Không rõ");
+      });
+  }, [feedBackIdReport]);
   return (
     <div className="min-h-screen bg-gray-50 py-6 px-8 mt-2">
       <div className="max-w-6xl mx-auto">
@@ -71,23 +86,25 @@ export default function CompleteReports() {
               liên hệ giáo viên bộ môn
             </div>
           ) : (
-            completedReports?.map((report) => (
+            completedReports?.map((report, index) => (
               <div
-                key={report.id}
+                key={index}
                 className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 hover:shadow-xl transition-all duration-300"
               >
                 {/* Report Header */}
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
                     <h2 className="text-xl font-bold text-gray-800 mb-2">
-                      Học kỳ: {report.title}
+                      Học kỳ: {report.hoc_ky}
                     </h2>
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <span className="font-semibold">
-                        Môn: {report.subject}
+                        <strong>Môn: </strong>
+                        {report.subject_name}
                       </span>
                       <span className="font-semibold">
-                        Nhóm: {report?.group_name ?? "G"}
+                        <strong className="px-1">Nhóm:</strong>
+                        {report?.group_name ?? "chưa làm"}
                       </span>
                     </div>
                   </div>
@@ -156,6 +173,36 @@ export default function CompleteReports() {
                       </div>
                     </div>
                   </div>
+                </div>
+                <span className="opacity-0" ref={refIdFeedBack}>
+                  {report?.submission_id ?? null}
+                </span>
+                <div
+                  onClick={() => setFeedBackIdReport(report?.submission_id)}
+                  className="flex items-center text-center justify-center p-2 border-t border-gray-200 hover:bg-gray-50 rounded-lg cursor-pointer"
+                >
+                  <p
+                    onClick={() => setFeedBackIdReport(report?.submission_id)}
+                    className="font-semibold text-gray-800"
+                  >
+                    Xem phản hồi
+                  </p>
+                </div>
+                <div
+                  className={`${
+                    report.submission_id === feedBackIdReport
+                      ? "block"
+                      : "hidden"
+                  }`}
+                >
+                  <span
+                    className="text-xl text-gray-600 hover:text-red-600 float-right cursor-pointer"
+                    onClick={() => setFeedBackIdReport(false)}
+                  >
+                    <IoMdClose />
+                  </span>
+                  <p>Từ: {getNameTeacher ?? null}</p>
+                  <p>{report?.feedback ?? ""}</p>
                 </div>
               </div>
             ))

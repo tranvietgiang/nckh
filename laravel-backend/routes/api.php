@@ -200,3 +200,5 @@ Route::middleware('auth:sanctum')->get(
 );
 
 Route::middleware('auth:sanctum')->post('/grades/update', [GradeController::class, 'gradingAndFeedBack']);
+
+Route::middleware('auth:sanctum')->get('/get-teacher-name-by-submission/{submissionId}', [TeacherController::class, 'getNameTeacherBySubmission']);
