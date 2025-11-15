@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-
 class ReportController extends Controller
 {
     /** 
@@ -333,85 +332,97 @@ class ReportController extends Controller
 
     public function getReportByStudent()
     {
-        try {
-            $studentId = AuthHelper::isLogin();
 
-            $groups = DB::table('report_members')
-                ->select(
-                    'report_members.rm_code',
-                    'report_members.rm_name',
-                    'report_members.report_m_role',
-                    'reports.report_id',
-                    'reports.report_name',
-                    'reports.teacher_id',
-                    'reports.end_date',
-                    'classes.class_id',
-                    'classes.class_name'
-                )
-                ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
-                ->join('classes', 'reports.class_id', '=', 'classes.class_id')
-                ->where('report_members.student_id', $studentId)
-                ->orderBy('reports.report_id', 'asc')
-                ->get();
+        $studentId = AuthHelper::isLogin();
 
-            if ($groups->isEmpty()) {
-                return response()->json([
-                    'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
-                ], 404);
-            }
+        $groups = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
 
-            return response()->json($groups, 200);
-        } catch (\Exception $e) {
-            Log::error('❌ Lỗi khi lấy danh sách nhóm: ' . $e->getMessage());
-            return response()->json(['error' => '❌ Lỗi hệ thống khi truy vấn dữ liệu'], 500);
+            ->select(
+                'report_members.rm_code',
+                'report_members.rm_name',
+                'report_members.report_m_role',
+
+                'reports.report_id',
+                'reports.report_name',
+                'reports.teacher_id',
+                'reports.end_date',
+
+                'classes.class_id',
+                'classes.class_name',
+
+                'subjects.subject_name',
+                'user_profiles.fullname'
+            )
+
+            ->where('report_members.student_id', $studentId)
+            ->distinct()
+            ->orderBy('reports.report_id', 'asc')
+            ->get();
+
+        if ($groups->isEmpty()) {
+            return response()->json([
+                'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
+            ], 404);
         }
+
+        return response()->json($groups, 200);
     }
-
-
-
-
 
 
 
     public function createReport(Request $request)
-    {
-        // Validate đầu vào
-        $request->validate([
-            'report_name' => 'required|string|max:255',
-            'class_id'    => 'required|numeric|exists:classes,class_id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string|max:1000',
-        ]);
+{
+    // Validate đầu vào
+    $request->validate([
+        'report_name' => 'required|string|max:255',
+        'class_id'    => 'required|numeric|exists:classes,class_id',
+        'start_date'  => 'required|date',
+        'end_date'    => 'required|date|after_or_equal:start_date',
+        'description' => 'nullable|string|max:1000',
+    ]);
 
-        // (tuỳ chọn) tránh trùng tên report trong cùng lớp
-        $dup = Report::where('class_id', $request->class_id)
-            ->where('report_name', $request->report_name)
-            ->exists();
-        if ($dup) {
-            return response()->json([
-                'success' => false,
-                'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
-            ], 422);
-        }
-
-        // Tạo report (KHÔNG tạo report_members)
-        $report = Report::create([
-            'report_name' => $request->report_name,
-            'description' => $request->description,
-            'class_id'    => $request->class_id,
-            'status'      => 'submitted', // phải khớp enum: submitted|graded|rejected
-            'start_date'  => $request->start_date,
-            'end_date'    => $request->end_date,
-        ]);
-
+    // (tuỳ chọn) tránh trùng tên report trong cùng lớp
+    $dup = Report::where('class_id', $request->class_id)
+        ->where('report_name', $request->report_name)
+        ->exists();
+    if ($dup) {
         return response()->json([
-            'success' => true,
-            'message' => '✅ Tạo báo cáo thành công!',
-            'report'  => $report,
-        ], 201);
+            'success' => false,
+            'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
+        ], 422);
     }
 
+    // Lấy teacher_id từ class
+    $class = DB::table('classes')->where('class_id', $request->class_id)->first();
+    
+    if (!$class) {
+        return response()->json([
+            'success' => false,
+            'message' => '❗ Lớp học không tồn tại.',
+        ], 422);
+    }
+
+    // Tạo report với status là 'open' thay vì 'submitted'
+    $report = Report::create([
+        'report_name' => $request->report_name,
+        'description' => $request->description,
+        'class_id'    => $request->class_id,
+        'teacher_id'  => $class->teacher_id, // QUAN TRỌNG: THÊM TEACHER_ID
+        'status'      => 'open', // SỬA 'submitted' THÀNH 'open'
+        'start_date'  => $request->start_date,
+        'end_date'    => $request->end_date,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => '✅ Tạo báo cáo thành công!',
+        'report'  => $report,
+    ], 201);
+}
     public function getNameReportGroup($majorId, $classId)
     {
         AuthHelper::roleTeacher();
@@ -463,4 +474,65 @@ class ReportController extends Controller
 
         return response()->json($reports, 200);
     }
+
+   public function getTeacherReports(Request $request)
+{
+    try {
+       $userId = AuthHelper::isLogin();
+
+        // Lấy profile giảng viên
+        $userProfile = DB::table('user_profiles')
+        ->join("users","user_profiles.user_id","=","users.user_id")
+            ->where('users.user_id', $userId)
+            ->where('users.role', 'teacher')
+            ->first();
+
+        if (!$userProfile) {
+            return response()->json(['error' => 'Không phải giảng viên'], 403);
+        }
+
+        $teacherId = $userProfile->user_id; // user_id = teacher_id
+
+        // Kiểm tra teacher_id có tồn tại trong classes
+        $testTeacher = DB::table('classes')
+            ->where('teacher_id', $teacherId)
+            ->first();
+
+        if (!$testTeacher) {
+            return response()->json(['error' => 'Giảng viên chưa có lớp dạy'], 200);
+        }
+
+        // Lấy danh sách báo cáo
+        $reports = DB::table('reports')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->where('classes.teacher_id', $teacherId)
+            ->select(
+                'reports.report_id',
+                'reports.report_name',
+                'reports.description',
+                'reports.start_date',
+                'reports.end_date',
+                'reports.created_at',
+                'classes.class_name',
+                'classes.semester',
+                'classes.academic_year'
+            )
+            ->orderBy('reports.created_at', 'desc')
+            ->get();
+
+        return response()->json($reports, 200);
+
+    } catch (\Exception $e) {
+
+        // Log lỗi
+        Log::error("Teacher report error: " . $e->getMessage());
+
+        return response()->json([
+            'error' => 'Server error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+
 }

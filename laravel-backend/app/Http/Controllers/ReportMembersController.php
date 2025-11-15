@@ -63,6 +63,51 @@ class ReportMembersController extends Controller
     }
 
 
+    public function getNameGroupByStudent()
+    {
+        $studentId = AuthHelper::isLogin();
+
+        $groups = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+
+            // 🔥 JOIN đúng submission của chính sinh viên
+            ->join('submissions', function ($join) use ($studentId) {
+                $join->on('reports.report_id', '=', 'submissions.report_id')
+                    ->where('submissions.student_id', '=', $studentId);
+            })
+
+            ->join('grades', 'submissions.submission_id', '=', 'grades.submission_id')
+
+            ->where('report_members.student_id', $studentId)
+            ->where("grades.score", '!=', 0)
+
+            ->select(
+                'report_members.report_id',
+                'report_members.rm_code',
+                'report_members.rm_name',
+                'reports.report_id',
+                DB::raw('MAX(grades.score) AS score')
+            )
+
+            // 🔥 Tránh duplicate nhóm khi có nhiều submission
+            ->groupBy(
+                'report_members.report_id',
+                'report_members.rm_code',
+                'report_members.rm_name',
+                'reports.report_id',
+            )
+            ->get();
+
+        if ($groups->isEmpty()) {
+            return response()->json([
+                'message' => 'Sinh viên này chưa có nhóm hoặc chưa có báo cáo được chấm.'
+            ], 404);
+        }
+
+        return response()->json($groups, 200);
+    }
+
+
     public function importGroups(Request $request)
     {
         try {
