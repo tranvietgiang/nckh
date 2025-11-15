@@ -131,7 +131,7 @@ Route::post('/majors', [MajorsController::class, 'store']);
 Route::put('/majors/update/{id}', [MajorsController::class, 'update']);
 // 🗑️ Xóa
 Route::delete('/pc/delete-majors/{major_id}', [MajorsController::class, 'destroy']);
-Route::middleware('auth:sanctum')->post('tvg/get-report-by-student', [ReportController::class, 'getReportByStudent']);
+Route::middleware('auth:sanctum')->get('/tvg/get-report-by-student', [ReportController::class, 'getReportByStudent']);
 //get lấy name major
 Route::middleware('auth:sanctum')->get('/tvg/get-nameMajor/{majorId}', [MajorsController::class, 'getNameMajor']);
 //get lấy report đã nộp của sinh viên
@@ -204,3 +204,6 @@ Route::middleware('auth:sanctum')->post('/grades/update', [GradeController::clas
 
 //cả -- Route lấy tất cả reports của giảng viên
 Route::middleware('auth:sanctum')->get('/teacher/reports', [ReportController::class, 'getTeacherReports']);
+Route::middleware('auth:sanctum')->get('/get-teacher-name-by-submission/{submissionId}', [TeacherController::class, 'getNameTeacherBySubmission']);
+
+Route::middleware('auth:sanctum')->get('/get-name-group-by-student', [ReportMembersController::class, 'getNameGroupByStudent']);

@@ -34,13 +34,12 @@ export default function PendingReports() {
   const [uploading, setUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [submissionMap, setSubmissionMap] = useState({}); // ✅ lưu trạng thái + file_path
-  const [submitFailed, setSubmitFailed] = useState(false);
+  const [submissionMap, setSubmissionMap] = useState({});
 
   // 🔹 Lấy danh sách báo cáo
   useEffect(() => {
     axios
-      .post("/tvg/get-report-by-student")
+      .get("/tvg/get-report-by-student")
       .then((res) => {
         setReports(res.data);
       })
@@ -64,6 +63,7 @@ export default function PendingReports() {
             file_path: item.file_path,
           };
         });
+        console.log(res.data);
         setSubmissionMap(map);
         console.log("✅ Submission map:", map);
       })
@@ -87,7 +87,6 @@ export default function PendingReports() {
 
     try {
       setUploading(true);
-      setSubmitFailed(false); // reset trước mỗi lần submit
 
       const res = await axios.post("/drive-upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -102,8 +101,6 @@ export default function PendingReports() {
     } catch (err) {
       console.error("❌ Upload lỗi:", err.response?.data || err.message);
       alert(err.response?.data?.message_error || "Nộp báo cáo thất bại!");
-      // 👉 Gắn cờ FAILED → modal KHÔNG bị đóng
-      setSubmitFailed(true);
     } finally {
       setUploading(false);
     }
@@ -199,18 +196,18 @@ export default function PendingReports() {
 
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>
-                    <strong>Môn học:</strong> {report.report_name}
+                    <strong>Môn học:</strong>{" "}
+                    {report?.subject_name ?? "Chưa có thông tin"}
                   </p>
                   <p>
-                    <strong>Giáo viên phụ trách:</strong> {report.teacher_id}
+                    <strong>Giáo viên phụ trách:</strong> {report.fullname}
                   </p>
                   <p>
-                    <strong>Hạn nộp:</strong>{" "}
+                    <strong>Hạn nộp:</strong>
                     {new Date(report.end_date).toLocaleDateString("vi-VN")}
                   </p>
-                  {console.log(report)}
                   <p>
-                    <strong>Ngày nộp:</strong>{" "}
+                    <strong>Ngày nộp:</strong>
                     {new Date(report.end_date).toLocaleDateString("vi-VN")}
                   </p>
 
@@ -246,7 +243,7 @@ export default function PendingReports() {
 
                   {/* ✅ Trạng thái nộp + link xem file */}
                   <p>
-                    <strong>Trạng thái nộp:</strong>{" "}
+                    <strong>Trạng thái nộp:</strong>
                     <span
                       className={`px-2 font-semibold ${
                         isSubmitted ? "text-green-600" : "text-red-500"
@@ -279,9 +276,12 @@ export default function PendingReports() {
 
       <ReportSubmissionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          if (!uploading) setIsModalOpen(false); // Không cho đóng modal khi uploading
+        }}
         onSubmit={handleSubmit}
         reportData={selectedReport}
+        uploading={uploading} //  TRUYỀN TRẠNG THÁI VÀO MODAL
       />
 
       {uploading && (
