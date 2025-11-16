@@ -50,6 +50,27 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 
+/**Lấy thông tin sinh viên đã nộp */
+Route::get('/submissions', [SubmissionController::class, 'indes']);
+//Tìm kiếm báo cáo theo năm 
+Route::middleware('auth:sanctum')->group(function () {
+
+    // SỬA LẠI CHO ĐÚNG:
+    Route::get('submissionsreport', [SubmissionController::class, 'getSubmissionsForReport']); 
+
+    // (Các route khác của bạn như /reports, /classes, /get-majors...)
+});
+
+// [SỬA LỖI] Flow 2: API khi chỉ chọn Năm
+Route::middleware('auth:sanctum')->prefix('nhhh')->group(function () {
+
+    // Tên route là 'submission/reports' để khớp với React (chứ không phải 'years')
+    Route::get('submission/reports', [SubmissionController::class, 'getReportsByYear']);
+
+});
+
+/**xóa sinh viên */
+// Route::delete('/delete/{user_id}', [AdminController::class, 'destroy']);
 
 Route::middleware('auth:sanctum')->get('/tvg/get-classes', [ClassController::class, 'getClassByTeacher']);
 /**tạo lớp học */
