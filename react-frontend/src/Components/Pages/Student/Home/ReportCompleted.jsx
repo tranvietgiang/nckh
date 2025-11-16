@@ -19,6 +19,7 @@ export default function CompleteReports() {
       .then((res) => {
         const rows = Array.isArray(res.data) ? res.data : [];
 
+        console.log(rows);
         const toNumber = (r) =>
           typeof r.numericScore === "number"
             ? r.numericScore

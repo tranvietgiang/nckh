@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('report_member_id');
             $table->string('rm_name', 50)->nullable();
             $table->enum('report_m_role', ['NT', 'NP', 'TV'])->comment('vai trò trong nhóm');
-            $table->string('rm_code', 50)->unique();
+            $table->string('rm_code', 50);
             $table->foreignId("report_id")->constrained("reports", "report_id")->onDelete("cascade");
             $table->string('student_id');
             $table->unique(['student_id', 'report_id']); // mỗi sinh viên chỉ có 1 nhóm trong cùng report
