@@ -163,7 +163,7 @@ export default function PendingReports() {
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
-        DANH SÁCH BÁO CÁO
+        BÁO CÁO CẦN NỘP ({reports.length})
       </h1>
 
       {loading ? (
@@ -179,7 +179,10 @@ export default function PendingReports() {
           const submission = submissionMap[report?.report_id];
           const isSubmitted = submission?.status === "submitted";
 
-          return (
+          console.log(report?.start_date, report?.end_date);
+          return report?.start_date > report?.end_date ? (
+            ""
+          ) : (
             <div key={report?.report_id} className="mb-6">
               <div
                 className={`border border-gray-300 rounded-lg p-4 transition ${

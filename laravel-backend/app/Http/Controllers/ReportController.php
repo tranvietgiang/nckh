@@ -351,7 +351,6 @@ class ReportController extends Controller
 
     public function getReportByStudent()
     {
-
         $studentId = AuthHelper::isLogin();
 
         $groups = DB::table('report_members')
@@ -359,7 +358,7 @@ class ReportController extends Controller
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
-            ->join('grades', 'user_profiles.user_id', '=', 'grades.teacher_id')
+            // ->leftJoin('grades', 'user_profiles.user_id', '=', 'grades.teacher_id')
             ->select(
                 'report_members.rm_code',
                 'report_members.rm_name',
@@ -376,10 +375,10 @@ class ReportController extends Controller
 
                 'subjects.subject_name',
                 'user_profiles.fullname',
-                'grades.score'
+                // 'grades.score'
             )
 
-            ->where('grades.score', "=", 0)
+            // ->whereNull('grades.score')
             ->where('report_members.student_id', $studentId)
             ->distinct()
             ->orderBy('reports.report_id', 'asc')

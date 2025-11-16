@@ -13,6 +13,7 @@ import {
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import BackToTop from "../../../ReUse/Top/BackToTop";
 
 export default function ImportAndDetailStudents() {
   const [students, setStudents] = useState([]);
@@ -522,6 +523,7 @@ export default function ImportAndDetailStudents() {
           </div>
         </div>
       </div>
+      <BackToTop />
       <Footer />
     </>
   );

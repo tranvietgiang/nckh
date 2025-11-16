@@ -24,7 +24,6 @@ import ClassStatistics from "./Components/Pages/Teacher/Features/ClassStatistics
 import ManagerGroups from "./Components/Pages/Teacher/Features/ManagerGroups";
 import SubjectCrud from "./Components/Pages/Admin/Features/SubjectCRUD";
 import ReportManager from "./Components/Pages/Teacher/Features/ReportManager";
-
 function App() {
   return (
     <>
