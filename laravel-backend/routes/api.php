@@ -207,3 +207,4 @@ Route::middleware('auth:sanctum')->get('/teacher/reports', [ReportController::cl
 // Routes mới cho cập nhật báo cáo
  Route::get('/teacher/reports/{id}', [ReportController::class, 'getReportDetail']);
     Route::put('/teacher/reports/{id}', [ReportController::class, 'updateReport']);
+    //
