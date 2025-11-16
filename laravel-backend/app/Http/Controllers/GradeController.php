@@ -130,28 +130,30 @@ class GradeController extends Controller
     {
         $userId = AuthHelper::isLogin();
 
+        // Subquery: lấy version mới nhất theo từng report_id
+        $latestSub = Submission::selectRaw('MAX(version) AS max_version, report_id')
+            ->where('student_id', $userId)
+            ->groupBy('report_id');
+
+        // Join vào bảng submissions chính
         $submissions = Submission::select(
             'submissions.*',
             'grades.score',
             'grades.feedback',
-            "subjects.subject_name",
+            'subjects.subject_name',
             'classes.semester as hoc_ky',
-            "submissions.submission_time as thoi_gian_nop"
+            'submissions.submission_time as thoi_gian_nop'
         )
+            ->joinSub($latestSub, 'latest', function ($join) {
+                $join->on('submissions.report_id', '=', 'latest.report_id')
+                    ->on('submissions.version', '=', 'latest.max_version');
+            })
             ->leftJoin('grades', 'submissions.submission_id', '=', 'grades.submission_id')
             ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join("subjects", "classes.subject_id", "=", "subjects.subject_id")
             ->where('submissions.student_id', $userId)
-            ->where('grades.score', "!=", 0)
             ->get();
-
-        if ($submissions->isEmpty()) {
-            return response()->json([
-                'status' => 'not_found',
-                'message' => 'Không tìm thấy báo cáo đã chấm điểm'
-            ], 404);
-        }
 
         return response()->json($submissions, 200);
     }

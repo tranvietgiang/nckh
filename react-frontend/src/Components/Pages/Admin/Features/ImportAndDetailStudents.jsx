@@ -254,7 +254,7 @@ export default function ImportAndDetailStudents() {
           </div>
 
           <div className="text-center m-5 text-2xl font-bold">
-            Mã lớp: {name_class || "Không xác định"}
+            Tên lớp: {name_class || "Không xác định"}
           </div>
 
           <RouterBack navigate={navigate} />
