@@ -5,9 +5,30 @@ import axios from "../../../../config/axios";
 export default function Header() {
   const user = getUser();
   const [getNamMajor, setNamMajor] = useState();
-
+  const [classCount, setClassCount] = useState();
+  const [reportCount, setReportCount] = useState();
   useEffect(() => {
     axios.get("/profiles");
+
+    axios
+      .get("/get-count-classes-by-student")
+      .then((res) => {
+        setClassCount(res.data || []);
+      })
+      .catch((err) => {
+        setClassCount([]);
+        console.log(err);
+      });
+
+    axios
+      .get("/tvg/get-count-report-by-student")
+      .then((res) => {
+        setReportCount(res.data || []);
+      })
+      .catch((err) => {
+        setReportCount([]);
+        console.log(err);
+      });
   }, []);
 
   useEffect(() => {
@@ -53,7 +74,7 @@ export default function Header() {
               {/* Lớp học */}
               <div className="bg-blue-50 p-4 sm:p-5 rounded-lg text-center border border-blue-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-blue-600 mb-1 flex items-center justify-center">
-                  2
+                  {classCount ?? "chưa có thông tin"}
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">
                   Lớp học
@@ -63,7 +84,7 @@ export default function Header() {
               {/* BC cần nộp */}
               <div className="bg-yellow-50 p-4 sm:p-5 rounded-lg text-center border border-yellow-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-yellow-600 mb-1 flex items-center justify-center">
-                  2
+                  {reportCount ?? "chưa có thông tin"}
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">
                   BC cần nộp

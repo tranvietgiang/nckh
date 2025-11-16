@@ -358,7 +358,6 @@ class ReportController extends Controller
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
-            // ->leftJoin('grades', 'user_profiles.user_id', '=', 'grades.teacher_id')
             ->select(
                 'report_members.rm_code',
                 'report_members.rm_name',
@@ -375,16 +374,53 @@ class ReportController extends Controller
 
                 'subjects.subject_name',
                 'user_profiles.fullname',
-                // 'grades.score'
             )
-
-            // ->whereNull('grades.score')
             ->where('report_members.student_id', $studentId)
             ->distinct()
             ->orderBy('reports.report_id', 'asc')
             ->get();
 
         if ($groups->isEmpty()) {
+            return response()->json([
+                'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
+            ], 404);
+        }
+
+        return response()->json($groups, 200);
+    }
+
+    public function getCountReportByStudent()
+    {
+        $studentId = AuthHelper::isLogin();
+
+        $groups = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
+            ->select(
+                'report_members.rm_code',
+                'report_members.rm_name',
+                'report_members.report_m_role',
+
+                'reports.report_id',
+                'reports.report_name',
+                'reports.teacher_id',
+                'reports.start_date',
+                'reports.end_date',
+
+                'classes.class_id',
+                'classes.class_name',
+
+                'subjects.subject_name',
+                'user_profiles.fullname',
+            )
+            ->where('report_members.student_id', $studentId)
+            ->orderBy('reports.report_id', 'asc')
+            ->distinct('reports.report_id')
+            ->count('reports.report_id');
+
+        if ($groups < 0) {
             return response()->json([
                 'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
             ], 404);

@@ -89,7 +89,7 @@ class ClassController extends Controller
         return response()->json($result, $result['success'] ? 200 : 400);
     }
 
-        public function getClassOfTeacher($selectedMajor)
+    public function getClassOfTeacher($selectedMajor)
     {
         $useId = AuthHelper::isLogin();
 
@@ -167,6 +167,22 @@ class ClassController extends Controller
 
         if ($years->count() > 0) {
             return response()->json($years, 200);
+        }
+
+        return response()->json([], 500);
+    }
+
+    public function getCountClassStudentLearn()
+    {
+        $userId = AuthHelper::isLogin();
+
+        $getCountClass = user_profile::select()
+            ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
+            ->where("user_profiles.user_id", $userId)
+            ->count();
+
+        if ($getCountClass > 0) {
+            return response()->json($getCountClass, 200);
         }
 
         return response()->json([], 500);
