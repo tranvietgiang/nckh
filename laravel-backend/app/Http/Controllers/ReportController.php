@@ -190,6 +190,24 @@ class ReportController extends Controller
                 return response()->json(['message_error' => 'Báo cáo không tồn tại!'], 400);
             }
 
+            // 🔍 Kiểm tra thời gian nộp báo cáo
+            $now = now();
+
+            // Chưa đến ngày nộp
+            if ($report->start_date && $now->lt($report->start_date)) {
+                return response()->json([
+                    'message_error' => 'Chưa đến thời gian bắt đầu nộp báo cáo!'
+                ], 400);
+            }
+
+            // Đã hết hạn nộp
+            if ($report->end_date && $now->gt($report->end_date)) {
+                return response()->json([
+                    'message_error' => 'Đã quá hạn nộp báo cáo!'
+                ], 400);
+            }
+
+
             if ($report->end_date && now()->gt($report->end_date)) {
                 return response()->json(['message_error' => 'Đã quá hạn nộp báo cáo!'], 400);
             }
@@ -349,6 +367,7 @@ class ReportController extends Controller
                 'reports.report_id',
                 'reports.report_name',
                 'reports.teacher_id',
+                'reports.start_date',
                 'reports.end_date',
 
                 'classes.class_id',
