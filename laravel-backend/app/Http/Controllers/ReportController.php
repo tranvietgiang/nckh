@@ -21,7 +21,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-
 class ReportController extends Controller
 {
     /** 
@@ -395,44 +394,54 @@ class ReportController extends Controller
 
 
     public function createReport(Request $request)
-    {
-        // Validate đầu vào
-        $request->validate([
-            'report_name' => 'required|string|max:255',
-            'class_id'    => 'required|numeric|exists:classes,class_id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
-            'description' => 'nullable|string|max:1000',
-        ]);
+{
+    // Validate đầu vào
+    $request->validate([
+        'report_name' => 'required|string|max:255',
+        'class_id'    => 'required|numeric|exists:classes,class_id',
+        'start_date'  => 'required|date',
+        'end_date'    => 'required|date|after_or_equal:start_date',
+        'description' => 'nullable|string|max:1000',
+    ]);
 
-        // (tuỳ chọn) tránh trùng tên report trong cùng lớp
-        $dup = Report::where('class_id', $request->class_id)
-            ->where('report_name', $request->report_name)
-            ->exists();
-        if ($dup) {
-            return response()->json([
-                'success' => false,
-                'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
-            ], 422);
-        }
-
-        // Tạo report (KHÔNG tạo report_members)
-        $report = Report::create([
-            'report_name' => $request->report_name,
-            'description' => $request->description,
-            'class_id'    => $request->class_id,
-            'status'      => 'submitted', // phải khớp enum: submitted|graded|rejected
-            'start_date'  => $request->start_date,
-            'end_date'    => $request->end_date,
-        ]);
-
+    // (tuỳ chọn) tránh trùng tên report trong cùng lớp
+    $dup = Report::where('class_id', $request->class_id)
+        ->where('report_name', $request->report_name)
+        ->exists();
+    if ($dup) {
         return response()->json([
-            'success' => true,
-            'message' => '✅ Tạo báo cáo thành công!',
-            'report'  => $report,
-        ], 201);
+            'success' => false,
+            'message' => '❗ Báo cáo cùng tên đã tồn tại trong lớp này.',
+        ], 422);
     }
 
+    // Lấy teacher_id từ class
+    $class = DB::table('classes')->where('class_id', $request->class_id)->first();
+    
+    if (!$class) {
+        return response()->json([
+            'success' => false,
+            'message' => '❗ Lớp học không tồn tại.',
+        ], 422);
+    }
+
+    // Tạo report với status là 'open' thay vì 'submitted'
+    $report = Report::create([
+        'report_name' => $request->report_name,
+        'description' => $request->description,
+        'class_id'    => $request->class_id,
+        'teacher_id'  => $class->teacher_id, // QUAN TRỌNG: THÊM TEACHER_ID
+        'status'      => 'open', // SỬA 'submitted' THÀNH 'open'
+        'start_date'  => $request->start_date,
+        'end_date'    => $request->end_date,
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => '✅ Tạo báo cáo thành công!',
+        'report'  => $report,
+    ], 201);
+}
     public function getNameReportGroup($majorId, $classId)
     {
         AuthHelper::roleTeacher();
@@ -484,4 +493,184 @@ class ReportController extends Controller
 
         return response()->json($reports, 200);
     }
+
+   public function getTeacherReports(Request $request)
+{
+    try {
+       $userId = AuthHelper::isLogin();
+
+        // Lấy profile giảng viên
+        $userProfile = DB::table('user_profiles')
+        ->join("users","user_profiles.user_id","=","users.user_id")
+            ->where('users.user_id', $userId)
+            ->where('users.role', 'teacher')
+            ->first();
+
+        if (!$userProfile) {
+            return response()->json(['error' => 'Không phải giảng viên'], 403);
+        }
+
+        $teacherId = $userProfile->user_id; // user_id = teacher_id
+
+        // Kiểm tra teacher_id có tồn tại trong classes
+        $testTeacher = DB::table('classes')
+            ->where('teacher_id', $teacherId)
+            ->first();
+
+        if (!$testTeacher) {
+            return response()->json(['error' => 'Giảng viên chưa có lớp dạy'], 200);
+        }
+
+        // Lấy danh sách báo cáo
+        $reports = DB::table('reports')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->where('classes.teacher_id', $teacherId)
+            ->select(
+                'reports.report_id',
+                'reports.report_name',
+                'reports.description',
+                'reports.start_date',
+                'reports.end_date',
+                'reports.created_at',
+                'classes.class_name',
+                'classes.semester',
+                'classes.academic_year'
+            )
+            ->orderBy('reports.created_at', 'desc')
+            ->get();
+
+        return response()->json($reports, 200);
+
+    } catch (\Exception $e) {
+
+        // Log lỗi
+        Log::error("Teacher report error: " . $e->getMessage());
+
+        return response()->json([
+            'error' => 'Server error',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+   /**
+ * ✅ Lấy chi tiết báo cáo theo ID - SỬA LẠI
+ */
+public function getReportDetail($id)
+{
+    try {
+        $userId = AuthHelper::isLogin();
+
+        // Debug
+        Log::info("🔍 Get report detail attempt", [
+            'user_id' => $userId,
+            'report_id' => $id
+        ]);
+
+        // Tìm báo cáo đơn giản
+        $report = Report::where('report_id', $id)->first();
+
+        if (!$report) {
+            return response()->json([
+                'error' => 'Báo cáo không tồn tại'
+            ], 404);
+        }
+
+        // Kiểm tra quyền đơn giản
+        if ($report->teacher_id != $userId) {
+            Log::warning("❌ Permission denied for report detail", [
+                'user_id' => $userId,
+                'report_teacher_id' => $report->teacher_id
+            ]);
+            
+            return response()->json([
+                'error' => 'Bạn không có quyền xem báo cáo này'
+            ], 403);
+        }
+
+        // Lấy thông tin lớp
+        $class = DB::table('classes')->where('class_id', $report->class_id)->first();
+
+        $reportData = [
+            'report_id' => $report->report_id,
+            'report_name' => $report->report_name,
+            'description' => $report->description,
+            'start_date' => $report->start_date,
+            'end_date' => $report->end_date,
+            'status' => $report->status,
+            'class_id' => $report->class_id,
+            'class_name' => $class->class_name ?? 'Không xác định',
+            'teacher_id' => $report->teacher_id
+        ];
+
+        Log::info("✅ Report detail retrieved", $reportData);
+
+        return response()->json($reportData, 200);
+
+    } catch (\Exception $e) {
+        Log::error("Get report detail error: " . $e->getMessage());
+        return response()->json([
+            'error' => 'Lỗi server',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function updateReport(Request $request, $id)
+{
+    try {
+        Log::info("🔄 UPDATE REPORT REQUEST", [
+            'report_id' => $id,
+            'request_data' => $request->all()
+        ]);
+
+        // Tìm báo cáo
+        $report = Report::where('report_id', $id)->first();
+
+        if (!$report) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Báo cáo không tồn tại'
+            ], 404);
+        }
+
+        // Cập nhật chỉ các field cơ bản - KHÔNG VALIDATION
+        if ($request->has('report_name')) {
+            $report->report_name = $request->report_name;
+        }
+        if ($request->has('description')) {
+            $report->description = $request->description;
+        }
+        if ($request->has('start_date')) {
+            $report->start_date = $request->start_date;
+        }
+        if ($request->has('end_date')) {
+            $report->end_date = $request->end_date;
+        }
+        if ($request->has('status')) {
+            $report->status = $request->status;
+        }
+
+        $report->save();
+
+        Log::info("✅ REPORT UPDATED SUCCESS", [
+            'report_id' => $id,
+            'updated_data' => $report->toArray()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Cập nhật báo cáo thành công!'
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error("❌ UPDATE REPORT ERROR: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
+
+        return response()->json([
+            'success' => false,
+            'error' => 'Lỗi cập nhật: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }
