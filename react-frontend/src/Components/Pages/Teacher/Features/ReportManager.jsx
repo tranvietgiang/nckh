@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import Footer from "../../Student/Home/Footer";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import ModalCreateReport from "../Modal/ModalCreateReports";
+import ModalUpdateReport from "../Modal/ModalUpdateReport";
 import axios from "../../../../config/axios";
 import {
   FileText,
   Plus,
   CheckCircle,
-  Clock,
-  Download,
   Search,
-  Filter,
-  ChevronDown
+  RefreshCw,
+  Edit3,
+  Eye,
+  Edit,
+  Calendar,
+  BookOpen
 } from "lucide-react";
 import { getAuth } from "../../../Constants/INFO_USER";
 
@@ -23,11 +26,13 @@ export default function ReportManager() {
   const { token } = getAuth();
 
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
+  const [updateModalOpen, setUpdateModalOpen] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   // ⭐ DỮ LIỆU REPORT
   const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // ⭐ LOAD API
   useEffect(() => {
@@ -36,262 +41,246 @@ export default function ReportManager() {
 
   const fetchReports = async () => {
     try {
+      setLoading(true);
       const res = await axios.get("/teacher/reports", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // ⭐ MAP VỀ ĐÚNG FORMAT UI
       const mapped = res.data.map((r) => ({
         id: r.report_id,
         title: r.report_name,
         subject: r.class_name,
         deadline: r.end_date,
-        submittedDate: null,
-        score: null,
-        status: "open", // tạm open — sau bạn có status DB thì đổi
-        type: "weekly", // tạm weekly — bạn muốn phân loại theo tên thì nói tôi
+        start_date: r.start_date,
+        description: r.description,
+        class_id: r.class_id,
+        status: mapApiStatusToUI(r.status),
+        rawStatus: r.status
       }));
 
       setReports(mapped);
     } catch (err) {
       console.log("Lỗi load reports:", err);
+      alert("Lỗi khi tải danh sách báo cáo");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ⭐ FILTER — giữ nguyên của bạn
+  // Map status từ API sang UI
+  const mapApiStatusToUI = (apiStatus) => {
+    switch (apiStatus) {
+      case 'open':
+        return 'not-started';
+      case 'submitted':
+        return 'under-review';
+      case 'graded':
+        return 'completed';
+      case 'expired':
+        return 'in-progress';
+      default:
+        return 'not-started';
+    }
+  };
+
+  // ⭐ HÀM CẬP NHẬT BÁO CÁO
+  const handleUpdateReport = (reportId) => {
+    const currentReport = reports.find(r => r.id === reportId);
+    if (currentReport) {
+      setSelectedReport(currentReport);
+      setUpdateModalOpen(true);
+    }
+  };
+
+  // ⭐ HÀM XỬ LÝ CẬP NHẬT THÀNH CÔNG
+  const handleUpdateSuccess = () => {
+    setUpdateModalOpen(false);
+    setSelectedReport(null);
+    fetchReports();
+  };
+
+  // ⭐ FILTER - CHỈ ĐỂ LỌC THEO TÌM KIẾM
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       report.subject.toLowerCase().includes(searchTerm.toLowerCase());
-
-    if (activeTab === "all") return matchesSearch;
-    if (activeTab === "submitted") return matchesSearch && report.status === "submitted";
-    if (activeTab === "pending") return matchesSearch && report.status === "pending";
-    if (activeTab === "graded") return matchesSearch && report.status === "graded";
-
     return matchesSearch;
   });
 
-  const getStatusInfo = (status, score) => {
+  // ⭐ CẬP NHẬT STATUS INFO
+  const getStatusInfo = (status) => {
     switch (status) {
-      case "submitted":
-        return { text: "Đã nộp", color: "text-blue-600", bg: "bg-blue-100", icon: CheckCircle };
-      case "graded":
-        return { text: `Đã chấm: ${score}`, color: "text-green-600", bg: "bg-green-100", icon: CheckCircle };
-      case "pending":
-        return { text: "Chưa nộp", color: "text-orange-600", bg: "bg-orange-100", icon: Clock };
+      case "in-progress":
+        return {
+          text: "Đang thực hiện",
+          color: "text-orange-600",
+          bg: "bg-orange-50 border-orange-200",
+          icon: Edit3,
+        };
+      case "under-review":
+        return {
+          text: "Chờ duyệt",
+          color: "text-blue-600",
+          bg: "bg-blue-50 border-blue-200",
+          icon: Eye,
+        };
+      case "completed":
+        return {
+          text: "Đã hoàn thành",
+          color: "text-green-600",
+          bg: "bg-green-50 border-green-200",
+          icon: CheckCircle,
+        };
       default:
-        return { text: "Chưa nộp", color: "text-gray-600", bg: "bg-gray-100", icon: Clock };
+        return {
+          text: "",
+          color: "text-gray-600",
+          bg: "bg-gray-50 border-gray-200",
+          icon: FileText,
+        };
     }
   };
 
-  const getTypeInfo = (type) => {
-    switch (type) {
-      case "weekly":
-        return { text: "Tuần", color: "text-purple-600", bg: "bg-purple-100" };
-      case "midterm":
-        return { text: "Giữa kỳ", color: "text-orange-600", bg: "bg-orange-100" };
-      case "final":
-        return { text: "Cuối kỳ", color: "text-red-600", bg: "bg-red-100" };
-      default:
-        return { text: "Khác", color: "text-gray-600", bg: "bg-gray-100" };
-    }
+  // Format date
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
   };
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 pb-8">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 pb-8">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8 shadow-lg">
-          <div className="max-w-7xl mx-auto">
-            <h1 className="text-4xl font-bold text-center mb-4">QUẢN LÝ BÁO CÁO</h1>
-            <p className="text-center text-blue-100 text-lg">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white py-12 shadow-lg">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-4xl font-bold mb-4">QUẢN LÝ BÁO CÁO</h1>
+            <p className="text-lg text-blue-100">
               Theo dõi và quản lý tất cả báo cáo học tập
             </p>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
-          {/* Action Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div
-              onClick={() => setOpen(true)}
-              className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all duration-300 border-2 border-dashed border-blue-300 hover:border-blue-500 group"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center group-hover:bg-blue-200">
-                  <Plus className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-              <h3 className="font-semibold text-gray-800 text-lg mb-2">Tạo báo cáo</h3>
-              <p className="text-gray-600 text-sm">Tạo báo cáo mới cho lớp học</p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("submitted")}
-              className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all duration-300 border-l-4 border-l-blue-500"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                </div>
-                <span className="text-2xl font-bold text-gray-800">
-                  {reports.filter((r) => r.status === "submitted").length}
-                </span>
-              </div>
-              <h3 className="font-semibold text-gray-800 text-lg mb-2">Đã nộp</h3>
-              <p className="text-gray-600 text-sm">Báo cáo đã được nộp</p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("pending")}
-              className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all duration-300 border-l-4 border-l-orange-500"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-                  <Clock className="w-6 h-6 text-orange-600" />
-                </div>
-                <span className="text-2xl font-bold text-gray-800">
-                  {reports.filter((r) => r.status === "pending").length}
-                </span>
-              </div>
-              <h3 className="font-semibold text-gray-800 text-lg mb-2">Chưa nộp</h3>
-              <p className="text-gray-600 text-sm">Báo cáo chưa được nộp</p>
-            </div>
-
-            <div
-              onClick={() => setActiveTab("graded")}
-              className="bg-white rounded-2xl shadow-lg p-6 cursor-pointer hover:shadow-xl transition-all duration-300 border-l-4 border-l-green-500"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-purple-600" />
-                </div>
-                <span className="text-2xl font-bold text-gray-800">
-                  {reports.filter((r) => r.status === "graded").length}
-                </span>
-              </div>
-              <h3 className="font-semibold text-gray-800 text-lg mb-2">Đã chấm</h3>
-              <p className="text-gray-600 text-sm">Báo cáo đã được chấm điểm</p>
-            </div>
-          </div>
-
-          {/* Search */}
-          <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-              <div className="flex gap-4 flex-1 w-full">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+          {/* Header Section với Search và Create */}
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
+              {/* Search Box */}
+              <div className="flex-1 w-full">
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    placeholder="Tìm kiếm báo cáo..."
+                    placeholder="Tìm kiếm báo cáo theo tên hoặc môn học..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
-                <button className="flex items-center gap-2 px-4 py-3 border border-gray-300 rounded-xl hover:bg-gray-50">
-                  <Filter className="w-5 h-5" />
-                  Lọc
-                  <ChevronDown className="w-4 h-4" />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-4">
+                <button
+                  onClick={fetchReports}
+                  disabled={loading}
+                  className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
+                  {loading ? 'Đang tải...' : 'Làm mới'}
+                </button>
+
+                <button
+                  onClick={() => setOpen(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-lg"
+                >
+                  <Plus className="w-5 h-5" />
+                  Tạo báo cáo
                 </button>
               </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex flex-wrap gap-2 mt-6 border-b border-gray-200">
-              {[
-                { id: "all", label: "Tất cả", count: reports.length },
-                { id: "submitted", label: "Đã nộp", count: reports.filter((r) => r.status === "submitted").length },
-                { id: "pending", label: "Chưa nộp", count: reports.filter((r) => r.status === "pending").length },
-                { id: "graded", label: "Đã chấm", count: reports.filter((r) => r.status === "graded").length },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-t-lg border-b-2 transition-colors ${activeTab === tab.id
-                      ? "border-blue-500 text-blue-600 bg-blue-50"
-                      : "border-transparent text-gray-600"
-                    }`}
-                >
-                  <span>{tab.label}</span>
-                  <span className="bg-gray-200 text-gray-700 px-2 py-1 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                </button>
-              ))}
             </div>
           </div>
 
           {/* Report List */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-            {filteredReports.length === 0 ? (
-              <div className="text-center py-12">
+            {loading ? (
+              <div className="text-center py-16">
+                <RefreshCw className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Đang tải dữ liệu...</h3>
+              </div>
+            ) : filteredReports.length === 0 ? (
+              <div className="text-center py-16">
                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-600 mb-2">Không có báo cáo nào</h3>
-                <p className="text-gray-500">Hãy tạo báo cáo mới hoặc kiểm tra lại bộ lọc</p>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">Không có báo cáo nào</h3>
+                <p className="text-gray-500 mb-6">Hãy tạo báo cáo đầu tiên cho lớp học của bạn</p>
+                <button
+                  onClick={() => setOpen(true)}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-5 h-5 inline mr-2" />
+                  Tạo báo cáo đầu tiên
+                </button>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-100">
                 {filteredReports.map((report) => {
-                  const StatusIcon = getStatusInfo(report.status, report.score).icon;
-                  const typeInfo = getTypeInfo(report.type);
+                  const statusInfo = getStatusInfo(report.status);
+                  const StatusIcon = statusInfo.icon;
 
                   return (
-                    <div key={report.id} className="p-6 hover:bg-gray-50">
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div key={report.id} className="p-6 hover:bg-gray-50 transition-colors">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        {/* Report Info */}
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-gray-800 text-lg">{report.title}</h3>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${typeInfo.bg} ${typeInfo.color}`}
-                            >
-                              {typeInfo.text}
-                            </span>
+                          <div className="flex items-start gap-4 mb-3">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-800 text-xl mb-2">
+                                {report.title}
+                              </h3>
+                              <div className="flex items-center gap-2 text-gray-600 mb-3">
+                                <BookOpen className="w-4 h-4 flex-shrink-0" />
+                                <span className="text-sm">{report.subject}</span>
+                              </div>
+                            </div>
+
+                            {/* Status Badge */}
+                            {statusInfo.text && (
+                              <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.bg} ${statusInfo.color} flex-shrink-0`}>
+                                <StatusIcon className="w-4 h-4" />
+                                <span className="text-sm font-medium">{statusInfo.text}</span>
+                              </div>
+                            )}
                           </div>
-                          <p className="text-gray-600 mb-2">{report.subject}</p>
-                          <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                            <span>Hạn nộp: {report.deadline}</span>
-                            {report.submittedDate && <span>Nộp lúc: {report.submittedDate}</span>}
+
+                          {/* Dates */}
+                          <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4" />
+                              <span>Bắt đầu: {formatDate(report.start_date)}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4" />
+                              <span>Hạn nộp: {formatDate(report.deadline)}</span>
+                            </div>
                           </div>
+
+                          {/* Description */}
+                          {report.description && (
+                            <p className="text-gray-600 text-sm mt-3 line-clamp-2">
+                              {report.description}
+                            </p>
+                          )}
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <StatusIcon
-                              className={`w-5 h-5 ${getStatusInfo(report.status, report.score).color}`}
-                            />
-                            <span
-                              className={`font-medium ${getStatusInfo(report.status, report.score).color}`}
-                            >
-                              {getStatusInfo(report.status, report.score).text}
-                            </span>
-                          </div>
-
-                          <div className="flex gap-2">
-                            {report.status === "submitted" && (
-                              <button className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                                <Download className="w-4 h-4" />
-                                Tải về
-                              </button>
-                            )}
-
-                            {report.status === "pending" && (
-                              <button className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700">
-                                <FileText className="w-4 h-4" />
-                                Nộp bài
-                              </button>
-                            )}
-
-                            {report.status === "graded" && (
-                              <button className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-                                <FileText className="w-4 h-4" />
-                                Xem kết quả
-                              </button>
-                            )}
-                          </div>
+                        {/* Action Button */}
+                        <div className="flex-shrink-0">
+                          <button
+                            onClick={() => handleUpdateReport(report.id)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                          >
+                            <Edit className="w-4 h-4" />
+                            Cập nhật
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -302,13 +291,24 @@ export default function ReportManager() {
           </div>
         </div>
 
+        {/* Modals */}
         <ModalCreateReport
           open={open}
           onClose={() => setOpen(false)}
           onSuccess={() => {
             setOpen(false);
-            fetchReports(); // reload khi tạo thành công
+            fetchReports();
           }}
+        />
+
+        <ModalUpdateReport
+          open={updateModalOpen}
+          onClose={() => {
+            setUpdateModalOpen(false);
+            setSelectedReport(null);
+          }}
+          onSuccess={handleUpdateSuccess}
+          report={selectedReport}
         />
       </div>
 

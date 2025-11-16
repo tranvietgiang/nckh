@@ -532,5 +532,124 @@ class ReportController extends Controller
     }
 }
 
+   /**
+ * ✅ Lấy chi tiết báo cáo theo ID - SỬA LẠI
+ */
+public function getReportDetail($id)
+{
+    try {
+        $userId = AuthHelper::isLogin();
 
+        // Debug
+        Log::info("🔍 Get report detail attempt", [
+            'user_id' => $userId,
+            'report_id' => $id
+        ]);
+
+        // Tìm báo cáo đơn giản
+        $report = Report::where('report_id', $id)->first();
+
+        if (!$report) {
+            return response()->json([
+                'error' => 'Báo cáo không tồn tại'
+            ], 404);
+        }
+
+        // Kiểm tra quyền đơn giản
+        if ($report->teacher_id != $userId) {
+            Log::warning("❌ Permission denied for report detail", [
+                'user_id' => $userId,
+                'report_teacher_id' => $report->teacher_id
+            ]);
+            
+            return response()->json([
+                'error' => 'Bạn không có quyền xem báo cáo này'
+            ], 403);
+        }
+
+        // Lấy thông tin lớp
+        $class = DB::table('classes')->where('class_id', $report->class_id)->first();
+
+        $reportData = [
+            'report_id' => $report->report_id,
+            'report_name' => $report->report_name,
+            'description' => $report->description,
+            'start_date' => $report->start_date,
+            'end_date' => $report->end_date,
+            'status' => $report->status,
+            'class_id' => $report->class_id,
+            'class_name' => $class->class_name ?? 'Không xác định',
+            'teacher_id' => $report->teacher_id
+        ];
+
+        Log::info("✅ Report detail retrieved", $reportData);
+
+        return response()->json($reportData, 200);
+
+    } catch (\Exception $e) {
+        Log::error("Get report detail error: " . $e->getMessage());
+        return response()->json([
+            'error' => 'Lỗi server',
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+
+public function updateReport(Request $request, $id)
+{
+    try {
+        Log::info("🔄 UPDATE REPORT REQUEST", [
+            'report_id' => $id,
+            'request_data' => $request->all()
+        ]);
+
+        // Tìm báo cáo
+        $report = Report::where('report_id', $id)->first();
+
+        if (!$report) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Báo cáo không tồn tại'
+            ], 404);
+        }
+
+        // Cập nhật chỉ các field cơ bản - KHÔNG VALIDATION
+        if ($request->has('report_name')) {
+            $report->report_name = $request->report_name;
+        }
+        if ($request->has('description')) {
+            $report->description = $request->description;
+        }
+        if ($request->has('start_date')) {
+            $report->start_date = $request->start_date;
+        }
+        if ($request->has('end_date')) {
+            $report->end_date = $request->end_date;
+        }
+        if ($request->has('status')) {
+            $report->status = $request->status;
+        }
+
+        $report->save();
+
+        Log::info("✅ REPORT UPDATED SUCCESS", [
+            'report_id' => $id,
+            'updated_data' => $report->toArray()
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Cập nhật báo cáo thành công!'
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error("❌ UPDATE REPORT ERROR: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
+
+        return response()->json([
+            'success' => false,
+            'error' => 'Lỗi cập nhật: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }
