@@ -28,9 +28,8 @@ export default function TeacherDashboard() {
 
     setLoading(true);
     axios
-      .get("/classes", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+
+      .get(`/get-class-by-major/${user.major_id}`)
       .then((res) => {
         if (Array.isArray(res.data)) setClasses(res.data);
         else setClasses([]);
