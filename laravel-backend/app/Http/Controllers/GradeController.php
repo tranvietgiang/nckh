@@ -152,6 +152,7 @@ class GradeController extends Controller
             ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join("subjects", "classes.subject_id", "=", "subjects.subject_id")
+            ->where("grades.score", "!=", 0)
             ->where('submissions.student_id', $userId)
             ->get();
 

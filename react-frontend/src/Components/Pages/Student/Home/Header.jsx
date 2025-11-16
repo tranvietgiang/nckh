@@ -25,7 +25,7 @@ export default function Header() {
           {/* Header Section */}
           <div className="bg-blue-600 px-6 sm:px-8 py-5">
             <h1 className="text-2xl sm:text-3xl font-bold text-white text-center flex items-center justify-center">
-              📊 THỐNG KÊ CÁ NHÂN
+              THỐNG KÊ CÁ NHÂN
             </h1>
           </div>
 
@@ -86,22 +86,6 @@ export default function Header() {
                   100%
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">Tỷ lệ</div>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mt-6 sm:mt-8">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm font-medium text-gray-700 flex items-center">
-                  Tiến độ hoàn thành
-                </span>
-                <span className="text-sm font-medium text-gray-700">100%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div
-                  className="bg-green-600 h-2.5 rounded-full"
-                  style={{ width: "100%" }}
-                ></div>
               </div>
             </div>
           </div>
