@@ -63,9 +63,7 @@ export default function PendingReports() {
             file_path: item.file_path,
           };
         });
-        console.log(res.data);
         setSubmissionMap(map);
-        console.log("✅ Submission map:", map);
       })
       .catch((error) => {
         console.log("❌ Lỗi khi lấy submission:", error);
@@ -178,11 +176,11 @@ export default function PendingReports() {
         </p>
       ) : (
         reports.map((report) => {
-          const submission = submissionMap[report.report_id];
+          const submission = submissionMap[report?.report_id];
           const isSubmitted = submission?.status === "submitted";
 
           return (
-            <div key={report.report_id} className="mb-6">
+            <div key={report?.report_id} className="mb-6">
               <div
                 className={`border border-gray-300 rounded-lg p-4 transition ${
                   isSubmitted
@@ -191,7 +189,7 @@ export default function PendingReports() {
                 }`}
               >
                 <h2 className="font-semibold text-lg mb-2 text-gray-800">
-                  {report.report_name}
+                  {report?.report_name ?? "Chưa có thông tin"}
                 </h2>
 
                 <div className="space-y-1 text-sm text-gray-600">
@@ -200,36 +198,43 @@ export default function PendingReports() {
                     {report?.subject_name ?? "Chưa có thông tin"}
                   </p>
                   <p>
-                    <strong>Giáo viên phụ trách:</strong> {report.fullname}
-                  </p>
-                  <p>
-                    <strong>Hạn nộp:</strong>
-                    {new Date(report.end_date).toLocaleDateString("vi-VN")}
+                    <strong>Giáo viên phụ trách:</strong>{" "}
+                    {report?.fullname ?? "Chưa có thông tin"}
                   </p>
                   <p>
                     <strong>Ngày nộp:</strong>
-                    {new Date(report.end_date).toLocaleDateString("vi-VN")}
+                    <span className="mx-1">
+                      {new Date(report?.start_date).toLocaleDateString("vi-VN")}
+                    </span>
                   </p>
 
-                  {report.rm_name ? (
+                  <p>
+                    <strong>Hạn nộp:</strong>
+                    <span className="mx-1">
+                      {new Date(report?.end_date).toLocaleDateString("vi-VN")}
+                    </span>
+                  </p>
+
+                  {report?.rm_name ? (
                     <>
                       <p>
-                        <strong>Nhóm:</strong> {report.rm_name}
+                        <strong>Nhóm:</strong>{" "}
+                        {report?.rm_name ?? "Chưa có thông tin"}
                       </p>
                       <p>
-                        <strong>Vai trò:</strong>{" "}
+                        <strong>Vai trò:</strong>
                         <span
                           className={`px-2 font-semibold ${
-                            report.report_m_role === "NT"
+                            report?.report_m_role === "NT"
                               ? "text-blue-600"
-                              : report.report_m_role === "NP"
+                              : report?.report_m_role === "NP"
                               ? "text-green-600"
                               : "text-gray-600"
                           }`}
                         >
-                          {report.report_m_role === "NT"
+                          {report?.report_m_role === "NT"
                             ? "Nhóm trưởng"
-                            : report.report_m_role === "NP"
+                            : report?.report_m_role === "NP"
                             ? "Nhóm phó"
                             : "Thành viên"}
                         </span>

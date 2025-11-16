@@ -116,10 +116,13 @@ export default function Header() {
 
         {/* Quick Actions */}
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-6xl mx-auto">
-          <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center">
+          {/* <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center">
             Xem chi tiết
-          </button>
-          <button className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center">
+          </button> */}
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center"
+          >
             Cập nhật
           </button>
         </div>
