@@ -179,7 +179,6 @@ export default function PendingReports() {
           const submission = submissionMap[report?.report_id];
           const isSubmitted = submission?.status === "submitted";
 
-          console.log(report?.start_date, report?.end_date);
           return report?.start_date > report?.end_date ? (
             ""
           ) : (

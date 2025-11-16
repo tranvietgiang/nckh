@@ -56,7 +56,7 @@ Route::get('/submissions', [SubmissionController::class, 'indes']);
 Route::middleware('auth:sanctum')->group(function () {
 
     // SỬA LẠI CHO ĐÚNG:
-    Route::get('submissionsreport', [SubmissionController::class, 'getSubmissionsForReport']); 
+    Route::get('submissionsreport', [SubmissionController::class, 'getSubmissionsForReport']);
 
     // (Các route khác của bạn như /reports, /classes, /get-majors...)
 });
@@ -66,7 +66,6 @@ Route::middleware('auth:sanctum')->prefix('nhhh')->group(function () {
 
     // Tên route là 'submission/reports' để khớp với React (chứ không phải 'years')
     Route::get('submission/reports', [SubmissionController::class, 'getReportsByYear']);
-
 });
 
 /**xóa sinh viên */
@@ -230,6 +229,11 @@ Route::middleware('auth:sanctum')->get('/get-teacher-name-by-submission/{submiss
 
 Route::middleware('auth:sanctum')->get('/get-name-group-by-student', [ReportMembersController::class, 'getNameGroupByStudent']);
 // Routes mới cho cập nhật báo cáo
- Route::middleware('auth:sanctum')->get('/teacher/reports/{id}', [ReportController::class, 'getReportDetail']);
-    Route::middleware('auth:sanctum')->put('/teacher/reports/{id}', [ReportController::class, 'updateReport']);
+Route::middleware('auth:sanctum')->get('/teacher/reports/{id}', [ReportController::class, 'getReportDetail']);
+Route::middleware('auth:sanctum')->put('/teacher/reports/{id}', [ReportController::class, 'updateReport']);
 
+// get count classes 
+Route::middleware('auth:sanctum')->get('/get-count-classes-by-student', [ClassController::class, 'getCountClassStudentLearn']);
+
+// get count classes 
+Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [ReportController::class, 'getCountReportByStudent']);
