@@ -230,6 +230,6 @@ Route::middleware('auth:sanctum')->get('/get-teacher-name-by-submission/{submiss
 
 Route::middleware('auth:sanctum')->get('/get-name-group-by-student', [ReportMembersController::class, 'getNameGroupByStudent']);
 // Routes mới cho cập nhật báo cáo
- Route::get('/teacher/reports/{id}', [ReportController::class, 'getReportDetail']);
-    Route::put('/teacher/reports/{id}', [ReportController::class, 'updateReport']);
+ Route::middleware('auth:sanctum')->get('/teacher/reports/{id}', [ReportController::class, 'getReportDetail']);
+    Route::middleware('auth:sanctum')->put('/teacher/reports/{id}', [ReportController::class, 'updateReport']);
 
