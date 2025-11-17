@@ -3,7 +3,7 @@ import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
 import { getUser } from "../../../Constants/INFO_USER";
 
-// 🌀 Hiệu ứng loading
+//  Hiệu ứng loading
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
     color === "white"
@@ -35,6 +35,7 @@ export default function PendingReports() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [submissionMap, setSubmissionMap] = useState({});
+  const [reportCount, setReportCount] = useState(null);
 
   // 🔹 Lấy danh sách báo cáo
   useEffect(() => {
@@ -47,6 +48,16 @@ export default function PendingReports() {
         console.log("❌ Lỗi khi load report:", error);
       })
       .finally(() => setLoading(false));
+
+    axios
+      .get("/tvg/get-count-report-by-student")
+      .then((res) => {
+        setReportCount(res.data);
+      })
+      .catch((err) => {
+        setReportCount([]);
+        console.log(err);
+      });
   }, []);
 
   // 🔹 Lấy trạng thái nộp và link file thực tế
@@ -163,7 +174,7 @@ export default function PendingReports() {
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
-        BÁO CÁO CẦN NỘP ({reports.length})
+        BÁO CÁO CẦN NỘP ({reportCount ?? "chưa có thông tin"})
       </h1>
 
       {loading ? (

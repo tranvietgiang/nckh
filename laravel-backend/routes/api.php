@@ -140,11 +140,7 @@ Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersCo
 
 Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);
 
-// cả
-
-
 Route::middleware('auth:sanctum')->post('/majors/store', [MajorsController::class, 'store']);
-
 
 Route::post('/majors', [MajorsController::class, 'store']);
 // ✏️ Cập nhật
@@ -235,5 +231,10 @@ Route::middleware('auth:sanctum')->put('/teacher/reports/{id}', [ReportControlle
 // get count classes 
 Route::middleware('auth:sanctum')->get('/get-count-classes-by-student', [ClassController::class, 'getCountClassStudentLearn']);
 
+// get count report 
+Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [ReportController::class, 'getCountReportNotCompleteByStudent']);
+
 // get count classes 
-Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [ReportController::class, 'getCountReportByStudent']);
+Route::middleware('auth:sanctum')->get('/tvg/get-count-report-complete-by-student', [ReportController::class, 'getCountReportCompleteByStudent']);
+// get count classes 
+Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student-length', [ReportController::class, 'getCountReportCompleteByStudentLength']);
