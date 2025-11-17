@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../../ReUse/Navbar/Navbar";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Footer from "../Home/Footer";
 import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
@@ -31,18 +31,18 @@ export default function ProfilePage() {
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;
     const data_user_profile = getSafeJSON("user_profiles");
-    if (data_user_profile) {
+    if (data_user_profile !== null) {
       setProfile(data_user_profile);
     }
 
     try {
       const res = await axios.get("/profiles");
-      if (role === "teacher") {
-        setProfile(res.data);
-        setSafeJSON("user_profiles", JSON.stringify(res.data));
-      } else {
-        setProfile(res.data[0]);
-        setSafeJSON("user_profiles", JSON.stringify(res.data[0]));
+      const fresh = role === "teacher" ? res.data : res.data[0];
+
+      // Chỉ update nếu data mới khác cache → tránh re-render vô nghĩa
+      if (JSON.stringify(fresh) !== JSON.stringify(data_user_profile)) {
+        setProfile(fresh);
+        setSafeJSON("user_profiles", fresh);
       }
       console.log(res.data);
     } catch (error) {

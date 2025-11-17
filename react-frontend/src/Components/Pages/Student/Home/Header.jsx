@@ -2,40 +2,95 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import { getUser } from "../../../Constants/INFO_USER";
 import axios from "../../../../config/axios";
+import {
+  getSafeJSON,
+  setSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 export default function Header() {
   const user = getUser();
-  const [getNamMajor, setNamMajor] = useState();
-  const [classCount, setClassCount] = useState();
-  const [reportCount, setReportCount] = useState();
+  const [getNamMajor, setNamMajor] = useState("");
+  const [classCount, setClassCount] = useState(0);
+  const [reportCount, setReportCount] = useState(0);
+  const [reportLength, setReportLength] = useState(0);
+  const [reportCompleteCount, setReportCompleteCount] = useState(0);
+  const fetchCountClasses = async () => {
+    const cache = getSafeJSON("classCount");
+    if (cache !== null) {
+      setClassCount(cache);
+    }
+
+    try {
+      const res = await axios.get("/get-count-classes-by-student");
+      setClassCount(res.data);
+      setSafeJSON("classCount", res.data);
+    } catch (err) {
+      setClassCount(0);
+      console.log(err);
+    }
+  };
+
+  const fetchReportCount = async () => {
+    const cache = getSafeJSON("reportCount");
+    if (cache !== null) setReportCount(cache);
+
+    try {
+      const res = await axios.get("/tvg/get-count-report-by-student");
+      setReportCount(res.data ?? 0);
+      setSafeJSON("reportCount", res.data ?? 0);
+    } catch {
+      setReportCount(0);
+    }
+  };
+
+  const fetchReportLength = async () => {
+    const cache = getSafeJSON("reportLength");
+    if (cache !== null) setReportLength(cache);
+
+    try {
+      const res = await axios.get("/tvg/get-count-report-by-student-length");
+      setReportLength(res.data ?? 0);
+      setSafeJSON("reportLength", res.data ?? 0);
+    } catch {
+      setReportLength(0);
+    }
+  };
+
+  const fetchReportCompleteCount = async () => {
+    const cache = getSafeJSON("reportComplete");
+    if (cache !== null) setReportCompleteCount(cache);
+
+    try {
+      const res = await axios.get("/tvg/get-count-report-complete-by-student");
+      setReportCompleteCount(res.data ?? 0);
+      setSafeJSON("reportComplete", res.data ?? 0);
+    } catch {
+      setReportCompleteCount(0);
+    }
+  };
+
+  const fetchNameMajor = async () => {
+    const cache = getSafeJSON("nameMajor");
+    if (cache !== null) setNamMajor(cache);
+
+    try {
+      const res = await axios.get(`/tvg/get-nameMajor/${user?.major_id}`);
+      setNamMajor(res.data);
+      setSafeJSON("nameMajor", res.data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
     axios.get("/profiles");
-
-    axios
-      .get("/get-count-classes-by-student")
-      .then((res) => {
-        setClassCount(res.data || []);
-      })
-      .catch((err) => {
-        setClassCount([]);
-        console.log(err);
-      });
-
-    axios
-      .get("/tvg/get-count-report-by-student")
-      .then((res) => {
-        setReportCount(res.data || []);
-      })
-      .catch((err) => {
-        setReportCount([]);
-        console.log(err);
-      });
+    fetchCountClasses();
+    fetchReportCount();
+    fetchReportLength();
+    fetchReportCompleteCount();
+    fetchNameMajor();
   }, []);
 
-  useEffect(() => {
-    axios.get(`/tvg/get-nameMajor/${user?.major_id}`).then((res) => {
-      setNamMajor(res.data);
-    });
-  }, []);
+  const percent = (reportCompleteCount / reportLength) * 100;
 
   return (
     <header className="bg-gray-50 min-h-screen">
@@ -94,7 +149,7 @@ export default function Header() {
               {/* Hoàn thành */}
               <div className="bg-green-50 p-4 sm:p-5 rounded-lg text-center border border-green-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-green-600 mb-1 flex items-center justify-center">
-                  2
+                  {reportCompleteCount ?? "chưa có thông tin"}
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">
                   Hoàn thành
@@ -104,7 +159,7 @@ export default function Header() {
               {/* Tỷ lệ */}
               <div className="bg-purple-50 p-4 sm:p-5 rounded-lg text-center border border-purple-100 h-28 sm:h-32 flex flex-col justify-center">
                 <div className="text-3xl sm:text-4xl lg:text-5xl font-bold text-purple-600 mb-1 flex items-center justify-center">
-                  100%
+                  {percent ?? "chưa có thông tin"}%
                 </div>
                 <div className="text-sm sm:text-base text-gray-600">Tỷ lệ</div>
               </div>

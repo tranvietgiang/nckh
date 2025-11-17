@@ -25,7 +25,7 @@ use Illuminate\Support\Str;
 class ReportController extends Controller
 {
     /** 
-     * ✅ 1️⃣ Bước đầu: Lấy URL xác thực Google (chạy 1 lần duy nhất)
+     *  Bước đầu: Lấy URL xác thực Google (chạy 1 lần duy nhất)
      */
     public function getAuthUrl()
     {
@@ -43,7 +43,7 @@ class ReportController extends Controller
     }
 
     /** 
-     * ✅ 2️⃣ Callback sau khi user bấm “Cho phép” → lưu token.json
+     *  Callback sau khi user bấm “Cho phép” → lưu token.json
      */
     public function handleCallback(Request $request)
     {
@@ -129,7 +129,7 @@ class ReportController extends Controller
         return $client;
     }
 
-    // 🔧 Tạo hoặc lấy folder
+    // Tạo hoặc lấy folder
     private function getOrCreateFolder($driveService, $folderName, $parentId = null)
     {
         $query = "mimeType='application/vnd.google-apps.folder' and name='$folderName'";
@@ -389,44 +389,102 @@ class ReportController extends Controller
         return response()->json($groups, 200);
     }
 
-    public function getCountReportByStudent()
+    public function getCountReportNotCompleteByStudent()
     {
         $studentId = AuthHelper::isLogin();
 
-        $groups = DB::table('report_members')
+        $count = DB::table('report_members')
             ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
+            ->LeftJoin('submissions', 'reports.report_id', '=', 'submissions.report_id')
+            ->LeftJoin("grades", "submissions.submission_id", "=", "grades.submission_id")
             ->select(
-                'report_members.rm_code',
-                'report_members.rm_name',
-                'report_members.report_m_role',
-
+                'report_members.student_id',
                 'reports.report_id',
-                'reports.report_name',
-                'reports.teacher_id',
-                'reports.start_date',
-                'reports.end_date',
-
-                'classes.class_id',
-                'classes.class_name',
-
-                'subjects.subject_name',
-                'user_profiles.fullname',
+                'grades.score',
+                'grades.graded_at'
             )
             ->where('report_members.student_id', $studentId)
-            ->orderBy('reports.report_id', 'asc')
+            ->whereNull("grades.score")
+            ->whereNull("grades.graded_at")
             ->distinct('reports.report_id')
             ->count('reports.report_id');
 
-        if ($groups < 0) {
+
+
+        if ($count === 0) {
             return response()->json([
                 'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
             ], 404);
         }
 
-        return response()->json($groups, 200);
+
+        return response()->json(
+            $count,
+            200
+        );
+    }
+
+    public function getCountReportCompleteByStudentLength()
+    {
+        $studentId = AuthHelper::isLogin();
+
+
+        $length = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
+            ->select(
+                'report_members.student_id',
+                'reports.report_id',
+            )
+            ->where('report_members.student_id', $studentId)
+            ->distinct('reports.report_id')
+            ->count('reports.report_id');
+
+        if ($length === 0) {
+            return response()->json([
+                'message' => 'Không có báo cáo nào.'
+            ], 404);
+        }
+        return response()->json(
+            $length,
+            200
+        );
+    }
+
+    public function getCountReportCompleteByStudent()
+    {
+        $studentId = AuthHelper::isLogin();
+
+        $count = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
+            ->join('submissions', 'reports.report_id', '=', 'submissions.report_id')
+            ->join("grades", "submissions.submission_id", "=", "grades.submission_id")
+            ->select(
+                'reports.report_id',
+                'report_members.student_id',
+                'grades.score'
+            )
+            ->whereNotNull("grades.score")
+            ->where("grades.score", "!=", 0)
+            ->where('report_members.student_id', $studentId)
+            ->distinct('grades.grade_id')
+            ->count('grades.grade_id');
+
+        if ($count < 0) {
+            return response()->json([
+                'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
+            ], 404);
+        }
+
+        return response()->json($count, 200);
     }
 
 
