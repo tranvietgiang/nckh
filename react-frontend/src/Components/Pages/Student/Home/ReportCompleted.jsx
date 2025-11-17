@@ -19,7 +19,7 @@ export default function CompleteReports() {
       .then((res) => {
         const rows = Array.isArray(res.data) ? res.data : [];
 
-        console.log(rows);
+        // console.log(rows);
         const toNumber = (r) =>
           typeof r.numericScore === "number"
             ? r.numericScore
@@ -82,7 +82,7 @@ export default function CompleteReports() {
       .get(`/get-name-group-by-student`)
       .then((res) => {
         setNameGroup(res.data || []);
-        console.log(res.data);
+        // console.log(res.data);
       })
       .catch((err) => {
         setNameGroup([]);
@@ -248,26 +248,6 @@ export default function CompleteReports() {
               );
             })
           )}
-        </div>
-
-        {/* Summary Stats */}
-        <div className="mt-8 bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="grid grid-cols-3 gap-6">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {completedReports.length}
-              </div>
-              <div className="text-sm text-gray-600">Tổng số báo cáo</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">8.45/10</div>
-              <div className="text-sm text-gray-600">Điểm trung bình</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">100%</div>
-              <div className="text-sm text-gray-600">Tỷ lệ hoàn thành</div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@ import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
 import RoleStudent from "../../../ReUse/IsLogin/RoleStudent";
 import { useEffect } from "react";
-
+import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function StudentDashboard() {
   const { user, token } = getAuth();
   IsLogin(user, token);
@@ -17,6 +17,7 @@ export default function StudentDashboard() {
     <>
       <Header />
       <Content />
+      <BackToTop />
       <Footer />
     </>
   );
