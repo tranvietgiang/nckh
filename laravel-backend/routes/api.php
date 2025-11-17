@@ -238,3 +238,4 @@ Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [Repo
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-complete-by-student', [ReportController::class, 'getCountReportCompleteByStudent']);
 // get count classes 
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student-length', [ReportController::class, 'getCountReportCompleteByStudentLength']);
+/// clear code api
