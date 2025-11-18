@@ -90,7 +90,7 @@ export default function Header() {
     fetchNameMajor();
   }, []);
 
-  const percent = (reportCompleteCount / reportLength) * 100;
+  const percent = reportLength ? (reportCompleteCount / reportLength) * 100 : 0;
 
   return (
     <header className="bg-gray-50 min-h-screen">
