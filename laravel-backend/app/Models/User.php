@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Scout\Searchable;
 
 class User extends Authenticatable
 {
@@ -16,6 +17,8 @@ class User extends Authenticatable
     protected $primaryKey = 'user_id'; // KHÓA CHÍNH trong bảng của bạn
     protected $keyType = 'string'; // 🔹 Bắt buộc giữ nguyên dạng chuỗi
     public $incrementing = false;
+
+    use Searchable;
 
     /**
      * The attributes that are mass assignable.
@@ -52,8 +55,31 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    // Quan hệ từ profile tới majors
+    public function major()
+    {
+        // Truyền vào relation "hasOneThrough"
+        return $this->hasOneThrough(
+            Major::class,      // Model muốn lấy dữ liệu
+            user_profile::class, // Model trung gian
+            'user_id',         // foreign key của UserProfile trỏ tới User
+            'major_id',        // foreign key của Major
+            'user_id',         // local key của User
+            'major_id'         // local key của UserProfile trỏ tới Major
+        );
+    }
 
-
+    // Scout search array
+    public function toSearchableArray()
+    {
+        return [
+            'user_id' => $this->user_id,
+            'email' => $this->email,
+            'fullname' => $this->profile->fullname ?? '',
+            'major_name' => $this->major->major_name ?? '', 
+            'class_student' => $this->profile->class_student ?? '',
+        ];
+    }
 
     public function profile()
     {

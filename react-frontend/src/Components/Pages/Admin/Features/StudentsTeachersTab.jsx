@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "../../../../config/axios";
 
 export default function StudentsTeachersTab({
   activeMenu,
@@ -26,6 +27,11 @@ export default function StudentsTeachersTab({
 }) {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [q, setQ] = useState("");
+  const typingTimer = React.useRef(null);
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+
 
   // 🧩 Mở modal edit
   const openEditModal = (user) => {
@@ -48,7 +54,13 @@ export default function StudentsTeachersTab({
   const itemsPerPage = 10;
 
   // ⚙️ Xác định dữ liệu và tổng trang
-  const data = activeTab === "students" ? filteredStudents : filteredTeachers;
+  const data =
+    searchRows.length > 0
+      ? searchRows
+      : activeTab === "students"
+        ? filteredStudents
+        : filteredTeachers;
+
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // ⚙️ Cắt dữ liệu theo trang
@@ -77,6 +89,53 @@ export default function StudentsTeachersTab({
     }
     closeEditModal();
   };
+
+  //Search engier
+  const runSearch = async (keyword) => {
+    const query = keyword.trim();
+    setCurrentPage(1); // reset pagination
+
+    if (!query) {
+      setSearchRows([]);
+      return;
+    }
+
+    setLoadingSearch(true);
+    try {
+      const role = activeTab === "students" ? "student" : "teacher";
+      const res = await axios.get(`/search/users?q=${encodeURIComponent(query)}&role=${role}`);
+      setSearchRows(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+      setSearchRows([]);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+
+
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setQ(value);
+    setSearchTerm(value);
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => runSearch(value), 500);
+  };
+
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(searchTerm);
+    } else if (e.key === "Escape") {
+      setSearchTerm("");
+      setSearchRows([]);
+    }
+  };
+
+
 
   return (
     <div>
@@ -127,8 +186,9 @@ export default function StudentsTeachersTab({
             <input
               type="text"
               placeholder="Tìm kiếm..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={q}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
               className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
