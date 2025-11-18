@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Services\AdminService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Laravel\Scout\Searchable;
 
 class AdminController extends Controller
 {
@@ -100,4 +102,34 @@ class AdminController extends Controller
             return response()->json(['message' => $e->getMessage()], 500);
         }
     }
+    public function searchUsers(Request $request)
+    {
+        $q = trim($request->query('q', ''));
+        $role = $request->query('role', ''); // 'student' hoặc 'teacher'
+
+        if ($q === '')
+            return [];
+
+        // Search Scout theo từ khóa
+        $users = User::search($q)->get();
+
+        // Filter theo role
+        if ($role) {
+            $users = $users->where('role', $role);
+        }
+
+        // Eager load profile + major
+        $users->load(['profile', 'major']);
+
+        return $users->map(function ($user) {
+            return [
+                'user_id' => $user->user_id,
+                'email' => $user->email,
+                'fullname' => $user->profile->fullname ?? '',
+                'major_name' => $user->major->major_name ?? '',
+                'class_student' => $user->profile->class_student ?? '',
+            ];
+        });
+    }
+
 }
