@@ -135,11 +135,11 @@ export default function ManagerGroups() {
     if (!selectedFile) return alert("Vui lòng chọn file Excel!");
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("class_id", selectedClassId);
-    formData.append("report_id", getNameReport?.report_id);
-    formData.append("major_id", selectedMajorId);
-    formData.append("teacher_id", teacherId);
+    formData.append("file", selectedFile ?? "");
+    formData.append("class_id", selectedClassId ?? "");
+    formData.append("report_id", getNameReport?.report_id ?? "");
+    formData.append("major_id", selectedMajorId ?? "");
+    formData.append("teacher_id", teacherId ?? "");
 
     try {
       setImporting(true);

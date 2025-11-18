@@ -100,31 +100,52 @@ class ReportController extends Controller
         $client->setAccessToken($accessToken);
 
         // 🔄 Refresh token nếu hết hạn
+        // if ($client->isAccessTokenExpired()) {
+        //     try {
+        //         if (!empty($accessToken['refresh_token'])) {
+        //             $newToken = $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
+
+        //             // ⚠️ Nếu Google trả lỗi
+        //             if (isset($newToken['error'])) {
+        //                 // Xóa token hỏng, yêu cầu xác thực lại
+        //                 unlink($tokenPath);
+        //                 throw new \Exception("⚠️ Refresh token đã hết hạn hoặc bị thu hồi. Vui lòng xác thực lại Google Drive!");
+        //             }
+
+        //             // ✅ Gộp refresh token cũ (vì Google thường không trả lại)
+        //             $updatedToken = array_merge($accessToken, $client->getAccessToken());
+
+        //             // ✅ Lưu lại token mới
+        //             file_put_contents($tokenPath, json_encode($updatedToken));
+        //         } else {
+        //             throw new \Exception("❌ Refresh token không tồn tại. Vui lòng xác thực lại!");
+        //         }
+        //     } catch (\Exception $e) {
+        //         if (file_exists($tokenPath)) unlink($tokenPath);
+        //         throw $e;
+        //     }
+        // }
+
+        // code không mất token
         if ($client->isAccessTokenExpired()) {
-            try {
-                if (!empty($accessToken['refresh_token'])) {
-                    $newToken = $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
 
-                    // ⚠️ Nếu Google trả lỗi
-                    if (isset($newToken['error'])) {
-                        // Xóa token hỏng, yêu cầu xác thực lại
-                        unlink($tokenPath);
-                        throw new \Exception("⚠️ Refresh token đã hết hạn hoặc bị thu hồi. Vui lòng xác thực lại Google Drive!");
-                    }
+            // Refresh token cũ còn tồn tại
+            if (!empty($accessToken['refresh_token'])) {
 
-                    // ✅ Gộp refresh token cũ (vì Google thường không trả lại)
-                    $updatedToken = array_merge($accessToken, $client->getAccessToken());
+                // Lấy token mới
+                $client->fetchAccessTokenWithRefreshToken($accessToken['refresh_token']);
 
-                    // ✅ Lưu lại token mới
-                    file_put_contents($tokenPath, json_encode($updatedToken));
-                } else {
-                    throw new \Exception("❌ Refresh token không tồn tại. Vui lòng xác thực lại!");
-                }
-            } catch (\Exception $e) {
-                if (file_exists($tokenPath)) unlink($tokenPath);
-                throw $e;
+                // Access token mới
+                $newToken = $client->getAccessToken();
+
+                // GIỮ refresh token cũ lại
+                $newToken['refresh_token'] = $accessToken['refresh_token'];
+
+                // Lưu token
+                file_put_contents($tokenPath, json_encode($newToken));
             }
         }
+
 
         return $client;
     }
@@ -460,27 +481,38 @@ class ReportController extends Controller
     {
         $studentId = AuthHelper::isLogin();
 
+
+        //  Subquery: lấy submission mới nhất cho từng report
+        $latestSubmissions = DB::table('submissions')
+            ->select(DB::raw('MAX(submission_id) as submission_id'), 'report_id')
+            ->groupBy('report_id');
+
+        //  Query chính (giữ nguyên JOIN)
         $count = DB::table('report_members')
             ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
-            ->join('submissions', 'reports.report_id', '=', 'submissions.report_id')
-            ->join("grades", "submissions.submission_id", "=", "grades.submission_id")
-            ->select(
-                'reports.report_id',
-                'report_members.student_id',
-                'grades.score'
-            )
-            ->whereNotNull("grades.score")
-            ->where("grades.score", "!=", 0)
-            ->where('report_members.student_id', $studentId)
-            ->distinct('grades.grade_id')
-            ->count('grades.grade_id');
 
-        if ($count < 0) {
+            //  JOIN vào submission mới nhất
+            ->joinSub($latestSubmissions, 'latest', function ($join) {
+                $join->on('latest.report_id', '=', 'reports.report_id');
+            })
+            ->join('submissions', 'submissions.submission_id', '=', 'latest.submission_id')
+
+            ->join('grades', 'submissions.submission_id', '=', 'grades.submission_id')
+
+            ->where('report_members.student_id', $studentId)
+            ->whereNotNull('grades.score')
+            ->where('grades.score', '>', 0)
+
+            //  Đếm theo từng report (không bị trùng)
+            ->distinct('reports.report_id')
+            ->count('reports.report_id');
+
+        if ($count === 0) {
             return response()->json([
-                'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
+                'message' => 'Sinh viên này chưa có báo cáo đã được chấm điểm.'
             ], 404);
         }
 
