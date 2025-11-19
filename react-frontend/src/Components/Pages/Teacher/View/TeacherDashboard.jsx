@@ -15,12 +15,22 @@ export default function TeacherDashboard() {
   const [majorInfo, setMajorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user, token } = getAuth();
+  const [gettStatisticsClasses, setStatisticsClasses] = useState(null);
   const navigate = useNavigate();
 
   // Kiểm tra đăng nhập + quyền
   IsLogin(user, token);
   RoleTeacher(user?.role);
 
+  console.log(user);
+  useEffect(() => {
+    axios
+      .get("/tvg/get-count-classes-teaching-by-teacher")
+      .then((res) => {
+        setStatisticsClasses(res.data);
+      })
+      .catch((err) => console.log(err));
+  }, []);
   // Lấy danh sách lớp của giảng viên
   useEffect(() => {
     document.title = "Trang giảng viên";
@@ -89,10 +99,10 @@ export default function TeacherDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">
-              Chào Thầy {user?.full_name || "Nguyễn Văn A"}
+              Chào Thầy {user?.fullname || "chưa có thông tin"}
             </h2>
             <p className="text-gray-600">
-              Mã GV: {user?.user_code || user?.user_id}
+              Mã GV: {user?.user_id || "chưa có thông tin"}
             </p>
             <p className="text-gray-600">
               Ngành: {majorInfo?.major_name || "Chưa có thông tin"}
@@ -106,10 +116,14 @@ export default function TeacherDashboard() {
 
         {/* THỐNG KÊ */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <StatCard color="blue" value={classes.length} label="Lớp học" />
-          <StatCard color="yellow" value="12" label="Báo cáo chờ chấm" />
-          <StatCard color="green" value="8" label="Hoàn thành" />
-          <StatCard color="purple" value="67%" label="Tỷ lệ hoàn thành" />
+          <StatCard
+            color="blue"
+            value={gettStatisticsClasses}
+            label="Lớp học"
+          />
+          <StatCard color="yellow" value="x" label="Báo cáo chờ chấm" />
+          <StatCard color="green" value="x" label="Hoàn thành" />
+          <StatCard color="purple" value="x" label="Tỷ lệ hoàn thành" />
         </div>
 
         {/* THAO TÁC NHANH */}

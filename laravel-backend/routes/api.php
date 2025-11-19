@@ -333,3 +333,4 @@ Route::middleware('auth:sanctum')->get('/get-count-classes-by-student', [ClassCo
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [ReportController::class, 'getCountReportNotCompleteByStudent']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-complete-by-student', [ReportController::class, 'getCountReportCompleteByStudent']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student-length', [ReportController::class, 'getCountReportCompleteByStudentLength']);
+Route::middleware('auth:sanctum')->get('/tvg/get-count-classes-teaching-by-teacher', [ClassController::class, 'getCountClassesTeachingByTeacher']);
