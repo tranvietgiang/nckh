@@ -4,6 +4,9 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import ModalCreateReport from "../Modal/ModalCreateReports";
 import ModalUpdateReport from "../Modal/ModalUpdateReport";
 import axios from "../../../../config/axios";
+import BackToTop from "../../../ReUse/Top/BackToTop";
+import RouterBack from "../../../ReUse/Back/RouterBack";
+import { useNavigate } from "react-router-dom";
 import {
   FileText,
   Plus,
@@ -14,7 +17,7 @@ import {
   Eye,
   Edit,
   Calendar,
-  BookOpen
+  BookOpen,
 } from "lucide-react";
 import { getAuth } from "../../../Constants/INFO_USER";
 
@@ -34,10 +37,12 @@ export default function ReportManager() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // ⭐ LOAD API
+  // LOAD API
   useEffect(() => {
     fetchReports();
+    axios.get();
   }, []);
+  const navigate = useNavigate();
 
   const fetchReports = async () => {
     try {
@@ -55,7 +60,7 @@ export default function ReportManager() {
         description: r.description,
         class_id: r.class_id,
         status: mapApiStatusToUI(r.status),
-        rawStatus: r.status
+        rawStatus: r.status,
       }));
 
       setReports(mapped);
@@ -70,22 +75,22 @@ export default function ReportManager() {
   // Map status từ API sang UI
   const mapApiStatusToUI = (apiStatus) => {
     switch (apiStatus) {
-      case 'open':
-        return 'not-started';
-      case 'submitted':
-        return 'under-review';
-      case 'graded':
-        return 'completed';
-      case 'expired':
-        return 'in-progress';
+      case "open":
+        return "not-started";
+      case "submitted":
+        return "under-review";
+      case "graded":
+        return "completed";
+      case "expired":
+        return "in-progress";
       default:
-        return 'not-started';
+        return "not-started";
     }
   };
 
   // ⭐ HÀM CẬP NHẬT BÁO CÁO
   const handleUpdateReport = (reportId) => {
-    const currentReport = reports.find(r => r.id === reportId);
+    const currentReport = reports.find((r) => r.id === reportId);
     if (currentReport) {
       setSelectedReport(currentReport);
       setUpdateModalOpen(true);
@@ -143,7 +148,7 @@ export default function ReportManager() {
 
   // Format date
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+    return new Date(dateString).toLocaleDateString("vi-VN");
   };
 
   return (
@@ -186,8 +191,10 @@ export default function ReportManager() {
                   disabled={loading}
                   className="flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors disabled:opacity-50"
                 >
-                  <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-                  {loading ? 'Đang tải...' : 'Làm mới'}
+                  <RefreshCw
+                    className={`w-5 h-5 ${loading ? "animate-spin" : ""}`}
+                  />
+                  {loading ? "Đang tải..." : "Làm mới"}
                 </button>
 
                 <button
@@ -200,19 +207,25 @@ export default function ReportManager() {
               </div>
             </div>
           </div>
-
+          <RouterBack navigate={navigate} />
           {/* Report List */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             {loading ? (
               <div className="text-center py-16">
                 <RefreshCw className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Đang tải dữ liệu...</h3>
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                  Đang tải dữ liệu...
+                </h3>
               </div>
             ) : filteredReports.length === 0 ? (
               <div className="text-center py-16">
                 <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-3">Không có báo cáo nào</h3>
-                <p className="text-gray-500 mb-6">Hãy tạo báo cáo đầu tiên cho lớp học của bạn</p>
+                <h3 className="text-lg font-semibold text-gray-700 mb-3">
+                  Không có báo cáo nào
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  Hãy tạo báo cáo đầu tiên cho lớp học của bạn
+                </p>
                 <button
                   onClick={() => setOpen(true)}
                   className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -228,7 +241,10 @@ export default function ReportManager() {
                   const StatusIcon = statusInfo.icon;
 
                   return (
-                    <div key={report.id} className="p-6 hover:bg-gray-50 transition-colors">
+                    <div
+                      key={report.id}
+                      className="p-6 hover:bg-gray-50 transition-colors"
+                    >
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         {/* Report Info */}
                         <div className="flex-1">
@@ -239,15 +255,21 @@ export default function ReportManager() {
                               </h3>
                               <div className="flex items-center gap-2 text-gray-600 mb-3">
                                 <BookOpen className="w-4 h-4 flex-shrink-0" />
-                                <span className="text-sm">{report.subject}</span>
+                                <span className="text-sm">
+                                  {report.subject}
+                                </span>
                               </div>
                             </div>
 
                             {/* Status Badge */}
                             {statusInfo.text && (
-                              <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.bg} ${statusInfo.color} flex-shrink-0`}>
+                              <div
+                                className={`flex items-center gap-2 px-3 py-1 rounded-full border ${statusInfo.bg} ${statusInfo.color} flex-shrink-0`}
+                              >
                                 <StatusIcon className="w-4 h-4" />
-                                <span className="text-sm font-medium">{statusInfo.text}</span>
+                                <span className="text-sm font-medium">
+                                  {statusInfo.text}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -256,11 +278,15 @@ export default function ReportManager() {
                           <div className="flex flex-wrap gap-6 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
-                              <span>Bắt đầu: {formatDate(report.start_date)}</span>
+                              <span>
+                                Bắt đầu: {formatDate(report.start_date)}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
-                              <span>Hạn nộp: {formatDate(report.deadline)}</span>
+                              <span>
+                                Hạn nộp: {formatDate(report.deadline)}
+                              </span>
                             </div>
                           </div>
 
@@ -312,6 +338,7 @@ export default function ReportManager() {
         />
       </div>
 
+      <BackToTop />
       <Footer />
     </>
   );

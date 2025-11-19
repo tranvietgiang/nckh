@@ -30,14 +30,14 @@ class AdminRepository
     }
 
     /**
-     * 🧾 Lấy toàn bộ người dùng
+     * Lấy toàn bộ người dùng
      * (Sử dụng model đã được inject)
      */
     public function getAllUsers()
     {
         return DB::table('users')
             ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->leftJoin('majors', 'user_profiles.major_id', '=', 'majors.major_id') 
+            ->leftJoin('majors', 'user_profiles.major_id', '=', 'majors.major_id')
             ->select(
                 'users.user_id',
                 'users.email',
@@ -47,7 +47,7 @@ class AdminRepository
                 'user_profiles.class_student',
                 'user_profiles.class_id',
                 'user_profiles.major_id',
-                'majors.major_name' 
+                'majors.major_name'
             )
             ->get();
     }
@@ -161,4 +161,3 @@ class AdminRepository
             ->get();
     }
 }
-
