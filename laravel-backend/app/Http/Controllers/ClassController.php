@@ -14,6 +14,7 @@ use App\Imports\ClassImport;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\ClassesService;
+use Illuminate\Http\Response;
 use Maatwebsite\Excel\Facades\Excel;
 
 
@@ -186,5 +187,26 @@ class ClassController extends Controller
         }
 
         return response()->json([], 500);
+    }
+
+    public function getCountClassesTeachingByTeacher()
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+
+        $count = DB::table("classes")
+            ->join("user_profiles", "classes.teacher_id", "=", "user_profiles.user_id")
+            ->join("subjects", "classes.subject_id", "=", "subjects.subject_id")
+            ->join("majors", "subjects.major_id", "=", "majors.major_id")
+            ->join("users", "user_profiles.user_id", "=", "users.user_id")
+            ->where("users.user_id", $teacherId)
+            ->where("users.role", "teacher")
+            ->distinct("classes.class_id")->count("classes.class_id");
+
+
+        if ($count === 0) {
+            return Response()->json(["message_err" => "error not classes teaching"], 500);
+        }
+        return Response()->json($count, 200);
     }
 }
