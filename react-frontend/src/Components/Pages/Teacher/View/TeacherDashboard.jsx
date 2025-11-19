@@ -24,6 +24,8 @@ export default function TeacherDashboard() {
   // Lấy danh sách lớp của giảng viên
   useEffect(() => {
     document.title = "Trang giảng viên";
+    axios.get("/profiles");
+
     if (!token || !user?.major_id) return;
 
     setLoading(true);
@@ -78,7 +80,7 @@ export default function TeacherDashboard() {
       {/* HEADER */}
       <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
         <h1 className="text-3xl font-bold text-center">
-          📊 BẢNG TỔNG QUAN GIẢNG VIÊN
+          BẢNG TỔNG QUAN GIẢNG VIÊN
         </h1>
       </div>
 
@@ -87,7 +89,7 @@ export default function TeacherDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">
-              👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
+              Chào Thầy {user?.full_name || "Nguyễn Văn A"}
             </h2>
             <p className="text-gray-600">
               Mã GV: {user?.user_code || user?.user_id}
@@ -98,7 +100,7 @@ export default function TeacherDashboard() {
           </div>
 
           <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
-            ✔ Đang hoạt động
+            Đang hoạt động
           </span>
         </div>
 
