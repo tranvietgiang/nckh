@@ -299,8 +299,11 @@ export default function ClassShowManager() {
                                         class_id: classItem?.class_id,
                                         major_id: major?.major_id,
                                         teacher_id: classItem?.teacher_id,
-                                        view: 2,
                                         name_class: classItem?.class_name,
+                                        subject_id: classItem?.subject_id,
+                                        academic_year: classItem?.academic_year,
+                                        semester: classItem?.semester,
+                                        view: 2,
                                       },
                                     })
                                   }

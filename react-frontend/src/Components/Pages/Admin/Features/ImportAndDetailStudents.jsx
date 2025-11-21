@@ -27,13 +27,20 @@ export default function ImportAndDetailStudents() {
   const { user, token } = getAuth();
   const [file, setFile] = useState(null);
   const location = useLocation();
+
+  const role = user?.role;
+
   const class_id = location.state?.class_id;
   const major_id = location.state?.major_id;
-  const role = user?.role;
-  const typeView = location.state?.view;
   const teacher_id = location.state?.teacher_id;
-  const name_class = location.state?.name_class;
+  const subject_id = location.state?.subject_id;
+  const academic_year = location.state?.academic_year;
+  const semester = location.state?.semester;
+
+  const typeView = location.state?.view;
   const checkPage = typeView === 1 ? true : false;
+
+  const name_class = location.state?.name_class;
 
   useEffect(() => {
     document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
@@ -87,7 +94,14 @@ export default function ImportAndDetailStudents() {
     setFile(e.target.files[0]);
   };
 
-  console.log(class_id, major_id, teacher_id);
+  console.log(
+    class_id,
+    major_id,
+    teacher_id,
+    subject_id,
+    academic_year,
+    semester
+  );
   // Upload và lấy danh sách
   const handleImport = async () => {
     if (!file) {
@@ -104,7 +118,9 @@ export default function ImportAndDetailStudents() {
     formData.append("class_id", class_id);
     formData.append("major_id", major_id);
     formData.append("teacher_id", String(teacher_id));
-
+    formData.append("subject_id", subject_id);
+    formData.append("academic_year", academic_year);
+    formData.append("semester", semester);
     try {
       // Gửi file tới Laravel API
       const res = await axios.post("/students/import", formData, {
