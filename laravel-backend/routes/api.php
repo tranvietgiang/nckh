@@ -334,3 +334,4 @@ Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [Repo
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-complete-by-student', [ReportController::class, 'getCountReportCompleteByStudent']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student-length', [ReportController::class, 'getCountReportCompleteByStudentLength']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-classes-teaching-by-teacher', [ClassController::class, 'getCountClassesTeachingByTeacher']);
+Route::middleware('auth:sanctum')->get('/tvg/get-count-report-teaching-by-teacher', [ReportController::class, 'getCountReportTeachingByTeacher']);

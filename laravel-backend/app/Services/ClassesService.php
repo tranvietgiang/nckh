@@ -83,12 +83,15 @@ class ClassesService
         }
 
         //5 kiểm tra trùng dữ liệu
-        $sameTeacherAndName = Classe::where('teacher_id', $data['teacher_id'])
-            ->where('class_name', $data['class_name'])
+        $sameTeacherAndName = DB::table("classes")
+            ->join("subjects", "classes.subject_id", "subjects.subject_id")
+            ->where('classes.teacher_id', $data['teacher_id'])
+            ->where('classes.class_name', $data['class_name'])
+            ->where('classes.subject_id', $data['subject_id'])
             ->exists();
 
         if ($sameTeacherAndName) {
-            return ['success' => false, 'message_error' => 'Tên lớp này đã được bạn tạo trước đó!'];
+            return ['success' => false, 'message_error' => 'Lớp này đã có môn học trước đó'];
         }
 
         $sameTeacherAndCode = Classe::where('teacher_id', $data['teacher_id'])
