@@ -13,6 +13,11 @@ export default function Header() {
   const [reportCount, setReportCount] = useState(0);
   const [reportLength, setReportLength] = useState(0);
   const [reportCompleteCount, setReportCompleteCount] = useState(0);
+
+  useEffect(() => {
+    axios.get("/profiles");
+  }, []);
+
   const fetchCountClasses = async () => {
     const cache = getSafeJSON("classCount");
     if (cache !== null) {
@@ -90,7 +95,7 @@ export default function Header() {
     fetchNameMajor();
   }, []);
 
-  const percent = (reportCompleteCount / reportLength) * 100;
+  const percent = reportLength ? (reportCompleteCount / reportLength) * 100 : 0;
 
   return (
     <header className="bg-gray-50 min-h-screen">

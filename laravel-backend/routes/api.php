@@ -45,6 +45,7 @@ Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id
 
 // Lấy lớp GV đang dạy
 Route::middleware('auth:sanctum')->get('/get-class-by-major/{selectedMajor}', [ClassController::class, 'getClassOfTeacher']);
+Route::middleware('auth:sanctum')->get('/get-class-by-major-teacher/{selectedMajor}', [ClassController::class, 'getClassOfTeacherByMajor']);
 
 
 /*
@@ -258,6 +259,7 @@ Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'delet
 
 Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']);
 Route::get('/search/majors', [MajorsController::class, 'meilisearchMajors']);
+Route::get('/search/users', [AdminController::class, 'searchUsers']);
 
 
 /*
@@ -333,3 +335,4 @@ Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student', [Repo
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-complete-by-student', [ReportController::class, 'getCountReportCompleteByStudent']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student-length', [ReportController::class, 'getCountReportCompleteByStudentLength']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-classes-teaching-by-teacher', [ClassController::class, 'getCountClassesTeachingByTeacher']);
+Route::middleware('auth:sanctum')->get('/tvg/get-count-report-teaching-by-teacher', [ReportController::class, 'getCountReportTeachingByTeacher']);

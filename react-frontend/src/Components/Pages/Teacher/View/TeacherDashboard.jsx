@@ -8,6 +8,10 @@ import Footer from "../../Student/Home/Footer";
 import axios from "../../../../config/axios";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import {
+  getSafeJSON,
+  setSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
@@ -15,25 +19,61 @@ export default function TeacherDashboard() {
   const [majorInfo, setMajorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user, token } = getAuth();
-  const [gettStatisticsClasses, setStatisticsClasses] = useState(null);
+  const [getStatisticsClasses, setStatisticsClasses] = useState(null);
+  const [getStatisticsReport, setStatisticsReport] = useState(null);
   const navigate = useNavigate();
 
   // Kiểm tra đăng nhập + quyền
   IsLogin(user, token);
   RoleTeacher(user?.role);
 
-  console.log(user);
+  const fetchStatisticsClasses = async () => {
+    const count_classes_teaching = getSafeJSON("count_classes_teaching");
+    if (count_classes_teaching !== null) {
+      setStatisticsClasses(count_classes_teaching);
+    }
+
+    try {
+      const res = await axios.get("/tvg/get-count-classes-teaching-by-teacher");
+      if (JSON.stringify(res.data) !== JSON.stringify(count_classes_teaching)) {
+        setSafeJSON("count_classes_teaching", res.data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchStatisticsReport = async () => {
+    const count_report_await_teaching = getSafeJSON(
+      "count_report_await_teaching"
+    );
+    if (count_report_await_teaching !== null) {
+      setStatisticsReport(count_report_await_teaching);
+    }
+
+    try {
+      const res = await axios.get("/tvg/get-count-report-teaching-by-teacher");
+      console.log(res.data);
+      if (
+        JSON.stringify(res.data) !== JSON.stringify(count_report_await_teaching)
+      ) {
+        setSafeJSON("count_report_await_teaching", res.data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get("/tvg/get-count-classes-teaching-by-teacher")
-      .then((res) => {
-        setStatisticsClasses(res.data);
-      })
-      .catch((err) => console.log(err));
+    fetchStatisticsClasses();
+    fetchStatisticsReport();
   }, []);
+
   // Lấy danh sách lớp của giảng viên
   useEffect(() => {
     document.title = "Trang giảng viên";
+    axios.get("/profiles");
+
     if (!token || !user?.major_id) return;
 
     setLoading(true);
@@ -88,7 +128,7 @@ export default function TeacherDashboard() {
       {/* HEADER */}
       <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
         <h1 className="text-3xl font-bold text-center">
-          📊 BẢNG TỔNG QUAN GIẢNG VIÊN
+          BẢNG TỔNG QUAN GIẢNG VIÊN
         </h1>
       </div>
 
@@ -116,10 +156,14 @@ export default function TeacherDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
           <StatCard
             color="blue"
-            value={gettStatisticsClasses}
+            value={getStatisticsClasses || "chưa có thông tin"}
             label="Lớp học"
           />
-          <StatCard color="yellow" value="x" label="Báo cáo chờ chấm" />
+          <StatCard
+            color="yellow"
+            value={getStatisticsReport}
+            label="Báo cáo chờ chấm"
+          />
           <StatCard color="green" value="x" label="Hoàn thành" />
           <StatCard color="purple" value="x" label="Tỷ lệ hoàn thành" />
         </div>
@@ -164,9 +208,9 @@ export default function TeacherDashboard() {
             </p>
           ) : (
             <div className="space-y-4">
-              {classes.map((cls) => (
+              {classes.map((cls, index) => (
                 <div
-                  key={cls.class_id}
+                  key={cls.class_id || index}
                   className="border rounded-xl p-4 shadow-sm bg-gray-50 flex justify-between items-center"
                 >
                   <div>

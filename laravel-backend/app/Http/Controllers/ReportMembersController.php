@@ -110,51 +110,58 @@ class ReportMembersController extends Controller
 
     public function importGroups(Request $request)
     {
-        try {
 
-            AuthHelper::roleTeacher();
 
-            $validated = $request->validate([
-                'file' => 'required|file|mimes:xlsx,xls,csv',
-                'teacher_id' => 'required|string',
-                'report_id' => 'required|integer',
-                'class_id' => 'required|integer',
-                'major_id' => 'required|integer',
-            ]);
+        AuthHelper::roleTeacher();
 
-            $reportId = (int) $validated['report_id'];
-            $teacherId = (string) $validated['teacher_id'];
-            $classId = (int) $validated['class_id'];
-            $majorId = (int) $validated['major_id'];
+        $validated = $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv',
+            'teacher_id' => 'required|string',
+            'report_id' => 'required|integer',
+            'class_id' => 'required|integer',
+            'major_id' => 'required|integer',
+        ], [
+            'file.required' => 'Vui lòng chọn file cần import.',
+            'file.file' => 'Tập tin không hợp lệ.',
+            'file.mimes' => 'File phải có định dạng: xlsx, xls hoặc csv.',
 
-            // Import file Excel
-            $import = new GroupsImport(
-                reportId: $reportId,
-                teacherId: $teacherId,
-                classId: $classId,
-                majorId: $majorId
-            );
+            'teacher_id.required' => 'Thiếu dữ liệu giảng viên.',
+            'report_id.required' => 'Thiếu mã báo cáo.',
+            'class_id.required' => 'Thiếu mã lớp.',
+            'major_id.required' => 'Thiếu mã ngành.',
 
-            Excel::import($import, $validated['file']);
+            'report_id.integer' => 'Mã báo cáo phải là số nguyên.',
+            'class_id.integer' => 'Mã lớp phải là số nguyên.',
+            'major_id.integer' => 'Mã ngành phải là số nguyên.',
+        ]);
 
-            $list_import_error = ImportError::where('class_id', $classId)
-                ->where('teacher_id', $teacherId)
-                ->where('typeError', 'group')
-                ->get();
+        $reportId = (int) $validated['report_id'];
+        $teacherId = (string) $validated['teacher_id'];
+        $classId = (int) $validated['class_id'];
+        $majorId = (int) $validated['major_id'];
 
-            return response()->json([
-                'message' => 'Import hoàn tất!',
-                'total_group' => $import->totalGroup,
-                'success' => $import->success,
-                'failed' => $import->failed,
-                'list_import_error' => $list_import_error,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => '❌ Import thất bại!',
-                'message' => $e->getMessage(),
-            ], 400);
-        }
+        // Import file Excel
+        $import = new GroupsImport(
+            reportId: $reportId,
+            teacherId: $teacherId,
+            classId: $classId,
+            majorId: $majorId
+        );
+
+        Excel::import($import, $validated['file']);
+
+        $list_import_error = ImportError::where('class_id', $classId)
+            ->where('teacher_id', $teacherId)
+            ->where('typeError', 'group')
+            ->get();
+
+        return response()->json([
+            'message' => 'Import hoàn tất!',
+            'total_group' => $import->totalGroup,
+            'success' => $import->success,
+            'failed' => $import->failed,
+            'list_import_error' => $list_import_error,
+        ]);
     }
 
     public function getMemberDetail($majorId, $classId, $rm_code)
