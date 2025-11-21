@@ -260,6 +260,7 @@ Route::delete('/groups/delete-by-class', [ReportMembersController::class, 'delet
 Route::get('/search/subjects', [SubjectController::class, 'meilisearchSubjects']);
 Route::get('/search/majors', [MajorsController::class, 'meilisearchMajors']);
 Route::get('/search/users', [AdminController::class, 'searchUsers']);
+Route::get('/tvg/search/student', [StudentController::class, 'meilisearchStudent']);
 
 
 /*

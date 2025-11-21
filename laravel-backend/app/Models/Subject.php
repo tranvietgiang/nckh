@@ -10,8 +10,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Subject extends Model
 {
     //   
-    
+
     use HasFactory;
+    use Searchable;
+
 
     protected $table = "subjects";
     protected $primaryKey = 'subject_id';
