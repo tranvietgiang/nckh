@@ -28,6 +28,10 @@ export default function ManagerGroups() {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
+  // const [subjects, setSubjects] = useState([]);
+  // const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  // const [loadingSubjects, setLoadingSubjects] = useState(false);
+
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileRef = useRef(null);
@@ -60,9 +64,10 @@ export default function ManagerGroups() {
     }
     setLoadingClasses(true);
     axios
-      .get(`/get-class-by-major/${selectedMajorId}`)
+      .get(`/get-class-by-major-teacher/${selectedMajorId}`)
       .then((res) => {
         const list = Array.isArray(res.data) ? res.data : [];
+
         setClasses(list);
       })
       .catch(console.error)
@@ -104,7 +109,6 @@ export default function ManagerGroups() {
       )
       .then((res) => {
         setErrorImport(res.data);
-        console.log(res.data);
       })
       .catch((err) => {
         setErrorImport([]);
@@ -130,6 +134,9 @@ export default function ManagerGroups() {
   const onFileChange = (e) => setSelectedFile(e.target.files?.[0] || null);
 
   const handleImportGroups = async () => {
+    if (!getNameReport?.report_id) {
+      return alert("❌ Lớp này chưa có báo cáo! Không thể import nhóm.");
+    }
     if (!selectedMajorId) return alert("Vui lòng chọn ngành trước!");
     if (!selectedClassId) return alert("Vui lòng chọn lớp trước!");
     if (!selectedFile) return alert("Vui lòng chọn file Excel!");
@@ -156,7 +163,7 @@ export default function ManagerGroups() {
       if (fileRef.current) fileRef.current.value = "";
       fetchGroups();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi kết nối server!");
+      alert(err.response?.data?.message_error || "Lỗi kết nối server!");
     } finally {
       setImporting(false);
     }
@@ -214,7 +221,7 @@ export default function ManagerGroups() {
     if (!rm_code) return;
     setRmCode(rm_code);
   };
-
+  console.log(getNameReport);
   // ========================== UI ==========================
   return (
     <>
@@ -272,7 +279,7 @@ export default function ManagerGroups() {
                 key={c.class_id_teacher ?? c.class_id}
                 value={c.class_id_teacher ?? c.class_id}
               >
-                {c.class_name || `Lớp #${c.class_id}`}
+                {`Lớp: ${c.class_name} - Tên: ${c.subject_name}`}
               </option>
             ))}
           </select>
@@ -365,7 +372,7 @@ export default function ManagerGroups() {
                   onClick={fetchGroups}
                   className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
                 >
-                  🔁 Làm mới
+                  Làm mới
                 </button>
               </div>
             )}

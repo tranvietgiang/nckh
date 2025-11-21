@@ -8,6 +8,10 @@ import Footer from "../../Student/Home/Footer";
 import axios from "../../../../config/axios";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import {
+  getSafeJSON,
+  setSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function TeacherDashboard() {
   const [openNotification, setOpenNotification] = useState(false);
@@ -15,21 +19,78 @@ export default function TeacherDashboard() {
   const [majorInfo, setMajorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user, token } = getAuth();
+  const [getStatisticsClasses, setStatisticsClasses] = useState(null);
+  const [getStatisticsReport, setStatisticsReport] = useState(null);
   const navigate = useNavigate();
 
   // Kiểm tra đăng nhập + quyền
   IsLogin(user, token);
   RoleTeacher(user?.role);
 
+  const fetchStatisticsClasses = async () => {
+    const count_classes_teaching = getSafeJSON("count_classes_teaching");
+    if (count_classes_teaching !== null) {
+      setStatisticsClasses(count_classes_teaching);
+    }
+
+    try {
+      const res = await axios.get("/tvg/get-count-classes-teaching-by-teacher");
+      if (JSON.stringify(res.data) !== JSON.stringify(count_classes_teaching)) {
+        setSafeJSON("count_classes_teaching", res.data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchStatisticsReport = async () => {
+    const count_report_await_teaching = getSafeJSON(
+      "count_report_await_teaching"
+    );
+    if (count_report_await_teaching !== null) {
+      setStatisticsReport(count_report_await_teaching);
+    }
+
+    try {
+      const res = await axios.get("/tvg/get-count-report-teaching-by-teacher");
+      console.log(res.data);
+      if (
+        JSON.stringify(res.data) !== JSON.stringify(count_report_await_teaching)
+      ) {
+        setSafeJSON("count_report_await_teaching", res.data);
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const fetchNameMajor = async () => {
+    try {
+      const res = await axios.get(`/tvg/get-nameMajor/${user?.major_id}`);
+      setMajorInfo(res.data);
+    } catch (err) {
+      setMajorInfo(null);
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchNameMajor();
+    fetchStatisticsClasses();
+    fetchStatisticsReport();
+  }, []);
+
   // Lấy danh sách lớp của giảng viên
   useEffect(() => {
     document.title = "Trang giảng viên";
-    if (!token || !user?.major_id) return;
+    axios.get("/profiles");
+
+    if (!token || !user?.user_id) return;
 
     setLoading(true);
 
     axios
-      .get(`/get-class-by-major/${user.major_id}`)
+      .get(`pc/get-class-by-teaching-teacher`)
       .then((res) => {
         if (Array.isArray(res.data)) setClasses(res.data);
         else setClasses([]);
@@ -39,17 +100,7 @@ export default function TeacherDashboard() {
         setClasses([]);
       })
       .finally(() => setLoading(false));
-  }, [token, user?.major_id]);
-
-  // 🧩 Lấy tên ngành của giảng viên
-  useEffect(() => {
-    if (!user?.major_id) return;
-
-    axios
-      .get(`/tvg/get-nameMajor/${user.major_id}`)
-      .then((res) => setMajorInfo(res.data))
-      .catch((err) => console.error("❌ Lỗi khi tải ngành:", err));
-  }, [user?.major_id]);
+  }, []);
 
   // ⚡ Thao tác nhanh
   const handleButtonClick = (name) => {
@@ -78,7 +129,7 @@ export default function TeacherDashboard() {
       {/* HEADER */}
       <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
         <h1 className="text-3xl font-bold text-center">
-          📊 BẢNG TỔNG QUAN GIẢNG VIÊN
+          BẢNG TỔNG QUAN GIẢNG VIÊN
         </h1>
       </div>
 
@@ -87,10 +138,10 @@ export default function TeacherDashboard() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <div>
             <h2 className="text-xl font-semibold">
-              👋 Chào Thầy {user?.full_name || "Nguyễn Văn A"}
+              Chào Thầy {user?.fullname || "chưa có thông tin"}
             </h2>
             <p className="text-gray-600">
-              Mã GV: {user?.user_code || user?.user_id}
+              Mã GV: {user?.user_id || "chưa có thông tin"}
             </p>
             <p className="text-gray-600">
               Ngành: {majorInfo?.major_name || "Chưa có thông tin"}
@@ -98,16 +149,24 @@ export default function TeacherDashboard() {
           </div>
 
           <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
-            ✔ Đang hoạt động
+            Đang hoạt động
           </span>
         </div>
 
         {/* THỐNG KÊ */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
-          <StatCard color="blue" value={classes.length} label="Lớp học" />
-          <StatCard color="yellow" value="12" label="Báo cáo chờ chấm" />
-          <StatCard color="green" value="8" label="Hoàn thành" />
-          <StatCard color="purple" value="67%" label="Tỷ lệ hoàn thành" />
+          <StatCard
+            color="blue"
+            value={getStatisticsClasses || "chưa có thông tin"}
+            label="Lớp học"
+          />
+          <StatCard
+            color="yellow"
+            value={getStatisticsReport}
+            label="Báo cáo chờ chấm"
+          />
+          <StatCard color="green" value="x" label="Hoàn thành" />
+          <StatCard color="purple" value="x" label="Tỷ lệ hoàn thành" />
         </div>
 
         {/* THAO TÁC NHANH */}
@@ -150,9 +209,9 @@ export default function TeacherDashboard() {
             </p>
           ) : (
             <div className="space-y-4">
-              {classes.map((cls) => (
+              {classes.map((cls, index) => (
                 <div
-                  key={cls.class_id}
+                  key={index}
                   className="border rounded-xl p-4 shadow-sm bg-gray-50 flex justify-between items-center"
                 >
                   <div>

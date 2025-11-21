@@ -114,26 +114,21 @@ class ReportMembersController extends Controller
 
         AuthHelper::roleTeacher();
 
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
-            'teacher_id' => 'required|string',
-            'report_id' => 'required|integer',
-            'class_id' => 'required|integer',
-            'major_id' => 'required|integer',
-        ], [
-            'file.required' => 'Vui lòng chọn file cần import.',
-            'file.file' => 'Tập tin không hợp lệ.',
-            'file.mimes' => 'File phải có định dạng: xlsx, xls hoặc csv.',
+        try {
+            $validated = $request->validate([
+                'file'       => 'required|file|mimes:xlsx,xls,csv',
+                'teacher_id' => 'required|string',
+                'report_id'  => 'required|integer',
+                'class_id'   => 'required|integer',
+                'major_id'   => 'required|integer',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message_error' => '❌ Dữ liệu không hợp lệ! Vui lòng liên hệ Admin.'
+            ], 422);
+        }
 
-            'teacher_id.required' => 'Thiếu dữ liệu giảng viên.',
-            'report_id.required' => 'Thiếu mã báo cáo.',
-            'class_id.required' => 'Thiếu mã lớp.',
-            'major_id.required' => 'Thiếu mã ngành.',
-
-            'report_id.integer' => 'Mã báo cáo phải là số nguyên.',
-            'class_id.integer' => 'Mã lớp phải là số nguyên.',
-            'major_id.integer' => 'Mã ngành phải là số nguyên.',
-        ]);
 
         $reportId = (int) $validated['report_id'];
         $teacherId = (string) $validated['teacher_id'];

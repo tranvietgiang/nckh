@@ -45,20 +45,47 @@ class ClassesService
     {
         // 1Validate dữ liệu đầu vào
         $validator = Validator::make($data, [
-            'class_name'    => 'required|string|max:255',
-            'class_code'    => 'required|string|max:50',
+            'class_name'    => 'required|string|max:10',
+            'class_code'    => 'required|string|max:10',
             'major_id'      => 'required|integer',
             'teacher_id'    => 'required|string',
             'subject_id'    => 'required|integer',
-            'semester'      => 'required|string|max:50',
-            'academic_year' => 'required|string|max:50',
+            'semester'      => 'required|string|max:10',
+            'academic_year' => 'required|string|max:20',
+        ], [
+            // class_name
+            'class_name.required' => 'Tên lớp không được để trống.',
+            'class_name.max' => 'Tên lớp vượt quá :max ký tự.',
+
+            // class_code
+            'class_code.required' => 'Mã lớp không được để trống.',
+            'class_code.max' => 'Mã lớp vượt quá :max ký tự.',
+
+            // major_id
+            'major_id.required' => 'Vui lòng chọn ngành.',
+            'major_id.integer' => 'Ngành phải là số nguyên.',
+
+            // teacher_id
+            'teacher_id.required' => 'Thiếu thông tin giảng viên.',
+
+            // subject_id
+            'subject_id.required' => 'Vui lòng chọn môn học.',
+            'subject_id.integer' => 'Môn học không hợp lệ.',
+
+            // semester
+            'semester.required' => 'Học kỳ không được để trống.',
+            'semester.max' => 'Học kỳ vượt quá :max ký tự.',
+
+            // academic_year
+            'academic_year.required' => 'Năm học không được để trống.',
+            'academic_year.max' => 'Năm học vượt quá :max ký tự.',
         ]);
+
 
         if ($validator->fails()) {
             return [
                 'success' => false,
-                'message_error' => 'Vui lòng nhập đầy đủ thông tin lớp học!',
-                'errors' => $validator->errors(),
+                'message_error' => $validator->errors()->first(),
             ];
         }
 
@@ -83,12 +110,27 @@ class ClassesService
         }
 
         //5 kiểm tra trùng dữ liệu
-        $sameTeacherAndName = Classe::where('teacher_id', $data['teacher_id'])
-            ->where('class_name', $data['class_name'])
+        $sameTeacherAndName = DB::table("classes")
+            ->join("subjects", "classes.subject_id", "subjects.subject_id")
+            ->where('classes.teacher_id', $data['teacher_id'])
+            ->where('classes.class_name', $data['class_name'])
+            ->where('classes.subject_id', $data['subject_id'])
             ->exists();
 
         if ($sameTeacherAndName) {
-            return ['success' => false, 'message_error' => 'Tên lớp này đã được bạn tạo trước đó!'];
+            return ['success' => false, 'message_error' => 'Lớp này đã có môn học trước đó'];
+        }
+
+        //5 kiểm tra trùng dữ liệu
+        $sameTeacherAndSemester = DB::table("classes")
+            ->join("subjects", "classes.subject_id", "subjects.subject_id")
+            ->where('classes.teacher_id', $data['teacher_id'])
+            ->where('classes.semester', $data['semester'])
+            ->where('classes.subject_id', $data['subject_id'])
+            ->exists();
+
+        if ($sameTeacherAndSemester) {
+            return ['success' => false, 'message_error' => 'Giảng viên đã dạy lớp này ở kì này!'];
         }
 
         $sameTeacherAndCode = Classe::where('teacher_id', $data['teacher_id'])

@@ -13,6 +13,11 @@ export default function Header() {
   const [reportCount, setReportCount] = useState(0);
   const [reportLength, setReportLength] = useState(0);
   const [reportCompleteCount, setReportCompleteCount] = useState(0);
+
+  useEffect(() => {
+    axios.get("/profiles");
+  }, []);
+
   const fetchCountClasses = async () => {
     const cache = getSafeJSON("classCount");
     if (cache !== null) {
@@ -110,10 +115,10 @@ export default function Header() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
               <div className="text-center sm:text-left">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800 flex items-center">
-                  👋 Chào {user?.fullname} - {user?.user_id}
+                  Chào {user?.fullname} - {user?.user_id}
                 </h2>
                 <p className="text-gray-600 mt-1 text-base flex items-center">
-                  🎓 {getNamMajor?.major_name ?? ""}
+                  <strong>Ngành {getNamMajor?.major_name ?? ""}</strong>
                 </p>
               </div>
               <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium w-full sm:w-auto text-center mt-2 sm:mt-0 flex items-center justify-center">

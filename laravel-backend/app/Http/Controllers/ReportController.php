@@ -798,4 +798,23 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
+    public function getCountReportTeachingByTeacher()
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+        $count_report = DB::table("reports")
+            ->join("submissions", "reports.report_id", "=", "submissions.report_id")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->join("user_profiles", "classes.teacher_id", "=", "user_profiles.user_id")
+            ->join("users", "user_profiles.user_id", "=", "users.user_id")
+            ->join("grades", "submissions.submission_id", "=", "grades.submission_id")
+            ->where("grades.score", "=", 0)
+            ->where("users.role", "teacher")
+            ->where("grades.teacher_id", $teacherId)
+            ->distinct('grades.grade_id')
+            ->count("grades.grade_id");
+
+        return response()->json($count_report, 200);
+    }
 }

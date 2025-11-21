@@ -2,11 +2,8 @@
 
 namespace App\Repositories;
 
-use App\Helpers\AuthHelper;
 use App\Models\Classe;
-use App\Models\User;
 use App\Models\user_profile;
-use App\Models\ImportError;
 
 class ClassesRepository
 {
