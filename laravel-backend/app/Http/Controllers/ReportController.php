@@ -809,9 +809,11 @@ class ReportController extends Controller
             ->join("user_profiles", "classes.teacher_id", "=", "user_profiles.user_id")
             ->join("users", "user_profiles.user_id", "=", "users.user_id")
             ->join("grades", "submissions.submission_id", "=", "grades.submission_id")
+            ->where("grades.score", "=", 0)
             ->where("users.role", "teacher")
-            ->where("reports.teacher_id", $teacherId)
-            ->whereNull("grades.score")->distinct('reports.report_id')->count("reports.report_id");
+            ->where("grades.teacher_id", $teacherId)
+            ->distinct('grades.score')
+            ->count("grades.score");
 
         return response()->json($count_report, 200);
     }
