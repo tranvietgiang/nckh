@@ -285,33 +285,6 @@ export default function ManagerGroups() {
           </select>
         </div>
 
-        {/* ===== Chọn môn học =====
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            Môn học
-          </label>
-          <select
-            value={selectedSubjectId}
-            onChange={(e) => setSelectedSubjectId(e.target.value)}
-            disabled={!selectedClassId || loadingSubjects}
-            className="w-full max-w-md p-3 border border-gray-300 rounded-lg"
-          >
-            <option value="">
-              {!selectedClassId
-                ? "— Chọn lớp trước —"
-                : loadingSubjects
-                ? "🔄 Đang tải môn học..."
-                : "— Chọn môn học —"}
-            </option>
-
-            {subjects.map((s) => (
-              <option key={s.subject_id} value={s.subject_id}>
-                {s.subject_name}
-              </option>
-            ))}
-          </select>
-        </div> */}
-
         {/* ===== Import nhóm + Xóa nhóm ===== */}
         {selectedClassId && (
           <div className="bg-white rounded-lg shadow p-4 mb-6">
