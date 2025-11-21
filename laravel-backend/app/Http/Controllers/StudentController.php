@@ -25,7 +25,10 @@ class StudentController extends Controller
             $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls,csv',
                 'major_id' => 'required|integer',
-                'teacher_id' => 'required|string',
+                'teacher_id' => 'required|string|max:20',
+                'subject_id' => 'required|integer',
+                'academic_year' => 'required|string|max:20',
+                'semester' => 'required|string|max:20',
                 'class_id' => [
                     'required',
                     'integer',
@@ -35,15 +38,23 @@ class StudentController extends Controller
                 ],
             ]);
 
+
+
             $classId = (int) $validated['class_id'];
             $majorId = (int) $validated['major_id'];
             $teacherId = (string) $validated['teacher_id'];
+            $subjectId = (int) $validated['subject_id'];
+            $academic_year = (string) $validated['academic_year'];
+            $semester = (string) $validated['semester'];
 
             // Tạo instance để lấy thống kê sau import
             $import = new StudentsImport(
                 classId: $classId,
                 teacherId: $teacherId,
-                majorId: $majorId
+                majorId: $majorId,
+                subjectId: $subjectId,
+                academic_year: $academic_year,
+                semester: $semester,
             );
 
             // Chỉ import 1 lần
@@ -70,8 +81,7 @@ class StudentController extends Controller
             ]);
         } catch (Exception $e) {
             return response()->json([
-                'error'   => '❌ Import thất bại!',
-                'message' => $e->getMessage(), // lấy nội dung lỗi cụ thể
+                'error'   => '❌ Import thất bại!, vui lòng liên hệ admin',
             ], 400);
         }
     }

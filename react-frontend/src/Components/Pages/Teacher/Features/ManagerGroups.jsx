@@ -134,6 +134,9 @@ export default function ManagerGroups() {
   const onFileChange = (e) => setSelectedFile(e.target.files?.[0] || null);
 
   const handleImportGroups = async () => {
+    if (!getNameReport?.report_id) {
+      return alert("❌ Lớp này chưa có báo cáo! Không thể import nhóm.");
+    }
     if (!selectedMajorId) return alert("Vui lòng chọn ngành trước!");
     if (!selectedClassId) return alert("Vui lòng chọn lớp trước!");
     if (!selectedFile) return alert("Vui lòng chọn file Excel!");
@@ -160,7 +163,7 @@ export default function ManagerGroups() {
       if (fileRef.current) fileRef.current.value = "";
       fetchGroups();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi kết nối server!");
+      alert(err.response?.data?.message_error || "Lỗi kết nối server!");
     } finally {
       setImporting(false);
     }
@@ -218,7 +221,7 @@ export default function ManagerGroups() {
     if (!rm_code) return;
     setRmCode(rm_code);
   };
-
+  console.log(getNameReport);
   // ========================== UI ==========================
   return (
     <>
