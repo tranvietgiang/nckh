@@ -107,8 +107,6 @@ class ClassController extends Controller
             )
             ->join('majors', 'classes.major_id', '=', 'majors.major_id')
             ->where('classes.teacher_id', $useId)
-            // ❌ BỎ LỌC major_id nếu bạn muốn lấy tất cả lớp của giảng viên
-            // ->where('classes.major_id', $selectedMajor)
             ->get();
 
         if ($getClasses->count() > 0) {
@@ -117,6 +115,31 @@ class ClassController extends Controller
 
         return response()->json(['message' => 'Không tìm thấy lớp'], 404);
     }
+    public function getClassOfTeacherByMajor($selectedMajor)
+    {
+        $useId = AuthHelper::isLogin();
+
+        $getClasses = Classe::query()
+            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->where('classes.teacher_id', $useId)
+            ->where('classes.major_id', $selectedMajor)
+            ->select(
+                'classes.class_id',
+                'classes.class_name',
+                'subjects.subject_name'
+            )
+            ->orderBy('classes.class_name')
+            ->get();
+
+        if ($getClasses->count() > 0) {
+            return response()->json($getClasses);
+        }
+
+        return response()->json(['message' => 'Không tìm thấy lớp'], 404);
+    }
+
+
 
     public function getClassGroups($majorId)
     {

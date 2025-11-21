@@ -167,4 +167,21 @@ class SubjectController extends Controller
         // nếu muốn limit   take(200)->get();
         return Subject::search($q)->get();
     }
+
+    public function getSubjectsByClass($classId)
+    {
+        // chỉ cho teacher gọi
+        AuthHelper::roleTeacher();
+        $teacherId = AuthHelper::isLogin();
+
+        $subjects = DB::table('classes')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->where('classes.class_id', $classId)
+            ->where('classes.teacher_id', $teacherId)
+            ->select('subjects.subject_id', 'subjects.subject_name')
+            ->distinct()
+            ->get();
+
+        return response()->json($subjects, 200);
+    }
 }

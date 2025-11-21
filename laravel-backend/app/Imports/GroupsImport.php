@@ -36,7 +36,7 @@ class GroupsImport implements ToCollection, WithHeadingRow
         // 🚨 Nếu thiếu thông tin thì đánh dấu lỗi và không dừng hẳn
         if (!$this->reportId || !$this->classId || !$this->majorId || empty($this->teacherId)) {
             $this->isValid = false;
-            $this->logError('N/A', 'Dữ liệu cấu hình không hợp lệ (thiếu report_id, class_id, major_id hoặc teacher_id)');
+            $this->logError('N/A', 'Lỗi server');
             return;
         }
 

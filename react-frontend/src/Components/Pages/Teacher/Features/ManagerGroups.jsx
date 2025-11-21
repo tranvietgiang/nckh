@@ -28,6 +28,10 @@ export default function ManagerGroups() {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
+  // const [subjects, setSubjects] = useState([]);
+  // const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  // const [loadingSubjects, setLoadingSubjects] = useState(false);
+
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileRef = useRef(null);
@@ -60,9 +64,10 @@ export default function ManagerGroups() {
     }
     setLoadingClasses(true);
     axios
-      .get(`/get-class-by-major/${selectedMajorId}`)
+      .get(`/get-class-by-major-teacher/${selectedMajorId}`)
       .then((res) => {
         const list = Array.isArray(res.data) ? res.data : [];
+
         setClasses(list);
       })
       .catch(console.error)
@@ -104,7 +109,6 @@ export default function ManagerGroups() {
       )
       .then((res) => {
         setErrorImport(res.data);
-        console.log(res.data);
       })
       .catch((err) => {
         setErrorImport([]);
@@ -272,11 +276,38 @@ export default function ManagerGroups() {
                 key={c.class_id_teacher ?? c.class_id}
                 value={c.class_id_teacher ?? c.class_id}
               >
-                {c.class_name || `Lớp #${c.class_id}`}
+                {`Lớp: ${c.class_name} - Tên: ${c.subject_name}`}
               </option>
             ))}
           </select>
         </div>
+
+        {/* ===== Chọn môn học =====
+        <div className="bg-white rounded-lg shadow p-4 mb-6">
+          <label className="block mb-2 text-sm font-medium text-gray-700">
+            Môn học
+          </label>
+          <select
+            value={selectedSubjectId}
+            onChange={(e) => setSelectedSubjectId(e.target.value)}
+            disabled={!selectedClassId || loadingSubjects}
+            className="w-full max-w-md p-3 border border-gray-300 rounded-lg"
+          >
+            <option value="">
+              {!selectedClassId
+                ? "— Chọn lớp trước —"
+                : loadingSubjects
+                ? "🔄 Đang tải môn học..."
+                : "— Chọn môn học —"}
+            </option>
+
+            {subjects.map((s) => (
+              <option key={s.subject_id} value={s.subject_id}>
+                {s.subject_name}
+              </option>
+            ))}
+          </select>
+        </div> */}
 
         {/* ===== Import nhóm + Xóa nhóm ===== */}
         {selectedClassId && (
@@ -365,7 +396,7 @@ export default function ManagerGroups() {
                   onClick={fetchGroups}
                   className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
                 >
-                  🔁 Làm mới
+                  Làm mới
                 </button>
               </div>
             )}
