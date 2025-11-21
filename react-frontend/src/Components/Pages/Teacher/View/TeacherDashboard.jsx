@@ -208,9 +208,9 @@ export default function TeacherDashboard() {
             </p>
           ) : (
             <div className="space-y-4">
-              {classes.map((cls) => (
+              {classes.map((cls, index) => (
                 <div
-                  key={cls.class_id}
+                  key={cls.class_id || index}
                   className="border rounded-xl p-4 shadow-sm bg-gray-50 flex justify-between items-center"
                 >
                   <div>
