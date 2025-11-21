@@ -90,7 +90,7 @@ class ClassController extends Controller
         return response()->json($result, $result['success'] ? 200 : 400);
     }
 
-    public function getClassOfTeacher($selectedMajor)
+    public function getClassOfTeacher()
     {
         $useId = AuthHelper::isLogin();
 
@@ -98,15 +98,13 @@ class ClassController extends Controller
             ->select(
                 'classes.class_id as class_id_teacher',
                 'classes.class_name',
-                'classes.class_code',
-                'majors.major_id',
-                'majors.major_name',
-                'majors.major_abbreviate',
-                'classes.semester',
-                'classes.academic_year'
+                'subjects.subject_name',
+                'classes.academic_year',
+                'classes.semester'
             )
-            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->where('classes.teacher_id', $useId)
+            ->distinct("classes.class_id_teacher")
             ->get();
 
         if ($getClasses->count() > 0) {
@@ -231,5 +229,36 @@ class ClassController extends Controller
             return Response()->json(["message_err" => "error not classes teaching"], 500);
         }
         return Response()->json($count, 200);
+    }
+
+    public function getClassByTeachingTeacher()
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+
+        $classes = DB::table('classes')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('majors', 'classes.major_id', '=', 'majors.major_id')
+            ->where('classes.teacher_id', $teacherId)
+            ->select(
+                'classes.class_id',
+                'classes.class_name',
+                'classes.class_code',
+                'classes.semester',
+                'classes.academic_year',
+                'subjects.subject_id',
+                'subjects.subject_name',
+                'majors.major_name',
+                'majors.major_abbreviate'
+            )
+            ->orderBy('classes.class_name')
+            ->orderBy('subjects.subject_name')
+            ->get();
+
+        if ($classes->isEmpty()) {
+            return response()->json(["message_err" => "error not classes teaching"], 404);
+        }
+
+        return response()->json($classes, 200);
     }
 }

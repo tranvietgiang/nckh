@@ -64,7 +64,18 @@ export default function TeacherDashboard() {
     }
   };
 
+  const fetchNameMajor = async () => {
+    try {
+      const res = await axios.get(`/tvg/get-nameMajor/${user?.major_id}`);
+      setMajorInfo(res.data);
+    } catch (err) {
+      setMajorInfo(null);
+      console.log(err);
+    }
+  };
+
   useEffect(() => {
+    fetchNameMajor();
     fetchStatisticsClasses();
     fetchStatisticsReport();
   }, []);
@@ -74,12 +85,12 @@ export default function TeacherDashboard() {
     document.title = "Trang giảng viên";
     axios.get("/profiles");
 
-    if (!token || !user?.major_id) return;
+    if (!token || !user?.user_id) return;
 
     setLoading(true);
 
     axios
-      .get(`/get-class-by-major/${user.major_id}`)
+      .get(`pc/get-class-by-teaching-teacher`)
       .then((res) => {
         if (Array.isArray(res.data)) setClasses(res.data);
         else setClasses([]);
@@ -89,17 +100,7 @@ export default function TeacherDashboard() {
         setClasses([]);
       })
       .finally(() => setLoading(false));
-  }, [token, user?.major_id]);
-
-  // 🧩 Lấy tên ngành của giảng viên
-  useEffect(() => {
-    if (!user?.major_id) return;
-
-    axios
-      .get(`/tvg/get-nameMajor/${user.major_id}`)
-      .then((res) => setMajorInfo(res.data))
-      .catch((err) => console.error("❌ Lỗi khi tải ngành:", err));
-  }, [user?.major_id]);
+  }, []);
 
   // ⚡ Thao tác nhanh
   const handleButtonClick = (name) => {
@@ -210,7 +211,7 @@ export default function TeacherDashboard() {
             <div className="space-y-4">
               {classes.map((cls, index) => (
                 <div
-                  key={cls.class_id || index}
+                  key={index}
                   className="border rounded-xl p-4 shadow-sm bg-gray-50 flex justify-between items-center"
                 >
                   <div>

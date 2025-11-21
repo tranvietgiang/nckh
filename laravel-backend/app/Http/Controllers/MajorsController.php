@@ -7,6 +7,7 @@ use App\Imports\MajorImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\Major;
+use Illuminate\Container\Attributes\DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Facades\Excel;
@@ -15,9 +16,7 @@ class MajorsController extends Controller
 {
     public function __construct(protected \App\Services\MajorService $majorService) {}
 
-    /**
-     * 🟢 Lấy danh sách ngành theo quyền (teacher đang đăng nhập)
-     */
+
     public function getMajors()
     {
         AuthHelper::isLogin();
@@ -25,9 +24,7 @@ class MajorsController extends Controller
         return response()->json($result, 200);
     }
 
-    /**
-     * 🟢 Lấy toàn bộ ngành (admin)
-     */
+
     public function getAllMajors()
     {
         $majors = Major::orderBy('major_name', 'asc')->get();
@@ -39,9 +36,6 @@ class MajorsController extends Controller
         return response()->json($majors, 200);
     }
 
-    /**
-     * 🟢 Lấy ngành mà giáo viên đang dạy
-     */
     public function getMajorsByClass($idTeacher)
     {
         AuthHelper::isLogin();

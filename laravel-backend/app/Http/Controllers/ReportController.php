@@ -812,8 +812,8 @@ class ReportController extends Controller
             ->where("grades.score", "=", 0)
             ->where("users.role", "teacher")
             ->where("grades.teacher_id", $teacherId)
-            ->distinct('grades.score')
-            ->count("grades.score");
+            ->distinct('grades.grade_id')
+            ->count("grades.grade_id");
 
         return response()->json($count_report, 200);
     }

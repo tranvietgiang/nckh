@@ -44,7 +44,7 @@ Route::middleware('auth:sanctum')->post('/students/import', [StudentController::
 Route::middleware('auth:sanctum')->get('/classes/{class_id}/teachers/{teacher_id}/students', [StudentController::class, 'getStudents']);
 
 // Lấy lớp GV đang dạy
-Route::middleware('auth:sanctum')->get('/get-class-by-major/{selectedMajor}', [ClassController::class, 'getClassOfTeacher']);
+Route::middleware('auth:sanctum')->get('/get-class-by-major', [ClassController::class, 'getClassOfTeacher']);
 Route::middleware('auth:sanctum')->get('/get-class-by-major-teacher/{selectedMajor}', [ClassController::class, 'getClassOfTeacherByMajor']);
 
 
@@ -290,6 +290,7 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum')->get('/getSubject-major-class-teacher/{majorId}', [SubjectController::class, 'getSubjectByMajorByTeacher']);
 Route::middleware('auth:sanctum')->get('/classes-by-subject/{majorId}/{subjectId}', [SubjectController::class, 'getSubjectByMajorByClass']);
 Route::middleware('auth:sanctum')->get('/years-by-class/{classId}', [ClassController::class, 'getYearsByClass']);
+Route::middleware('auth:sanctum')->get('/pc/get-class-by-teaching-teacher', [ClassController::class, 'getClassByTeachingTeacher']);
 
 
 /*
