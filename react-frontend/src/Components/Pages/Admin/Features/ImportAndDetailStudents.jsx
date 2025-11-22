@@ -266,46 +266,6 @@ export default function ImportAndDetailStudents() {
               </div>
             )}
 
-            {/* SEARCH giống SubjectPage */}
-            {!loading && checkPage && (
-              <>
-                <div className="w-full max-w-2xl flex items-center gap-2 mb-2">
-                  <input
-                    value={q}
-                    onChange={onChangeSearch}
-                    onKeyDown={onKeyDownSearch}
-                    placeholder="Tìm sinh viên (MSSV, họ tên, email, SĐT)…"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2
-                               focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {q && (
-                    <button
-                      onClick={handleResetSearch}
-                      className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
-                      title="Xoá tìm kiếm"
-                    >
-                      ✖
-                    </button>
-                  )}
-                </div>
-
-                <div className="text-sm text-gray-600 mb-5">
-                  {loadingSearch ? (
-                    "🔎 Đang tìm…"
-                  ) : q.trim() ? (
-                    <>
-                      Kết quả tìm: <b>{displayedStudents.length}</b> sinh viên
-                      (từ khoá: “{q}”)
-                    </>
-                  ) : (
-                    <>
-                      Tổng: <b>{students.length}</b> sinh viên
-                    </>
-                  )}
-                </div>
-              </>
-            )}
-
             {/* IMPORT FORM */}
             {!checkPage && (
               <div className="bg-white rounded-xl shadow p-6 mb-6">
@@ -399,7 +359,45 @@ export default function ImportAndDetailStudents() {
                 </table>
               </div>
             )}
+            {/* SEARCH giống SubjectPage */}
+            {!loading && checkPage && (
+              <>
+                <div className="w-full max-w-2xl flex items-center gap-2 mb-2">
+                  <input
+                    value={q}
+                    onChange={onChangeSearch}
+                    onKeyDown={onKeyDownSearch}
+                    placeholder="Tìm sinh viên (MSSV, họ tên, email, SĐT)…"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2
+                               focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {q && (
+                    <button
+                      onClick={handleResetSearch}
+                      className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                      title="Xoá tìm kiếm"
+                    >
+                      ✖
+                    </button>
+                  )}
+                </div>
 
+                <div className="text-sm text-gray-600 mb-5">
+                  {loadingSearch ? (
+                    "🔎 Đang tìm…"
+                  ) : q.trim() ? (
+                    <>
+                      Kết quả tìm: <b>{displayedStudents.length}</b> sinh viên
+                      (từ khoá: “{q}”)
+                    </>
+                  ) : (
+                    <>
+                      Tổng: <b>{students.length}</b> sinh viên
+                    </>
+                  )}
+                </div>
+              </>
+            )}
             {/* STUDENT TABLE */}
             <div className="bg-white rounded-lg shadow overflow-hidden">
               {loading ? (
