@@ -7,6 +7,7 @@ use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use App\Models\user_profile;
 use App\Services\StudentService;
 use Exception;
 use Illuminate\Http\Request;
@@ -105,5 +106,40 @@ class StudentController extends Controller
         $result = $this->studentService->getProfile($userId, $role);
 
         return response()->json($result, $result['success'] ? 200 : 404);
+    }
+
+    public function meilisearchStudent(Request $r)
+    {
+        $q = trim($r->query('q', ''));
+        $classId   = $r->query('class_id');
+        $majorId   = $r->query('major_id');
+        $teacherId = $r->query('teacher_id');
+
+        if ($q === '') return response()->json([]);
+
+        $builder = user_profile::search($q)
+            // CHỈ LẤY SV
+            ->query(function ($eloquent) use ($classId, $majorId, $teacherId) {
+                $eloquent->whereHas('user', function ($u) {
+                    $u->where('role', 'student');
+                });
+
+                if ($classId) {
+                    $eloquent->where('class_id', $classId);
+                }
+
+                if ($majorId) {
+                    $eloquent->where('major_id', $majorId);
+                }
+
+                // nếu teacher_id là giáo viên của lớp
+                if ($teacherId) {
+                    $eloquent->whereHas('class', function ($c) use ($teacherId) {
+                        $c->where('teacher_id', $teacherId);
+                    });
+                }
+            });
+
+        return response()->json($builder->get());
     }
 }
