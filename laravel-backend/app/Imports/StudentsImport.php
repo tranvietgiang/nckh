@@ -23,12 +23,24 @@ class StudentsImport implements ToCollection, WithHeadingRow
     protected ?int $classId;
     protected ?string $teacherId;
     protected ?int $majorId;
+    protected ?int $subjectId;
+    protected ?string $academic_year;
+    protected ?string $semester;
 
-    public function __construct(?int $classId = null, ?string $teacherId = null, ?int $majorId = null)
-    {
+    public function __construct(
+        ?int $classId = null,
+        ?string $teacherId = null,
+        ?int $majorId = null,
+        ?int $subjectId = null,
+        ?string $academic_year = null,
+        ?string $semester = null,
+    ) {
         $this->classId   = $classId;
         $this->teacherId = $teacherId;
         $this->majorId   = $majorId;
+        $this->subjectId = $subjectId;
+        $this->academic_year   = $academic_year;
+        $this->semester   = $semester;
 
         // ✅ Kiểm tra thông tin đầu vào
         $majorExist  = Major::where('major_id', $this->majorId)->exists();
@@ -110,7 +122,45 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 continue;
             }
 
+
+
+
             try {
+                // Kiểm tra MSSV đã tồn tại trong CÙNG NGÀNH chưa
+                $existingStudentInMajor =
+                    user_profile::where('user_id', $msv)
+                    ->where('class_id', $this->classId)
+                    ->where('major_id', $this->majorId)
+                    ->exists();
+
+                if ($existingStudentInMajor) {
+                    $this->logError($msv, $ten, $email, "sinh viên này đã tồn tại trong lớp.");
+                    continue;
+                }
+
+                $checkSVTogether = DB::table("user_profiles")
+                    ->join("classes", "user_profiles.class_id", "=", "classes.class_id")
+                    ->join("subjects", "classes.subject_id", "=", "subjects.subject_id")
+                    ->where("user_profiles.user_id", $msv)
+                    ->where("subjects.subject_id", $this->subjectId)
+                    ->where("classes.academic_year", $this->academic_year)
+                    ->where("classes.semester", $this->semester)
+                    ->exists();
+
+                if ($checkSVTogether) {
+
+                    $this->logError(
+                        $msv,
+                        $ten,
+                        $email,
+                        "Sinh viên này đã học môn này trong cùng năm và kỳ!"
+                    );
+
+                    continue;
+                }
+
+
+
                 DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
 
                     // 1️⃣ Kiểm tra xem có user nào đã dùng email/sdt này chưa
@@ -123,6 +173,8 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     if ($conflict) {
                         throw new \Exception("Email hoặc số điện thoại đã được dùng bởi MSSV khác.");
                     }
+
+
 
                     // 2️⃣ Nếu user chưa tồn tại thì tạo mới
                     $user = User::where('user_id', $msv)->first();

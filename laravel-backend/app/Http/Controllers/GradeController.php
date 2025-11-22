@@ -2,16 +2,27 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\AuthHelper;
 use App\Models\Grade;
 use App\Models\Submission;
+use App\Services\GradeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Container\Attributes\Auth;
+use Illuminate\Support\Facades\DB;
 
 class GradeController extends Controller
 {
+    protected $gradeService;
+
+    public function __construct(GradeService $gradeService)
+    {
+        $this->gradeService = $gradeService;
+    }
+
     /**
-     * Lấy danh sách điểm & phản hồi (có thông tin bài nộp và giảng viên)
+     * Lấy danh sách tất cả grades
      */
     public function index()
     {
@@ -28,63 +39,123 @@ class GradeController extends Controller
     /**
      * Chấm điểm hoặc cập nhật điểm cho bài nộp
      */
-    public function store(Request $request)
+    public function gradingAndFeedBack(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        // =======================
+        // ⭐ 1. VALIDATE INPUT
+        // =======================
+        $request->validate([
             'submission_id' => 'required|exists:submissions,submission_id',
-            'teacher_id' => 'required|exists:users,user_id',
+            'report_id' => 'required|exists:reports,report_id',
             'score' => 'required|numeric|min:0|max:10',
             'feedback' => 'nullable|string|max:500',
+        ], [
+            'submission_id.required' => 'Thiếu ID bài nộp.',
+            'submission_id.exists' => 'Bài nộp không tồn tại.',
+            'report_id.required' => 'Thiếu ID báo cáo.',
+            'report_id.exists' => 'Báo cáo không tồn tại.',
+            'score.required' => 'Vui lòng nhập điểm.',
+            'score.numeric' => 'Điểm phải là số.',
+            'score.min' => 'Điểm tối thiểu là 0.',
+            'score.max' => 'Điểm tối đa là 10.',
+            'feedback.max' => 'Phản hồi tối đa 500 ký tự.',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+        $teacherId = $request->user()->user_id;
 
-        // Nếu đã chấm rồi thì update, chưa có thì tạo mới
-        $grade = Grade::updateOrCreate(
-            ['submission_id' => $request->submission_id],
-            [
-                'teacher_id' => $request->teacher_id,
-                'score' => $request->score,
-                'feedback' => $request->feedback,
-                'graded_at' => Carbon::now(),
-            ]
-        );
-
-        // Cập nhật trạng thái bài nộp thành 'graded'
-        Submission::where('submission_id', $request->submission_id)
-            ->update(['status' => 'graded']);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Đã lưu điểm và phản hồi thành công!',
-            'data' => $grade
-        ]);
-    }
-
-    /**
-     * Lấy chi tiết điểm của một bài nộp
-     */
-    public function show($submission_id)
-    {
-        $grade = Grade::where('submission_id', $submission_id)
-            ->with(['submission', 'teacher'])
+        // =======================
+        // ⭐ 2. KIỂM TRA QUYỀN CHẤM ĐIỂM
+        // =======================
+        $submissionCheck = DB::table('submissions')
+            ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->where('submissions.submission_id', $request->submission_id)
             ->first();
 
-        if (!$grade) {
+        if (!$submissionCheck) {
             return response()->json([
-                'status' => 'not_found',
-                'message' => 'Chưa có điểm cho bài nộp này.'
+                'status' => 'error',
+                'message' => 'Không tìm thấy bài nộp.',
             ], 404);
         }
 
+        // ❌ Kiểm tra bài nộp có đúng báo cáo không
+        if ($submissionCheck->report_id != $request->report_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bài nộp không thuộc báo cáo này.',
+            ], 403);
+        }
+
+        // ❌ Kiểm tra giáo viên có dạy lớp này không
+        if ($submissionCheck->teacher_id != $teacherId) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Bạn không có quyền chấm bài của lớp này.',
+            ], 403);
+        }
+
+        // =======================
+        // ⭐ 3. LƯU / CẬP NHẬT ĐIỂM
+        // =======================
+        $grade = Grade::updateOrCreate(
+            ['submission_id' => $request->submission_id],
+            [
+                'teacher_id' => $teacherId,
+                'score' => $request->score,
+                'feedback' => $request->feedback,
+                'graded_at' => now(),
+            ]
+        );
+
+        // =======================
+        // ⭐ 4. CẬP NHẬT TRẠNG THÁI SUBMISSION
+        // =======================
+        Submission::where('submission_id', $request->submission_id)
+            ->update(['status' => 'submitted']);
+
         return response()->json([
             'status' => 'success',
+            'message' => 'Đã chấm điểm và gửi phản hồi thành công!',
             'data' => $grade
-        ]);
+        ], 200);
+    }
+
+
+
+    /**
+     * Lấy tất cả report đã chấm điểm của user đang login
+     */
+    public function getAllReportGraded()
+    {
+        $userId = AuthHelper::isLogin();
+
+        // Subquery: lấy version mới nhất theo từng report_id
+        $latestSub = Submission::selectRaw('MAX(version) AS max_version, report_id')
+            ->where('student_id', $userId)
+            ->groupBy('report_id');
+
+        // Join vào bảng submissions chính
+        $submissions = Submission::select(
+            'submissions.*',
+            'grades.score',
+            'grades.feedback',
+            'subjects.subject_name',
+            'classes.semester as hoc_ky',
+            'submissions.submission_time as thoi_gian_nop'
+        )
+            ->joinSub($latestSub, 'latest', function ($join) {
+                $join->on('submissions.report_id', '=', 'latest.report_id')
+                    ->on('submissions.version', '=', 'latest.max_version');
+            })
+            ->leftJoin('grades', 'submissions.submission_id', '=', 'grades.submission_id')
+            ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join("subjects", "classes.subject_id", "=", "subjects.subject_id")
+            ->where("grades.score", "!=", 0)
+            ->where('submissions.student_id', $userId)
+            ->get();
+
+        return response()->json($submissions, 200);
     }
 }

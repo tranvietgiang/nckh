@@ -6,66 +6,65 @@ use App\Helpers\AuthHelper;
 use App\Models\report_member;
 use App\Models\submission_file;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SubmissionFileController extends Controller
 {
-    //
-    // public function getLatestSubmissionFile($studentIdLeader)
-    // {
-    //     try {
-    //         AuthHelper::isLogin();
-
-    //         $getSubmissionFile = submission_file::select(
-    //             "submissions.*",
-    //             "submission_files.*",
-    //             "report_members.*"
-    //         )
-    //             ->join("submissions", "submission_files.submission_id", "=", "submissions.submission_id")
-    //             ->join("reports", "submissions.report_id", "=", "reports.report_id")
-    //             ->join("report_members", "reports.report_id", "=", "report_members.report_id")
-    //             ->where("submission.student_id", $studentIdLeader)
-    //             ->latest("submissions.submission_time")
-    //             ->get();
-
-    //         if ($getSubmissionFile) {
-    //             return response()->json($getSubmissionFile, 200);
-    //         }
-
-    //         // Không có bài nộp nào
-    //         return response()->json(['message' => 'Chưa có bài nộp nào'], 404);
-    //     } catch (\Exception $e) {
-    //         Log::error('❌ Lỗi lấy file submission: ' . $e->getMessage());
-    //         return response()->json(['error' => '❌ Lỗi hệ thống khi truy vấn dữ liệu'], 500);
-    //     }
-    // }
-
-    public function getGroupsByLeader($studentIdLeader)
+    public function checkSubmitted()
     {
+        $studentId = AuthHelper::isLogin();
 
-        try {
-            AuthHelper::isLogin();
+        $data = DB::table('report_members as rm')
 
-            $getSubmissionFile = submission_file::select(
-                "submissions.*",
-                "submission_files.*",
-                "report_members.*"
+            // lấy thông tin report + class
+            ->join('reports', 'rm.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+
+            // 🔥 lấy nhóm trưởng (NT) của nhóm
+            ->leftJoin('report_members as leader', function ($join) {
+                $join->on('leader.report_id', '=', 'rm.report_id')
+                    ->on('leader.rm_code', '=', 'rm.rm_code')
+                    ->where('leader.report_m_role', 'NT');
+            })
+
+            // 🔥 lấy submission của nhóm trưởng
+            ->leftJoin('submissions', 'submissions.student_id', '=', 'leader.student_id')
+
+            // 🔥 file submission
+            ->leftJoin('submission_files', 'submission_files.submission_id', '=', 'submissions.submission_id')
+
+            ->where('rm.student_id', $studentId)
+
+            ->select(
+                'rm.rm_code',
+                'rm.rm_name',
+                'reports.report_id',
+                'reports.report_name',
+                'reports.end_date',
+                'classes.class_id',
+                'classes.class_name',
+                'submissions.submission_time',
+                'submission_files.file_path',
+
+                // 🔥 status code
+                DB::raw("
+                CASE
+                    WHEN submission_files.file_id IS NOT NULL THEN 'submitted'
+                    ELSE 'pending'
+                END AS status
+            ")
             )
-                ->join("submissions", "submission_files.submission_id", "=", "submissions.submission_id")
-                ->join("reports", "submissions.report_id", "=", "reports.report_id")
-                ->join("report_members", "reports.report_id", "=", "report_members.report_id")
-                ->where("submissions.student_id", $studentIdLeader)
-                ->latest("submissions.submission_time")
-                ->first();
 
-            if ($getSubmissionFile) {
-                return response()->json($getSubmissionFile, 200);
-            }
+            ->orderBy('reports.report_id')
+            ->get();
 
-            return response()->json(['message' => 'Chưa có bài nộp nào'], 404);
-        } catch (\Exception $e) {
-            Log::error('❌ Lỗi lấy file submission: ' . $e->getMessage());
-            return response()->json(['error' => '❌ Lỗi hệ thống khi truy vấn dữ liệu'], 500);
+        if ($data->isEmpty()) {
+            return response()->json([
+                'message' => 'Sinh viên này chưa thuộc nhóm nào hoặc chưa có báo cáo.'
+            ], 404);
         }
+
+        return response()->json($data, 200);
     }
 }

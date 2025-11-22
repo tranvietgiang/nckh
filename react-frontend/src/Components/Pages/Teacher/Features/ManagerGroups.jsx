@@ -6,7 +6,13 @@ import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { useNavigate } from "react-router-dom";
 import ModalViewDetailGroups from "../Modal/ModalViewDetailGroups";
+import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function ManagerGroups() {
+  useEffect(() => {
+    document.title = "Quản lý Nhóm ";
+  }, []);
+
   const navigate = useNavigate();
   const [majors, setMajors] = useState([]);
   const [selectedMajorId, setSelectedMajorId] = useState("");
@@ -18,18 +24,21 @@ export default function ManagerGroups() {
   const [getRmCode, setRmCode] = useState(null);
   const [statusOpen, setStatusOpen] = useState(false);
 
-  // --- Loading state ---
   const [loadingMajors, setLoadingMajors] = useState(false);
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
-  // --- Import state ---
+  // const [subjects, setSubjects] = useState([]);
+  // const [selectedSubjectId, setSelectedSubjectId] = useState("");
+  // const [loadingSubjects, setLoadingSubjects] = useState(false);
+
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileRef = useRef(null);
 
   const user = getUser();
   const teacherId = user?.user_id;
+  useRoleTeacher(user?.role);
 
   // ===== 1) Lấy ngành theo giảng viên =====
   useEffect(() => {
@@ -42,9 +51,7 @@ export default function ManagerGroups() {
         setMajors(list);
         if (list.length === 1) setSelectedMajorId(list[0].major_id);
       })
-      .catch((error) => {
-        console.log(error);
-      })
+      .catch(console.error)
       .finally(() => setLoadingMajors(false));
   }, [teacherId]);
 
@@ -57,19 +64,18 @@ export default function ManagerGroups() {
     }
     setLoadingClasses(true);
     axios
-      .get(`/get-class-by-major/${selectedMajorId}`)
+      .get(`/get-class-by-major-teacher/${selectedMajorId}`)
       .then((res) => {
         const list = Array.isArray(res.data) ? res.data : [];
+
         setClasses(list);
       })
-      .catch((error) => {
-        console.log(error);
-      })
+      .catch(console.error)
       .finally(() => setLoadingClasses(false));
   }, [selectedMajorId]);
 
   // ===== 3) Khi chọn lớp -> lấy nhóm =====
-  useEffect(() => {
+  const fetchGroups = () => {
     if (!selectedClassId) {
       setGroups([]);
       return;
@@ -83,52 +89,64 @@ export default function ManagerGroups() {
         const list = Array.isArray(res.data) ? res.data : res.data?.data || [];
         setGroups(list);
       })
-      .catch((error) => {
-        console.log(error);
-      })
+      .catch(console.error)
       .finally(() => setLoadingGroups(false));
+  };
+
+  useEffect(() => {
+    fetchGroups();
   }, [selectedClassId, selectedMajorId]);
 
-  // ===== 4) Lấy tên báo cáo hiện tại =====
+  // ===== 4) Lấy lỗi khi import =====
   useEffect(() => {
-    if (!selectedMajorId || !selectedClassId) return;
+    if (!selectedMajorId || !selectedClassId) {
+      setErrorImport([]);
+      return;
+    }
     axios
       .get(
         `/get-group-errors/majors/${selectedMajorId}/classes/${selectedClassId}`
       )
-      .then((res) => setErrorImport(res.data))
-      .catch((error) => {
-        console.log(error);
+      .then((res) => {
+        setErrorImport(res.data);
+      })
+      .catch((err) => {
         setErrorImport([]);
+        console.log(err);
       });
   }, [selectedMajorId, selectedClassId]);
 
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
-
-  // ===== 4) Lấy ra lỗi khi import =====
+  // ===== 5) Lấy báo cáo hiện tại =====
   useEffect(() => {
     if (!selectedMajorId || !selectedClassId) return;
     axios
       .get(`/get-report/majors/${selectedMajorId}/classes/${selectedClassId}`)
       .then((res) => setNameReport(res.data))
-      .catch(() => setNameReport({}));
+      .catch((error) => {
+        console.log(error);
+      });
   }, [selectedMajorId, selectedClassId]);
 
-  // ===== 5) IMPORT nhóm =====
+  const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "");
+
+  // ===== 6) IMPORT nhóm =====
   const openPicker = () => fileRef.current?.click();
   const onFileChange = (e) => setSelectedFile(e.target.files?.[0] || null);
 
   const handleImportGroups = async () => {
+    if (!getNameReport?.report_id) {
+      return alert("❌ Lớp này chưa có báo cáo! Không thể import nhóm.");
+    }
     if (!selectedMajorId) return alert("Vui lòng chọn ngành trước!");
     if (!selectedClassId) return alert("Vui lòng chọn lớp trước!");
     if (!selectedFile) return alert("Vui lòng chọn file Excel!");
 
     const formData = new FormData();
-    formData.append("file", selectedFile);
-    formData.append("class_id", selectedClassId);
-    formData.append("report_id", getNameReport?.report_id);
-    formData.append("major_id", selectedMajorId);
-    formData.append("teacher_id", teacherId);
+    formData.append("file", selectedFile ?? "");
+    formData.append("class_id", selectedClassId ?? "");
+    formData.append("report_id", getNameReport?.report_id ?? "");
+    formData.append("major_id", selectedMajorId ?? "");
+    formData.append("teacher_id", teacherId ?? "");
 
     try {
       setImporting(true);
@@ -140,56 +158,75 @@ export default function ManagerGroups() {
         `${res.data.message}\n✅ Thành công: ${res.data.success}\n❌ Lỗi: ${res.data.failed}`
       );
 
-      if (res.data.list_import_error?.length > 0) {
-        setErrorImport(res.data.list_import_error);
-      } else {
-        setErrorImport([]);
-      }
-
+      setErrorImport(res.data.list_import_error || []);
       setSelectedFile(null);
       if (fileRef.current) fileRef.current.value = "";
-
-      const r = await axios.get(
-        `/get-class-by-major-group/classes/${selectedClassId}/majors/${selectedMajorId}`
-      );
-      const list = Array.isArray(r.data) ? r.data : r.data?.data || [];
-      setGroups(list);
+      fetchGroups();
     } catch (err) {
-      if (err.response && err.response.data) {
-        alert(err.response.data.message);
-      } else {
-        alert("Lỗi kết nối server!");
-      }
+      alert(err.response?.data?.message_error || "Lỗi kết nối server!");
     } finally {
       setImporting(false);
     }
   };
 
-  // ===== 6) XÓA LỖI NHÓM =====
+  // ===== 7) XÓA LỖI NHÓM =====
   const handleDeleteGroupError = async () => {
     if (!teacherId || !selectedClassId) return;
+    if (!window.confirm("Bạn có chắc muốn xóa tất cả lỗi nhóm?")) return;
     try {
-      if (!window.confirm("Bạn có chắc muốn xóa tất cả lỗi nhóm?")) return;
       await axios.delete(`/import-errors/delete-group-errors`, {
         data: { teacher_id: teacherId, class_id: selectedClassId },
       });
       setErrorImport([]);
       alert("✅ Đã xóa danh sách lỗi nhóm.");
     } catch (error) {
-      console.error("Lỗi khi xóa lỗi nhóm:", error);
+      console.error(error);
       alert("❌ Không thể xóa danh sách lỗi nhóm.");
+    }
+  };
+
+  // ===== 8) XÓA TOÀN BỘ NHÓM =====
+  const handleDeleteAllGroups = async () => {
+    if (!selectedClassId) return alert("Vui lòng chọn lớp trước!");
+    if (!teacherId) return alert("Thiếu thông tin giảng viên!");
+
+    if (
+      !window.confirm(
+        "⚠️ Bạn có chắc muốn xóa TẤT CẢ nhóm trong lớp này?\nHành động này không thể hoàn tác!"
+      )
+    )
+      return;
+
+    try {
+      const res = await axios.delete(`/groups/delete-by-class`, {
+        data: {
+          class_id: selectedClassId,
+          teacher_id: teacherId,
+        },
+      });
+
+      if (res.data?.success) {
+        alert("✅ Đã xóa toàn bộ nhóm trong lớp!");
+        setGroups([]);
+      } else {
+        alert(res.data?.message_error || "❌ Xóa nhóm thất bại!");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Lỗi kết nối server khi xóa nhóm!");
     }
   };
 
   const handleViewDetail = (rm_code) => {
     if (!rm_code) return;
-    console.log(rm_code);
     setRmCode(rm_code);
   };
-  // ==========================
+  console.log(getNameReport);
+  // ========================== UI ==========================
   return (
     <>
       <Navbar />
+      <BackToTop />
       <div className="min-h-screen bg-gray-100 p-8">
         <h1 className="text-2xl font-bold mb-2">👥 Quản lý Nhóm theo Lớp</h1>
         <p className="text-gray-600 mb-6">
@@ -242,13 +279,13 @@ export default function ManagerGroups() {
                 key={c.class_id_teacher ?? c.class_id}
                 value={c.class_id_teacher ?? c.class_id}
               >
-                {c.class_name || `Lớp #${c.class_id}`}
+                {`Lớp: ${c.class_name} - Tên: ${c.subject_name}`}
               </option>
             ))}
           </select>
         </div>
 
-        {/* ===== Import nhóm ===== */}
+        {/* ===== Import nhóm + Xóa nhóm ===== */}
         {selectedClassId && (
           <div className="bg-white rounded-lg shadow p-4 mb-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
@@ -264,7 +301,7 @@ export default function ManagerGroups() {
                 onClick={openPicker}
                 className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition"
               >
-                <span>📁</span> Chọn file Excel
+                📁 Chọn file Excel
               </button>
               <button
                 type="button"
@@ -278,6 +315,16 @@ export default function ManagerGroups() {
               >
                 {importing ? "Đang import..." : "Import Nhóm"}
               </button>
+
+              {/* ✅ Nút xóa tất cả nhóm */}
+              <button
+                type="button"
+                onClick={handleDeleteAllGroups}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg text-white bg-red-600 hover:bg-red-700 transition"
+              >
+                🗑️ Xóa tất cả nhóm
+              </button>
+
               {selectedFile && (
                 <div className="text-sm text-gray-600">
                   📄 Đã chọn: <b>{selectedFile.name}</b>
@@ -289,15 +336,46 @@ export default function ManagerGroups() {
 
         {/* ===== Danh sách nhóm ===== */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-4 py-3 border-b">
+          <div className="px-4 py-3 border-b flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2">
-              <span className="font-semibold">Danh sách nhóm</span>
+              <span className="font-semibold text-lg">Danh sách nhóm</span>
               {selectedClassId && (
                 <span className="bg-green-100 text-green-800 px-3 py-0.5 rounded-full text-xs">
                   Báo cáo: {getNameReport?.report_name ?? "Chưa có"}
                 </span>
               )}
             </div>
+            {/* ✅ Select chọn nhóm nhanh */}
+            {groups.length > 0 && (
+              <div className="flex items-center gap-2">
+                <select
+                  onChange={(e) => {
+                    const rmCode = e.target.value;
+                    if (rmCode) {
+                      setRmCode(rmCode);
+                      setStatusOpen(true);
+                    }
+                  }}
+                  className="p-2 border border-gray-300 rounded-md text-sm w-full sm:w-auto"
+                >
+                  <option value="">— Chọn nhóm để xem nhanh —</option>
+                  {groups.map((g) => (
+                    <option key={g.rm_code} value={g.rm_code}>
+                      {`${g.rm_name || "Nhóm chưa đặt tên"} — Trưởng nhóm: ${
+                        g.leader_name ? g.leader_name : "Chưa có trưởng nhóm"
+                      }`}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  onClick={fetchGroups}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                >
+                  Làm mới
+                </button>
+              </div>
+            )}
           </div>
 
           {loadingGroups ? (
@@ -335,33 +413,41 @@ export default function ManagerGroups() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {groups.map((g, idx) => (
-                    <tr
-                      key={g.rm_code ?? g.report_member_idx ?? idx}
-                      className="hover:bg-gray-50"
-                    >
-                      <td className="px-6 py-3">{idx + 1}</td>
-                      <td className="px-6 py-3 font-medium text-gray-900">
-                        {g?.rm_name ?? "-"}
-                      </td>
-                      <td className="px-6 py-3">{g?.leader_name || "—"}</td>
-                      <td className="px-6 py-3">
-                        {g.member_count ?? g.members_count ?? 0}
-                      </td>
-                      <td className="px-6 py-3">{formatDate(g.created_at)}</td>
-                      <td className="px-6 py-3">
-                        <button
-                          onClick={() => {
-                            handleViewDetail(g?.rm_code);
-                            setStatusOpen(true);
-                          }}
-                          className="text-blue-600 hover:text-blue-800 font-medium text-sm"
-                        >
-                          Xem chi tiết
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {groups.map((g, idx) => {
+                    return (
+                      <tr
+                        key={g.rm_code ?? g.report_member_idx ?? idx}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="px-6 py-3">{idx + 1}</td>
+                        <td className="px-6 py-3 font-medium text-gray-900">
+                          {g?.rm_name ?? "-"}
+                        </td>
+                        <td className={`px-6 py-3 `}>
+                          {g?.leader_name || "—"}
+                          {g.role === "NT" && " (Trưởng nhóm)"}
+                          {g.role === "NP" && " (Phó nhóm)"}
+                        </td>
+                        <td className="px-6 py-3">
+                          {g.member_count ?? g.members_count ?? 0}
+                        </td>
+                        <td className="px-6 py-3">
+                          {formatDate(g.created_at)}
+                        </td>
+                        <td className="px-6 py-3">
+                          <button
+                            onClick={() => {
+                              handleViewDetail(g?.rm_code);
+                              setStatusOpen(true);
+                            }}
+                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                          >
+                            Xem chi tiết
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -415,6 +501,7 @@ export default function ManagerGroups() {
           </div>
         )}
       </div>
+
       <ModalViewDetailGroups
         statusOpen={statusOpen}
         onClose={setStatusOpen}

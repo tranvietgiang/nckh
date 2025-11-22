@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\Classe;
+use App\Models\Major;
+use App\Models\Subject;
 use App\Repositories\ClassesRepository;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class ClassesService
 {
-
     public function __construct(protected ClassesRepository $repo) {}
 
     public function deleteByClass(array $params): array
@@ -35,5 +39,130 @@ class ClassesService
             'success' => true,
             'message_error' => 'Xóa lớp thành công',
         ];
+    }
+
+    public function insertClassesService(array $data): array
+    {
+        // 1Validate dữ liệu đầu vào
+        $validator = Validator::make($data, [
+            'class_name'    => 'required|string|max:10',
+            'class_code'    => 'required|string|max:10',
+            'major_id'      => 'required|integer',
+            'teacher_id'    => 'required|string',
+            'subject_id'    => 'required|integer',
+            'semester'      => 'required|string|max:10',
+            'academic_year' => 'required|string|max:20',
+        ], [
+            // class_name
+            'class_name.required' => 'Tên lớp không được để trống.',
+            'class_name.max' => 'Tên lớp vượt quá :max ký tự.',
+
+            // class_code
+            'class_code.required' => 'Mã lớp không được để trống.',
+            'class_code.max' => 'Mã lớp vượt quá :max ký tự.',
+
+            // major_id
+            'major_id.required' => 'Vui lòng chọn ngành.',
+            'major_id.integer' => 'Ngành phải là số nguyên.',
+
+            // teacher_id
+            'teacher_id.required' => 'Thiếu thông tin giảng viên.',
+
+            // subject_id
+            'subject_id.required' => 'Vui lòng chọn môn học.',
+            'subject_id.integer' => 'Môn học không hợp lệ.',
+
+            // semester
+            'semester.required' => 'Học kỳ không được để trống.',
+            'semester.max' => 'Học kỳ vượt quá :max ký tự.',
+
+            // academic_year
+            'academic_year.required' => 'Năm học không được để trống.',
+            'academic_year.max' => 'Năm học vượt quá :max ký tự.',
+        ]);
+
+
+        if ($validator->fails()) {
+            return [
+                'success' => false,
+                'message_error' => $validator->errors()->first(),
+            ];
+        }
+
+        // 2 Kiểm tra ngành
+        if (!Major::where('major_id', $data['major_id'])->exists()) {
+            return ['success' => false, 'message_error' => 'Ngành học không tồn tại!'];
+        }
+
+        // 3 Kiểm tra môn học
+        if (!Subject::where('subject_id', $data['subject_id'])->exists()) {
+            return ['success' => false, 'message_error' => 'Môn học không tồn tại!'];
+        }
+
+        // 4Kiểm tra môn học có thuộc ngành đó không
+        $checkSubjectExistsMajor = DB::table('subjects')
+            ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
+            ->where('subjects.subject_id', $data['subject_id'])
+            ->exists();
+
+        if (!$checkSubjectExistsMajor) {
+            return ['success' => false, 'message_error' => 'Không tồn tại ngành của môn học này!'];
+        }
+
+        //5 kiểm tra trùng dữ liệu
+        $sameTeacherAndName = DB::table("classes")
+            ->join("subjects", "classes.subject_id", "subjects.subject_id")
+            ->where('classes.teacher_id', $data['teacher_id'])
+            ->where('classes.class_name', $data['class_name'])
+            ->where('classes.subject_id', $data['subject_id'])
+            ->exists();
+
+        if ($sameTeacherAndName) {
+            return ['success' => false, 'message_error' => 'Lớp này đã có môn học trước đó'];
+        }
+
+        //5 kiểm tra trùng dữ liệu
+        $sameTeacherAndSemester = DB::table("classes")
+            ->join("subjects", "classes.subject_id", "subjects.subject_id")
+            ->where('classes.teacher_id', $data['teacher_id'])
+            ->where('classes.semester', $data['semester'])
+            ->where('classes.subject_id', $data['subject_id'])
+            ->exists();
+
+        if ($sameTeacherAndSemester) {
+            return ['success' => false, 'message_error' => 'Giảng viên đã dạy lớp này ở kì này!'];
+        }
+
+        $sameTeacherAndCode = Classe::where('teacher_id', $data['teacher_id'])
+            ->where('class_code', $data['class_code'])
+            ->exists();
+
+        if ($sameTeacherAndCode) {
+            return ['success' => false, 'message_error' => 'Mã lớp này đã tồn tại trong danh sách lớp của bạn!'];
+        }
+
+        $sameMajorAndCode = Classe::where('major_id', $data['major_id'])
+            ->where('class_code', $data['class_code'])
+            ->exists();
+
+        if ($sameMajorAndCode) {
+            return ['success' => false, 'message_error' => 'Mã lớp này đã tồn tại trong cùng ngành!'];
+        }
+
+        // Tạo lớp
+        try {
+            $class = $this->repo->insertClassesRepository($data);
+
+            return [
+                'success' => true,
+                'message_success' => 'Tạo lớp học thành công!',
+                'data_classes' => $class,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'message_error' => 'Lỗi server khi tạo lớp!',
+            ];
+        }
     }
 }

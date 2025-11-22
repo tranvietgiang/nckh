@@ -33,6 +33,7 @@ export default function ClassShowManager() {
   const fileInputRef = useRef(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [selectedMajor, setSelectedMajor] = useState("all");
 
   const handleButtonClick = () => {
     fileInputRef.current.click();
@@ -188,119 +189,154 @@ export default function ClassShowManager() {
 
         {/* Content */}
         <div className="space-y-6">
+          {/* Bộ lọc ngành */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h3 className="text-lg font-semibold mb-3 text-gray-900">
+              Lọc theo ngành
+            </h3>
+            <select
+              value={selectedMajor}
+              onChange={(e) => setSelectedMajor(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="all">Tất cả ngành</option>
+              {getMajors.map((m) => (
+                <option key={m.major_id} value={m.major_id}>
+                  {m.major_name}
+                </option>
+              ))}
+            </select>
+          </div>
           {Array.isArray(getMajors) && getMajors.length > 0 ? (
-            getMajors.map((major) => {
-              const majorClasses = getClassesByMajor(major.major_id);
-              return (
-                <div
-                  key={major.major_id}
-                  className="bg-white rounded-lg shadow-sm"
-                >
-                  <div className="border-b border-gray-200 p-6">
-                    <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-                      <FaUniversity className="w-6 h-6 text-blue-600 mr-3" />
-                      Ngành: {major.major_name}
-                    </h2>
-                  </div>
+            getMajors
+              .filter((major) =>
+                selectedMajor === "all"
+                  ? true
+                  : Number(major.major_id) === Number(selectedMajor)
+              )
+              .map((major) => {
+                const majorClasses = getClassesByMajor(major.major_id);
+                return (
+                  <div
+                    key={major.major_id}
+                    className="bg-white rounded-lg shadow-sm"
+                  >
+                    <div className="border-b border-gray-200 p-6">
+                      <h2 className="text-xl font-semibold text-gray-900 flex items-center">
+                        <FaUniversity className="w-6 h-6 text-blue-600 mr-3" />
+                        Ngành: {major.major_name}
+                      </h2>
+                    </div>
 
-                  {/* Classes List */}
-                  <div className="p-6">
-                    {majorClasses.length > 0 ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {majorClasses.map((classItem) => (
-                          <div
-                            key={classItem?.class_id}
-                            className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-200"
-                          >
-                            <div className="flex justify-between items-start mb-4">
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {classItem?.class_name}
-                              </h3>
-                              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Mã lớp: {classItem?.class_code}
-                              </span>
-                            </div>
-
-                            <div className="space-y-3">
-                              <div className="flex items-center text-gray-600">
-                                <FaClock className="w-4 h-4 mr-2" />
-                                <span>
-                                  Giáo viên: {classItem?.fullname ?? ""}-
-                                  {classItem?.teacher_id}
+                    {/* Classes List */}
+                    <div className="p-6">
+                      {majorClasses.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {majorClasses.map((classItem) => (
+                            <div
+                              key={classItem?.class_id}
+                              className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition duration-200"
+                            >
+                              <div className="flex justify-between items-start mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                  {classItem?.class_name}
+                                </h3>
+                                <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  Mã lớp: {classItem?.class_code}
                                 </span>
                               </div>
 
-                              <div className="flex items-center text-gray-600">
-                                <FaClock className="w-4 h-4 mr-2" />
-                                <span>Học kỳ: {classItem?.semester}</span>
+                              <div className="space-y-3">
+                                <div className="flex items-center text-gray-600">
+                                  <FaClock className="w-4 h-4 mr-2" />
+                                  <span>
+                                    Môn học: {classItem?.subject_name ?? ""}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center text-gray-600">
+                                  <FaClock className="w-4 h-4 mr-2" />
+                                  <span>
+                                    Giáo viên: {classItem?.fullname ?? ""}
+                                  </span>
+                                </div>
+
+                                <div className="flex items-center text-gray-600">
+                                  <FaClock className="w-4 h-4 mr-2" />
+                                  <span>Học kỳ: {classItem?.semester}</span>
+                                </div>
+
+                                <div className="flex items-center text-gray-600">
+                                  <FaCalendarAlt className="w-4 h-4 mr-2" />
+                                  <span>
+                                    Năm học: {classItem?.academic_year}
+                                  </span>
+                                </div>
                               </div>
 
-                              <div className="flex items-center text-gray-600">
-                                <FaCalendarAlt className="w-4 h-4 mr-2" />
-                                <span>Năm học: {classItem?.academic_year}</span>
+                              {/* THÊM BUTTON IMPORT VÀO ĐÂY */}
+                              <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                  onClick={() =>
+                                    navigate("/nckh-classes", {
+                                      state: {
+                                        class_id: classItem?.class_id,
+                                        teacher_id: classItem?.teacher_id,
+                                        major_id: major?.major_id,
+                                        view: 1,
+                                        name_class: classItem?.class_name,
+                                      },
+                                    })
+                                  }
+                                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                                >
+                                  Xem chi tiết
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    navigate("/nckh-classes", {
+                                      state: {
+                                        class_id: classItem?.class_id,
+                                        major_id: major?.major_id,
+                                        teacher_id: classItem?.teacher_id,
+                                        name_class: classItem?.class_name,
+                                        subject_id: classItem?.subject_id,
+                                        academic_year: classItem?.academic_year,
+                                        semester: classItem?.semester,
+                                        view: 2,
+                                      },
+                                    })
+                                  }
+                                  className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center space-x-1"
+                                >
+                                  <FaFileImport className="w-4 h-4" />
+                                  <span>Import</span>
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    handleDeleteClass(
+                                      classItem?.class_id,
+                                      classItem?.teacher_id
+                                    )
+                                  }
+                                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                                >
+                                  Xóa
+                                </button>
                               </div>
                             </div>
-
-                            {/* THÊM BUTTON IMPORT VÀO ĐÂY */}
-                            <div className="flex justify-end space-x-3 mt-6">
-                              <button
-                                onClick={() =>
-                                  navigate("/nckh-classes", {
-                                    state: {
-                                      class_id: classItem?.class_id,
-                                      teacher_id: classItem?.teacher_id,
-                                      major_id: major?.major_id,
-                                      view: 1,
-                                      name_class: classItem?.class_name,
-                                    },
-                                  })
-                                }
-                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                              >
-                                Xem chi tiết
-                              </button>
-                              <button
-                                onClick={() =>
-                                  navigate("/nckh-classes", {
-                                    state: {
-                                      class_id: classItem?.class_id,
-                                      major_id: major?.major_id,
-                                      teacher_id: classItem?.teacher_id,
-                                      view: 2,
-                                      name_class: classItem?.class_name,
-                                    },
-                                  })
-                                }
-                                className="text-green-600 hover:text-green-800 text-sm font-medium flex items-center space-x-1"
-                              >
-                                <FaFileImport className="w-4 h-4" />
-                                <span>Import</span>
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleDeleteClass(
-                                    classItem?.class_id,
-                                    classItem?.teacher_id
-                                  )
-                                }
-                                className="text-red-600 hover:text-red-800 text-sm font-medium"
-                              >
-                                Xóa
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500">
-                        <FaBook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                        <p>Chưa có lớp học nào cho ngành này</p>
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <FaBook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                          <p>Chưa có lớp học nào cho ngành này</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })
+                );
+              })
           ) : (
             <div className="bg-white rounded-lg shadow-sm p-8 text-center">
               <FaGraduationCap className="w-16 h-16 mx-auto text-gray-400 mb-4" />

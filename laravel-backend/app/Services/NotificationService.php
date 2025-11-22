@@ -49,10 +49,24 @@ class NotificationService
 
         $created = $this->repo->createNotificationRepository($data, $class->class_name);
 
+        // ✅ Sau khi gửi xong, check xem có lỗi gửi mail không
+        $countErrors = \App\Models\ImportError::where('typeError', 'notification')
+            ->where('teacher_id', $data['teacher_id'])
+            ->where('class_id', $data['class_id'])
+            ->count();
+
+        if ($countErrors > 0) {
+            return [
+                'success' => true,
+                'message_success' => "Đã gửi thông báo đến lớp {$class->class_name}, nhưng có {$countErrors} email bị lỗi (xem trong trang lỗi).",
+            ];
+        }
+
         return $created
             ? ['success' => true, 'message_success' => "Gửi thông báo thành công đến lớp {$class->class_name}"]
             : ['success' => false, 'message_error' => "Gửi thông báo thất bại"];
     }
+
 
     public function getNotifyService(string $studentId): array
     {

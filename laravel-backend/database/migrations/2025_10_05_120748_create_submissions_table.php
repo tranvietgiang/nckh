@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('student_id');
             $table->foreign("student_id")->references('user_id')->on("users")->onDelete("cascade");
             $table->string('version', 50);
-            $table->enum('status', ['submitted', 'graded', 'rejected'])->comment('Trạng thái từng phiên bản của đồ án ');
+            $table->enum('status', ['submitted', 'not_submitted', 'rejected'])->comment('Trạng thái từng phiên bản của đồ án ');
             $table->date('submission_time');
             $table->timestamps();
         });

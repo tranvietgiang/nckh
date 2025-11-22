@@ -89,14 +89,39 @@ export default function ModalViewDetailGroups({
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {getMemberOfGroup?.map((g, idx) => (
-                  <tr key={g.rm_code ?? ""} className="hover:bg-gray-50">
-                    <td className="px-6 py-3">{idx + 1}</td>
-                    <td className="px-6 py-3">{g?.tv || "—"}</td>
-                    <td className="px-6 py-3">{g?.msv || "—"}</td>
-                    <td className="px-6 py-3">{g?.report_m_role || "—"}</td>
-                  </tr>
-                ))}
+                {getMemberOfGroup?.map((g, idx) => {
+                  const getRoleColor = (role) => {
+                    switch (role) {
+                      case "NT": // trưởng nhóm
+                        return "text-green-600 font-semibold";
+                      case "NP": // phó nhóm
+                        return "text-blue-600 font-semibold";
+                      default:
+                        return "text-gray-900";
+                    }
+                  };
+                  return (
+                    <>
+                      <tr
+                        key={`${
+                          g.rm_code || g.report_member_idx || "row"
+                        }-${idx}`}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="px-6 py-3">{idx + 1}</td>
+                        <td
+                          className={`px-6 py-3 ${getRoleColor(
+                            g?.report_m_role ?? null
+                          )}`}
+                        >
+                          {g?.tv || "—"}
+                        </td>
+                        <td className="px-6 py-3">{g?.msv || "—"}</td>
+                        <td className="px-6 py-3">{g?.report_m_role || "—"}</td>
+                      </tr>
+                    </>
+                  );
+                })}
               </tbody>
             </table>
           </div>

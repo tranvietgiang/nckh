@@ -62,10 +62,9 @@ class ErrorsImportController extends Controller
         return response()->json(['message' => 'Đã xóa lỗi nhóm thành công!']);
     }
 
-    public function getGroupErrors($classId, $majorId)
+    public function getGroupErrors($majorId, $classId)
     {
-        AuthHelper::roleTeacher();
-        $teacherId = Auth::id();
+        $teacherId = AuthHelper::isLogin();
 
         $getGroupError = ImportError::where('teacher_id', $teacherId)
             ->where('class_id', $classId)
@@ -73,10 +72,42 @@ class ErrorsImportController extends Controller
             ->where('typeError', 'group')
             ->get();
 
-        if ($getGroupError->count() > 0) {
-            return response()->json($getGroupError, 200);
+        if ($getGroupError->isEmpty()) {
+            return response()->json(['message_error' => 'Không có lỗi nhóm nào!'], 200);
         }
 
-        return response()->json(['message_error' => 'Lỗi server!']);
+        return response()->json($getGroupError, 200);
+    }
+
+
+    public function importErrSubject()
+    {
+        try {
+            $errors = ImportError::where('typeError', 'subject')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            if ($errors->isEmpty()) {
+                return response()->json([
+                    'message' => 'Không có lỗi import nào.'
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'data' => $errors
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message_error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function clearImportErrorsSubject()
+    {
+        ImportError::where('typeError', 'subject')->delete();
+        return response()->json(['message' => 'Đã xóa toàn bộ lỗi import môn học'], 200);
     }
 }

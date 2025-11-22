@@ -28,6 +28,11 @@ class Report extends Model
         // Submission::class là model Submission
         // 'report_id' (cột ở bảng submissions) liên kết tới 'report_id' (cột ở bảng reports)
     }
+    
+    public function classe()
+    {
+        return $this->belongsTo(Classe::class, 'class_id', 'class_id');
+    }
 
     public static function createNew($request)
     {

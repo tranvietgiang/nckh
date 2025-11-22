@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Imports\GroupsImport;
+use App\Models\Classe;
 use App\Models\ImportError;
+use App\Models\Report;
 use Maatwebsite\Excel\Facades\Excel;
 use Exception;
 use Illuminate\Support\Facades\Log;
@@ -61,53 +63,100 @@ class ReportMembersController extends Controller
     }
 
 
+    public function getNameGroupByStudent()
+    {
+        $studentId = AuthHelper::isLogin();
+
+        $groups = DB::table('report_members')
+            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+
+            // 🔥 JOIN đúng submission của chính sinh viên
+            ->join('submissions', function ($join) use ($studentId) {
+                $join->on('reports.report_id', '=', 'submissions.report_id')
+                    ->where('submissions.student_id', '=', $studentId);
+            })
+
+            ->join('grades', 'submissions.submission_id', '=', 'grades.submission_id')
+
+            ->where('report_members.student_id', $studentId)
+            ->where("grades.score", '!=', 0)
+
+            ->select(
+                'report_members.report_id',
+                'report_members.rm_code',
+                'report_members.rm_name',
+                'reports.report_id',
+                DB::raw('MAX(grades.score) AS score')
+            )
+
+            // 🔥 Tránh duplicate nhóm khi có nhiều submission
+            ->groupBy(
+                'report_members.report_id',
+                'report_members.rm_code',
+                'report_members.rm_name',
+                'reports.report_id',
+            )
+            ->get();
+
+        if ($groups->isEmpty()) {
+            return response()->json([
+                'message' => 'Sinh viên này chưa có nhóm hoặc chưa có báo cáo được chấm.'
+            ], 404);
+        }
+
+        return response()->json($groups, 200);
+    }
+
+
     public function importGroups(Request $request)
     {
+
+
+        AuthHelper::roleTeacher();
+
         try {
-
-            AuthHelper::roleTeacher();
-
             $validated = $request->validate([
-                'file' => 'required|file|mimes:xlsx,xls,csv',
+                'file'       => 'required|file|mimes:xlsx,xls,csv',
                 'teacher_id' => 'required|string',
-                'report_id' => 'required|integer',
-                'class_id' => 'required|integer',
-                'major_id' => 'required|integer',
+                'report_id'  => 'required|integer',
+                'class_id'   => 'required|integer',
+                'major_id'   => 'required|integer',
             ]);
-
-            $reportId = (int) $validated['report_id'];
-            $teacherId = (string) $validated['teacher_id'];
-            $classId = (int) $validated['class_id'];
-            $majorId = (int) $validated['major_id'];
-
-            // Import file Excel
-            $import = new GroupsImport(
-                reportId: $reportId,
-                teacherId: $teacherId,
-                classId: $classId,
-                majorId: $majorId
-            );
-
-            Excel::import($import, $validated['file']);
-
-            $list_import_error = ImportError::where('class_id', $classId)
-                ->where('teacher_id', $teacherId)
-                ->where('typeError', 'group')
-                ->get();
-
+        } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
-                'message' => 'Import hoàn tất!',
-                'total_group' => $import->totalGroup,
-                'success' => $import->success,
-                'failed' => $import->failed,
-                'list_import_error' => $list_import_error,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => '❌ Import thất bại!',
-                'message' => $e->getMessage(),
-            ], 400);
+                'success' => false,
+                'message_error' => '❌ Dữ liệu không hợp lệ! Vui lòng liên hệ Admin.'
+            ], 422);
         }
+
+
+        $reportId = (int) $validated['report_id'];
+        $teacherId = (string) $validated['teacher_id'];
+        $classId = (int) $validated['class_id'];
+        $majorId = (int) $validated['major_id'];
+
+        // Import file Excel
+        $import = new GroupsImport(
+            reportId: $reportId,
+            teacherId: $teacherId,
+            classId: $classId,
+            majorId: $majorId
+        );
+
+        Excel::import($import, $validated['file']);
+
+        $list_import_error = ImportError::where('class_id', $classId)
+            ->where('teacher_id', $teacherId)
+            ->where('typeError', 'group')
+            ->get();
+
+        return response()->json([
+            'message' => 'Import hoàn tất!',
+            'total_group' => $import->totalGroup,
+            'success' => $import->success,
+            'failed' => $import->failed,
+            'list_import_error' => $list_import_error,
+        ]);
     }
 
     public function getMemberDetail($majorId, $classId, $rm_code)
@@ -168,14 +217,18 @@ class ReportMembersController extends Controller
     }
 
     //tvg
-    public function getStudentLeader($rm_code)
+    public function getStudentLeader($rm_code, $classId)
     {
         try {
             AuthHelper::isLogin();
 
-            $groupLeader = report_member::where('rm_code', $rm_code)
-                ->where("report_m_role", "NT")
-                ->first();
+            $groupLeader = report_member::select()
+                ->join("reports", "report_members.report_id", "=", "reports.report_id")
+                ->join("classes", "reports.class_id", "=", "classes.class_id")
+                ->where('rm_code', $rm_code)
+                ->where('reports.class_id', $classId)
+                // ->where("report_m_role", "NT")
+                ->get();
 
             if ($groupLeader) {
                 return response()->json($groupLeader, 200);
@@ -186,5 +239,98 @@ class ReportMembersController extends Controller
             Log::error('❌ Lỗi lấy nhóm trưởng: ' . $e->getMessage());
             return response()->json(['error' => '❌ Lỗi hệ thống'], 500);
         }
+    }
+    //tvg
+    public function deleteByClass(Request $request)
+    {
+        $classId = $request->input('class_id');
+        $teacherId = $request->input('teacher_id');
+
+        if (!$classId || !$teacherId) {
+            return response()->json(['success' => false, 'message_error' => 'Thiếu dữ liệu!'], 400);
+        }
+
+
+        $delete = report_member::select('reports.teacher_id')
+            ->join("reports", "report_members.report_id", "=", "reports.report_id")
+            ->join("classes", "reports.class_id", "=", "classes.class_id")
+            ->where("reports.class_id", $classId)
+            ->where("reports.teacher_id", $teacherId)->delete();
+
+        if ($delete > 0) {
+            return response()->json(['success' => true, 'message' => 'Đã xóa toàn bộ nhóm trong lớp.']);
+        }
+
+        return response()->json(['success' => false, 'message_error' => 'Không tìm thấy nhóm nào để xóa.']);
+    }
+
+    public function getGroupsOfReport($classId, $reportId)
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+
+        // Kiểm tra report có thuộc lớp & giáo viên
+        $report = DB::table("reports")
+            ->where("report_id", $reportId)
+            ->where("class_id", $classId)
+            ->where("teacher_id", $teacherId)
+            ->first();
+
+        if (!$report) {
+            return response()->json([
+                "message_error" => "Báo cáo không tồn tại hoặc không thuộc lớp này!"
+            ], 404);
+        }
+
+        $latestSubmission = DB::table('report_members as rm2')
+            ->join('report_members as leader2', function ($join) {
+                $join->on('leader2.report_id', '=', 'rm2.report_id')
+                    ->on('leader2.rm_code', '=', 'rm2.rm_code')
+                    ->where('leader2.report_m_role', '=', 'NT'); // NHÓM TRƯỞNG
+            })
+            ->leftJoin('submissions as s2', 's2.student_id', '=', 'leader2.student_id')
+            ->leftJoin('user_profiles as up', 'up.user_id', '=', 'leader2.student_id')
+            ->select(
+                'rm2.rm_code',
+                'leader2.student_id AS leader_id',
+                'up.fullname AS leader_name',
+                DB::raw('MAX(s2.submission_id) AS latest_submission_id')
+            )
+            ->where('rm2.report_id', $reportId)
+            ->groupBy('rm2.rm_code', 'leader2.student_id', 'up.fullname');
+
+
+        $groups = DB::table('report_members as rm')
+            ->leftJoinSub($latestSubmission, 'ls', function ($join) {
+                $join->on('ls.rm_code', '=', 'rm.rm_code');
+            })
+            ->leftJoin('submissions as s', 's.submission_id', '=', 'ls.latest_submission_id')
+            ->leftJoin('grades as g', 'g.submission_id', '=', 's.submission_id')
+            ->select(
+                'rm.rm_code',
+                DB::raw('COUNT(rm.student_id) AS total_members'),
+
+                // 🔥 THÊM:
+                'ls.leader_id',
+                'ls.leader_name',
+
+                DB::raw("
+            CASE
+                WHEN s.status = 'submitted' THEN 'submitted'
+                WHEN s.status = 'graded' THEN 'graded'
+                WHEN s.status = 'rejected' THEN 'rejected'
+                ELSE 'not_submitted'
+            END AS status
+        "),
+                DB::raw('COALESCE(g.score, NULL) AS grade')
+            )
+            ->where('rm.report_id', $reportId)
+            ->groupBy('rm.rm_code', 'ls.leader_id', 'ls.leader_name', 'status', 'g.score')
+            ->orderBy('rm.rm_code')
+            ->get();
+
+
+
+        return response()->json($groups, 200);
     }
 }
