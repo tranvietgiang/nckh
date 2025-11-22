@@ -24,6 +24,7 @@ import ClassStatistics from "./Components/Pages/Teacher/Features/ClassStatistics
 import ManagerGroups from "./Components/Pages/Teacher/Features/ManagerGroups";
 import SubjectCrud from "./Components/Pages/Admin/Features/SubjectCRUD";
 import ReportManager from "./Components/Pages/Teacher/Features/ReportManager";
+import ShowMemberGroup from "./Components/Pages/Teacher/Features/ShowMemberGroup";
 function App() {
   return (
     <>
@@ -75,6 +76,11 @@ function App() {
             */
             {/* Quản lý nhóm */}
             <Route path="/nckh-report-manager" element={<ReportManager />} />
+            {/* Xem nhóm lớp */}
+            <Route
+              path="/nckh-show-group-teacher"
+              element={<ShowMemberGroup />}
+            />
             /*===============================================END============================================
             */
           </Routes>

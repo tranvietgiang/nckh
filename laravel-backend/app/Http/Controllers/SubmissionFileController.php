@@ -15,29 +15,30 @@ class SubmissionFileController extends Controller
     {
         $studentId = AuthHelper::isLogin();
 
-        $data = DB::table('report_members')
-            ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
+        $data = DB::table('report_members as rm')
+
+            // lấy thông tin report + class
+            ->join('reports', 'rm.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
 
-            // 🔥 lấy submission mới nhất
-            ->leftJoin('submissions', function ($join) {
-                $join->on('reports.report_id', '=', 'submissions.report_id')
-                    ->whereRaw('submissions.submission_id = (
-                    SELECT s2.submission_id 
-                    FROM submissions s2 
-                    WHERE s2.report_id = reports.report_id 
-                    ORDER BY s2.submission_id DESC 
-                    LIMIT 1
-                )');
+            // 🔥 lấy nhóm trưởng (NT) của nhóm
+            ->leftJoin('report_members as leader', function ($join) {
+                $join->on('leader.report_id', '=', 'rm.report_id')
+                    ->on('leader.rm_code', '=', 'rm.rm_code')
+                    ->where('leader.report_m_role', 'NT');
             })
 
-            ->leftJoin('submission_files', 'submissions.submission_id', '=', 'submission_files.submission_id')
+            // 🔥 lấy submission của nhóm trưởng
+            ->leftJoin('submissions', 'submissions.student_id', '=', 'leader.student_id')
 
-            ->where('report_members.student_id', $studentId)
+            // 🔥 file submission
+            ->leftJoin('submission_files', 'submission_files.submission_id', '=', 'submissions.submission_id')
+
+            ->where('rm.student_id', $studentId)
 
             ->select(
-                'report_members.rm_code',
-                'report_members.rm_name',
+                'rm.rm_code',
+                'rm.rm_name',
                 'reports.report_id',
                 'reports.report_name',
                 'reports.end_date',
@@ -45,13 +46,17 @@ class SubmissionFileController extends Controller
                 'classes.class_name',
                 'submissions.submission_time',
                 'submission_files.file_path',
-                DB::raw("CASE WHEN submission_files.file_id IS NOT NULL 
-                        THEN 'submitted' 
-                        ELSE 'pending' 
-                    END AS status")
+
+                // 🔥 status code
+                DB::raw("
+                CASE
+                    WHEN submission_files.file_id IS NOT NULL THEN 'submitted'
+                    ELSE 'pending'
+                END AS status
+            ")
             )
 
-            ->orderBy('reports.report_id', 'asc')
+            ->orderBy('reports.report_id')
             ->get();
 
         if ($data->isEmpty()) {

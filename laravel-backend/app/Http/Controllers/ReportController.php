@@ -817,4 +817,133 @@ class ReportController extends Controller
 
         return response()->json($count_report, 200);
     }
+    public function getReportsOfClass($classId)
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+
+        $reports = DB::table("reports")
+            ->where("reports.class_id", $classId)
+            ->where("reports.teacher_id", $teacherId)
+            ->select('reports.*')
+            ->get();
+
+        return response()->json($reports, 200);
+    }
+
+
+
+
+
+
+
+    // public function getClassesGroupStatus($classId)
+    // {
+    //     $teacherId = AuthHelper::isLogin();
+    //     AuthHelper::roleTeacher();
+
+    //     // ✨ Lấy danh sách nhóm
+    //     $groups = DB::table("reports")
+    //         ->leftJoin("submissions", "reports.report_id", "=", "submissions.report_id")
+    //         ->leftJoin("grades", "submissions.submission_id", "=", "grades.submission_id")
+    //         ->where("reports.class_id", $classId)
+    //         ->where("reports.teacher_id", $teacherId)
+    //         ->select(
+    //             "reports.report_id as group_id",
+    //             "reports.report_name as group_name",
+    //             "reports.description as topic",
+    //             "reports.start_date",
+    //             "reports.end_date",
+
+    //             // UI cần status => chuẩn hóa:
+    //             DB::raw("
+    //             CASE
+    //                 WHEN grades.score IS NOT NULL THEN 'Đã chấm'
+    //                 WHEN submissions.status = 'rejected' THEN 'Bị từ chối'
+    //                 WHEN submissions.status = 'submitted' THEN 'Đã nộp'
+    //                 ELSE 'Chưa nộp'
+    //             END as status
+    //         "),
+
+    //             "submissions.submission_time as submitted_date",
+    //             "grades.score as grade"
+    //         )
+    //         ->get();
+
+    //     // ✨ Lấy danh sách thành viên mỗi nhóm
+    //     foreach ($groups as $g) {
+    //         $members = DB::table("report_members")
+    //             ->join("user_profiles", "report_members.student_id", "=", "user_profiles.user_id")
+    //             ->join("users", "user_profiles.user_id", "=", "users.user_id")
+    //             ->select(
+    //                 "report_members.student_id as user_id",
+    //                 "user_profiles.fullname",
+    //                 "users.email",
+    //                 DB::raw("'Đã nộp' as status") // hoặc lấy status từ report_members nếu có
+    //             )
+    //             ->where("report_members.report_id", $g->group_id)
+    //             ->distinct() // CHỐT QUAN TRỌNG: XOÁ DUPLICATE
+    //             ->get();
+
+    //         $g->members = $members;
+    //     }
+
+    //     return response()->json($groups, 200);
+    // }
+
+
+    // public function getShowMemberGroup()
+    // { {
+    //         $teacherId = AuthHelper::isLogin();
+    //         AuthHelper::roleTeacher();
+
+    //         // ✨ Lấy danh sách nhóm
+    //         $groups = DB::table("reports")
+    //             ->leftJoin("submissions", "reports.report_id", "=", "submissions.report_id")
+    //             ->leftJoin("grades", "submissions.submission_id", "=", "grades.submission_id")
+    //             ->where("reports.class_id", $classId)
+    //             ->where("reports.teacher_id", $teacherId)
+    //             ->select(
+    //                 "reports.report_id as group_id",
+    //                 "reports.report_name as group_name",
+    //                 "reports.description as topic",
+    //                 "reports.start_date",
+    //                 "reports.end_date",
+
+    //                 // UI cần status => chuẩn hóa:
+    //                 DB::raw("
+    //             CASE
+    //                 WHEN grades.score IS NOT NULL THEN 'Đã chấm'
+    //                 WHEN submissions.status = 'rejected' THEN 'Bị từ chối'
+    //                 WHEN submissions.status = 'submitted' THEN 'Đã nộp'
+    //                 ELSE 'Chưa nộp'
+    //             END as status
+    //         "),
+
+    //                 "submissions.submission_time as submitted_date",
+    //                 "grades.score as grade"
+    //             )
+    //             ->get();
+
+    //         // ✨ Lấy danh sách thành viên mỗi nhóm
+    //         foreach ($groups as $g) {
+    //             $members = DB::table("report_members")
+    //                 ->join("user_profiles", "report_members.student_id", "=", "user_profiles.user_id")
+    //                 ->join("users", "user_profiles.user_id", "=", "users.user_id")
+    //                 ->select(
+    //                     "report_members.student_id as user_id",
+    //                     "user_profiles.fullname",
+    //                     "users.email",
+    //                     DB::raw("'Đã nộp' as status") // hoặc lấy status từ report_members nếu có
+    //                 )
+    //                 ->where("report_members.report_id", $g->group_id)
+    //                 ->distinct() // CHỐT QUAN TRỌNG: XOÁ DUPLICATE
+    //                 ->get();
+
+    //             $g->members = $members;
+    //         }
+
+    //         return response()->json($groups, 200);
+    //     }
+    // }
 }

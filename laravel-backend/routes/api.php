@@ -208,6 +208,8 @@ Route::middleware('auth:sanctum')->delete('/pc/import-errors/major', [MajorsCont
 Route::middleware('auth:sanctum')->get('/pc/get-errors/major', [MajorsController::class, 'getErrorMajorsImport']);
 Route::middleware('auth:sanctum')->get('/tvg/get-group-member', [ReportMembersController::class, 'getLeaderGroup']);
 Route::middleware('auth:sanctum')->get('/tvg/get-student-leader/{rm_code}', [ReportMembersController::class, 'getStudentLeader']);
+Route::middleware('auth:sanctum')->get('/tvg/reports/{reportId}/classes/{classId}/groups', [ReportMembersController::class, 'getGroupsOfReport']);
+Route::middleware('auth:sanctum')->get('/tvg/reports/{reportId}/groups/{rmCode}', [ReportMembersController::class, 'getGroupDetail']);
 
 
 /*
@@ -324,7 +326,7 @@ Route::middleware('auth:sanctum')->get('/teacher/reports', [ReportController::cl
 Route::middleware('auth:sanctum')->get('/teacher/reports/{id}', [ReportController::class, 'getReportDetail']);
 Route::middleware('auth:sanctum')->put('/teacher/reports/{id}', [ReportController::class, 'updateReport']);
 Route::middleware('auth:sanctum')->get('/get-name-group-by-student', [ReportMembersController::class, 'getNameGroupByStudent']);
-
+Route::middleware('auth:sanctum')->get('/tvg/classes/{classId}/reports', [ReportController::class, 'getReportsOfClass']);
 
 /*
 |--------------------------------------------------------------------------
