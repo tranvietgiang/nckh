@@ -30,13 +30,7 @@ class StudentController extends Controller
                 'subject_id' => 'required|integer',
                 'academic_year' => 'required|string|max:20',
                 'semester' => 'required|string|max:20',
-                'class_id' => [
-                    'required',
-                    'integer',
-                    Rule::exists('classes', 'class_id')->where(function ($q) use ($request) {
-                        $q->where('teacher_id', $request->input('teacher_id'));
-                    }),
-                ],
+                'class_id' => 'required|integer'
             ]);
 
 
@@ -82,7 +76,7 @@ class StudentController extends Controller
             ]);
         } catch (Exception $e) {
             return response()->json([
-                'error'   => '❌ Import thất bại!, vui lòng liên hệ admin',
+                'message'   => '❌ Import thất bại!, vui lòng liên hệ admin',
             ], 400);
         }
     }

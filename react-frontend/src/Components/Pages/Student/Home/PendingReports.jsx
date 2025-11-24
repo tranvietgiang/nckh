@@ -174,7 +174,7 @@ export default function PendingReports() {
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
-        BÁO CÁO CẦN NỘP ({reportCount ?? "chưa có thông tin"})
+        BÁO CÁO CẦN NỘP ({reportCount || 0})
       </h1>
 
       {loading ? (
@@ -189,8 +189,16 @@ export default function PendingReports() {
         reports.map((report) => {
           const submission = submissionMap[report?.report_id];
           const isSubmitted = submission?.status === "submitted";
+          const date = new Date();
+          const formatted =
+            date.getFullYear() +
+            "-" +
+            String(date.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(date.getDate()).padStart(2, "0");
 
-          return report?.start_date > report?.end_date ? (
+          return report?.start_date > report?.end_date ||
+            report?.end_date < formatted ? (
             ""
           ) : (
             <div key={report?.report_id} className="mb-6">

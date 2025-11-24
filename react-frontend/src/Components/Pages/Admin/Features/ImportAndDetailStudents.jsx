@@ -185,10 +185,13 @@ export default function ImportAndDetailStudents() {
       .then((res) => {
         const errs = Array.isArray(res.data) ? res.data : [];
         setStudentErrors(errs);
-        setSafeJSON(
-          `student_import_error_${class_id}_${teacher_id}_${major_id}`,
-          errs
-        );
+
+        if (JSON.stringify(errs) !== JSON.stringify(cacheError)) {
+          setSafeJSON(
+            `student_import_error_${class_id}_${teacher_id}_${major_id}`,
+            errs
+          );
+        }
       })
       .catch(() => setStudentErrors([]));
 
@@ -201,14 +204,18 @@ export default function ImportAndDetailStudents() {
         setStudents(list);
         setTotalStudent(total);
 
-        setSafeJSON(
-          `data_students_current_${class_id}_${teacher_id}_${major_id}`,
-          list
-        );
-        setSafeJSON(
-          `total_student_current_${class_id}_${teacher_id}_${major_id}`,
-          total
-        );
+        if (JSON.stringify(list) !== JSON.stringify(cacheStudents)) {
+          setSafeJSON(
+            `data_students_current_${class_id}_${teacher_id}_${major_id}`,
+            list
+          );
+        }
+        if (JSON.stringify(total) !== JSON.stringify(cacheTotal)) {
+          setSafeJSON(
+            `total_student_current_${class_id}_${teacher_id}_${major_id}`,
+            total
+          );
+        }
       })
       .catch((e) => console.log(e));
   };
