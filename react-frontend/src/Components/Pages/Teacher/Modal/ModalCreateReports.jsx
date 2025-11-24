@@ -27,9 +27,7 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
     setError("");
 
     axios
-      .get("/get-class-by-major/all", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      .get("/get-class-by-major")
       .then((res) => {
         setClasses(res.data || []);
       })
@@ -90,31 +88,23 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
     try {
       setSubmitting(true);
       setError("");
-      setSuccess("");
 
-      const res = await axios.post(
-        "/reports/create",
-        {
-          class_id: selectedClass,
-          report_name: reportName.trim(),
-          description: description.trim() || null,
-          start_date: startDate,
-          end_date: endDate,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await axios.post("/reports/create", {
+        class_id: selectedClass,
+        report_name: reportName.trim(),
+        description: description.trim() || null,
+        start_date: startDate,
+        end_date: endDate,
+      });
 
-      setSuccess("Tạo báo cáo thành công!");
+      alert(`Tạo báo cáo cho lớp ${reportName} thành công!`);
 
       // Tự động đóng modal sau 1.5 giây
       setTimeout(() => {
         resetForm();
-        onSuccess && onSuccess(); // Gọi callback để parent component reload danh sách
+        onSuccess && onSuccess();
         onClose();
       }, 1500);
-
     } catch (err) {
       const msg =
         err.response?.data?.message ||
@@ -167,19 +157,18 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
             <select
               value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
-              className={`w-full rounded-lg border p-2.5 text-sm ${errors.class_id ? "border-red-300" : "border-gray-300"
-                }`}
+              className={`w-full rounded-lg border p-2.5 text-sm ${
+                errors.class_id ? "border-red-300" : "border-gray-300"
+              }`}
             >
               <option value="">
                 {loading ? "Đang tải..." : "-- Chọn lớp --"}
               </option>
 
               {classes.map((cls) => (
-                <option
-                  key={cls.class_id_teacher}
-                  value={cls.class_id_teacher}
-                >
-                  {cls.class_name} ({cls.semester}/{cls.academic_year})
+                <option key={cls.class_id_teacher} value={cls.class_id_teacher}>
+                  {cls.class_name}-({cls.semester}/{cls.academic_year})-
+                  {cls.subject_name}
                 </option>
               ))}
             </select>
@@ -220,8 +209,9 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className={`w-full rounded-lg border p-2.5 text-sm ${errors.start_date ? "border-red-300" : "border-gray-300"
-                  }`}
+                className={`w-full rounded-lg border p-2.5 text-sm ${
+                  errors.start_date ? "border-red-300" : "border-gray-300"
+                }`}
               />
             </div>
             <div>
@@ -230,8 +220,9 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className={`w-full rounded-lg border p-2.5 text-sm ${errors.end_date ? "border-red-300" : "border-gray-300"
-                  }`}
+                className={`w-full rounded-lg border p-2.5 text-sm ${
+                  errors.end_date ? "border-red-300" : "border-gray-300"
+                }`}
               />
             </div>
           </div>
@@ -248,8 +239,11 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
             <button
               type="submit"
               disabled={!canSubmit}
-              className={`flex-1 rounded-lg py-2.5 text-sm font-medium text-white ${canSubmit ? "bg-blue-600 hover:bg-blue-700" : "bg-blue-300 cursor-not-allowed"
-                }`}
+              className={`flex-1 rounded-lg py-2.5 text-sm font-medium text-white ${
+                canSubmit
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : "bg-blue-300 cursor-not-allowed"
+              }`}
             >
               {submitting ? "Đang tạo..." : "💾 Tạo Báo Cáo"}
             </button>

@@ -137,14 +137,27 @@ return [
     */
 
     'meilisearch' => [
-        'host' => env('MEILISEARCH_HOST', 'http://localhost:7700'),
-        'key' => env('MEILISEARCH_KEY'),
+
+        'host' => env('MEILISEARCH_HOST', 'http://127.0.0.1:7700'),
+        'key'  => env('MEILISEARCH_KEY', null),
         'index-settings' => [
-            // 'users' => [
-            //     'filterableAttributes'=> ['id', 'name', 'email'],
-            // ],
+            'user_profiles' => [
+
+                // Cho phép tìm theo từng ký tự prefix
+                'sortableAttributes' => ['user_id', 'fullname', 'class_id', 'major_id', 'teacher_id'],
+                'searchableAttributes' => ['user_id', 'fullname', 'email', 'phone'],
+                'filterableAttributes' => ['class_id', 'major_id', 'teacher_id'],
+
+                // Bật prefix search mạnh
+                'typoTolerance' => [
+                    'enabled' => true,
+                ],
+
+                'prefixSearch' => true,
+            ],
         ],
     ],
+
 
     /*
     |--------------------------------------------------------------------------

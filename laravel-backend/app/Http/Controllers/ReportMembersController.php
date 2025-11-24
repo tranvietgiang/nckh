@@ -114,26 +114,21 @@ class ReportMembersController extends Controller
 
         AuthHelper::roleTeacher();
 
-        $validated = $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv',
-            'teacher_id' => 'required|string',
-            'report_id' => 'required|integer',
-            'class_id' => 'required|integer',
-            'major_id' => 'required|integer',
-        ], [
-            'file.required' => 'Vui lòng chọn file cần import.',
-            'file.file' => 'Tập tin không hợp lệ.',
-            'file.mimes' => 'File phải có định dạng: xlsx, xls hoặc csv.',
+        try {
+            $validated = $request->validate([
+                'file'       => 'required|file|mimes:xlsx,xls,csv',
+                'teacher_id' => 'required|string',
+                'report_id'  => 'required|integer',
+                'class_id'   => 'required|integer',
+                'major_id'   => 'required|integer',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message_error' => '❌ Dữ liệu không hợp lệ! Vui lòng liên hệ Admin.'
+            ], 422);
+        }
 
-            'teacher_id.required' => 'Thiếu dữ liệu giảng viên.',
-            'report_id.required' => 'Thiếu mã báo cáo.',
-            'class_id.required' => 'Thiếu mã lớp.',
-            'major_id.required' => 'Thiếu mã ngành.',
-
-            'report_id.integer' => 'Mã báo cáo phải là số nguyên.',
-            'class_id.integer' => 'Mã lớp phải là số nguyên.',
-            'major_id.integer' => 'Mã ngành phải là số nguyên.',
-        ]);
 
         $reportId = (int) $validated['report_id'];
         $teacherId = (string) $validated['teacher_id'];
@@ -267,5 +262,75 @@ class ReportMembersController extends Controller
         }
 
         return response()->json(['success' => false, 'message_error' => 'Không tìm thấy nhóm nào để xóa.']);
+    }
+
+    public function getGroupsOfReport($classId, $reportId)
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+
+        // Kiểm tra report có thuộc lớp & giáo viên
+        $report = DB::table("reports")
+            ->where("report_id", $reportId)
+            ->where("class_id", $classId)
+            ->where("teacher_id", $teacherId)
+            ->first();
+
+        if (!$report) {
+            return response()->json([
+                "message_error" => "Báo cáo không tồn tại hoặc không thuộc lớp này!"
+            ], 404);
+        }
+
+        $latestSubmission = DB::table('report_members as rm2')
+            ->join('report_members as leader2', function ($join) {
+                $join->on('leader2.report_id', '=', 'rm2.report_id')
+                    ->on('leader2.rm_code', '=', 'rm2.rm_code')
+                    ->where('leader2.report_m_role', '=', 'NT'); // NHÓM TRƯỞNG
+            })
+            ->leftJoin('submissions as s2', 's2.student_id', '=', 'leader2.student_id')
+            ->leftJoin('user_profiles as up', 'up.user_id', '=', 'leader2.student_id')
+            ->select(
+                'rm2.rm_code',
+                'leader2.student_id AS leader_id',
+                'up.fullname AS leader_name',
+                DB::raw('MAX(s2.submission_id) AS latest_submission_id')
+            )
+            ->where('rm2.report_id', $reportId)
+            ->groupBy('rm2.rm_code', 'leader2.student_id', 'up.fullname');
+
+
+        $groups = DB::table('report_members as rm')
+            ->leftJoinSub($latestSubmission, 'ls', function ($join) {
+                $join->on('ls.rm_code', '=', 'rm.rm_code');
+            })
+            ->leftJoin('submissions as s', 's.submission_id', '=', 'ls.latest_submission_id')
+            ->leftJoin('grades as g', 'g.submission_id', '=', 's.submission_id')
+            ->select(
+                'rm.rm_code',
+                DB::raw('COUNT(rm.student_id) AS total_members'),
+
+                // 🔥 THÊM:
+                'ls.leader_id',
+                'ls.leader_name',
+
+                DB::raw("
+            CASE
+                WHEN s.status = 'submitted' THEN 'submitted'
+                WHEN s.status = 'graded' THEN 'graded'
+                WHEN s.status = 'rejected' THEN 'rejected'
+                ELSE 'not_submitted'
+            END AS status
+        "),
+                DB::raw('COALESCE(g.score, NULL) AS grade')
+            )
+            ->where('rm.report_id', $reportId)
+            ->groupBy('rm.rm_code', 'ls.leader_id', 'ls.leader_name', 'status', 'g.score')
+            ->orderBy('rm.rm_code')
+            ->get();
+
+
+
+        return response()->json($groups, 200);
     }
 }

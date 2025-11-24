@@ -7,6 +7,7 @@ use App\Imports\StudentsImport;
 use App\Models\Classe;
 use App\Models\ImportError;
 use App\Models\User;
+use App\Models\user_profile;
 use App\Services\StudentService;
 use Exception;
 use Illuminate\Http\Request;
@@ -25,25 +26,30 @@ class StudentController extends Controller
             $validated = $request->validate([
                 'file' => 'required|file|mimes:xlsx,xls,csv',
                 'major_id' => 'required|integer',
-                'teacher_id' => 'required|string',
-                'class_id' => [
-                    'required',
-                    'integer',
-                    Rule::exists('classes', 'class_id')->where(function ($q) use ($request) {
-                        $q->where('teacher_id', $request->input('teacher_id'));
-                    }),
-                ],
+                'teacher_id' => 'required|string|max:20',
+                'subject_id' => 'required|integer',
+                'academic_year' => 'required|string|max:20',
+                'semester' => 'required|string|max:20',
+                'class_id' => 'required|integer'
             ]);
+
+
 
             $classId = (int) $validated['class_id'];
             $majorId = (int) $validated['major_id'];
             $teacherId = (string) $validated['teacher_id'];
+            $subjectId = (int) $validated['subject_id'];
+            $academic_year = (string) $validated['academic_year'];
+            $semester = (string) $validated['semester'];
 
             // Tạo instance để lấy thống kê sau import
             $import = new StudentsImport(
                 classId: $classId,
                 teacherId: $teacherId,
-                majorId: $majorId
+                majorId: $majorId,
+                subjectId: $subjectId,
+                academic_year: $academic_year,
+                semester: $semester,
             );
 
             // Chỉ import 1 lần
@@ -70,8 +76,7 @@ class StudentController extends Controller
             ]);
         } catch (Exception $e) {
             return response()->json([
-                'error'   => '❌ Import thất bại!',
-                'message' => $e->getMessage(), // lấy nội dung lỗi cụ thể
+                'message'   => '❌ Import thất bại!, vui lòng liên hệ admin',
             ], 400);
         }
     }
@@ -95,5 +100,40 @@ class StudentController extends Controller
         $result = $this->studentService->getProfile($userId, $role);
 
         return response()->json($result, $result['success'] ? 200 : 404);
+    }
+
+    public function meilisearchStudent(Request $r)
+    {
+        $q = trim($r->query('q', ''));
+        $classId   = $r->query('class_id');
+        $majorId   = $r->query('major_id');
+        $teacherId = $r->query('teacher_id');
+
+        if ($q === '') return response()->json([]);
+
+        $builder = user_profile::search($q)
+            // CHỈ LẤY SV
+            ->query(function ($eloquent) use ($classId, $majorId, $teacherId) {
+                $eloquent->whereHas('user', function ($u) {
+                    $u->where('role', 'student');
+                });
+
+                if ($classId) {
+                    $eloquent->where('class_id', $classId);
+                }
+
+                if ($majorId) {
+                    $eloquent->where('major_id', $majorId);
+                }
+
+                // nếu teacher_id là giáo viên của lớp
+                if ($teacherId) {
+                    $eloquent->whereHas('class', function ($c) use ($teacherId) {
+                        $c->where('teacher_id', $teacherId);
+                    });
+                }
+            });
+
+        return response()->json($builder->get());
     }
 }

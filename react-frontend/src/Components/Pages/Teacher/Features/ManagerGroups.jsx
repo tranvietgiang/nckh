@@ -134,6 +134,9 @@ export default function ManagerGroups() {
   const onFileChange = (e) => setSelectedFile(e.target.files?.[0] || null);
 
   const handleImportGroups = async () => {
+    if (!getNameReport?.report_id) {
+      return alert("❌ Lớp này chưa có báo cáo! Không thể import nhóm.");
+    }
     if (!selectedMajorId) return alert("Vui lòng chọn ngành trước!");
     if (!selectedClassId) return alert("Vui lòng chọn lớp trước!");
     if (!selectedFile) return alert("Vui lòng chọn file Excel!");
@@ -160,7 +163,7 @@ export default function ManagerGroups() {
       if (fileRef.current) fileRef.current.value = "";
       fetchGroups();
     } catch (err) {
-      alert(err.response?.data?.message || "Lỗi kết nối server!");
+      alert(err.response?.data?.message_error || "Lỗi kết nối server!");
     } finally {
       setImporting(false);
     }
@@ -218,7 +221,7 @@ export default function ManagerGroups() {
     if (!rm_code) return;
     setRmCode(rm_code);
   };
-
+  console.log(getNameReport);
   // ========================== UI ==========================
   return (
     <>
@@ -281,33 +284,6 @@ export default function ManagerGroups() {
             ))}
           </select>
         </div>
-
-        {/* ===== Chọn môn học =====
-        <div className="bg-white rounded-lg shadow p-4 mb-6">
-          <label className="block mb-2 text-sm font-medium text-gray-700">
-            Môn học
-          </label>
-          <select
-            value={selectedSubjectId}
-            onChange={(e) => setSelectedSubjectId(e.target.value)}
-            disabled={!selectedClassId || loadingSubjects}
-            className="w-full max-w-md p-3 border border-gray-300 rounded-lg"
-          >
-            <option value="">
-              {!selectedClassId
-                ? "— Chọn lớp trước —"
-                : loadingSubjects
-                ? "🔄 Đang tải môn học..."
-                : "— Chọn môn học —"}
-            </option>
-
-            {subjects.map((s) => (
-              <option key={s.subject_id} value={s.subject_id}>
-                {s.subject_name}
-              </option>
-            ))}
-          </select>
-        </div> */}
 
         {/* ===== Import nhóm + Xóa nhóm ===== */}
         {selectedClassId && (
@@ -386,7 +362,7 @@ export default function ManagerGroups() {
                   {groups.map((g) => (
                     <option key={g.rm_code} value={g.rm_code}>
                       {`${g.rm_name || "Nhóm chưa đặt tên"} — Trưởng nhóm: ${
-                        g.leader_name ? g.leader_name : "Chưa có trưởng nhóm"
+                        g?.leader_name ? g?.leader_name : "Chưa có trưởng nhóm"
                       }`}
                     </option>
                   ))}
