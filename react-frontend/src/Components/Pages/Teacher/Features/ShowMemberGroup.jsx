@@ -61,9 +61,9 @@ export default function ShowMemberGroup() {
                   <CiUser size={17} /> Thành viên: {g.total_members}
                 </p>
                 <p className="flex items-center">
-                  {g?.leader_name
-                    ? g?.leader_id - g?.leader_name
-                    : "chưa có nhóm trưởng"}
+                  {g.leader_name === null
+                    ? "Chưa có NT"
+                    : `${g?.leader_id} - ${g?.leader_name}`}
                 </p>
 
                 {/* 🔥 HIỂN THỊ TRẠNG THÁI */}
