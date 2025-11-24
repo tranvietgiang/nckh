@@ -436,9 +436,7 @@ class ReportController extends Controller
 
 
         if ($count === 0) {
-            return response()->json([
-                'message' => 'Sinh viên này chưa có nhóm hoặc chưa tham gia báo cáo nào.'
-            ], 404);
+            return response()->json(0);
         }
 
 

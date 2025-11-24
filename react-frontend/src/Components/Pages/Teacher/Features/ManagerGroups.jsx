@@ -362,7 +362,7 @@ export default function ManagerGroups() {
                   {groups.map((g) => (
                     <option key={g.rm_code} value={g.rm_code}>
                       {`${g.rm_name || "Nhóm chưa đặt tên"} — Trưởng nhóm: ${
-                        g.leader_name ? g.leader_name : "Chưa có trưởng nhóm"
+                        g?.leader_name ? g?.leader_name : "Chưa có trưởng nhóm"
                       }`}
                     </option>
                   ))}

@@ -42,19 +42,26 @@ class StudentsImport implements ToCollection, WithHeadingRow
         $this->academic_year   = $academic_year;
         $this->semester   = $semester;
 
-        // ✅ Kiểm tra thông tin đầu vào
+        // Kiểm tra thông tin đầu vào
         $majorExist  = Major::where('major_id', $this->majorId)->exists();
+        if (!$majorExist) throw new \Exception("❌ Lỗi server! Ngành không tồn tại.");
+
         $teacherExist = user_profile::where('user_id', $this->teacherId)
             ->where('major_id', $this->majorId)
             ->exists();
+        if (!$teacherExist) throw new \Exception("❌ Lỗi server! Giảng viên không dạy ngành này.");
+
         $classExist   = Classe::where('class_id', $this->classId)
             ->where('teacher_id', $this->teacherId)
             ->where('major_id', $this->majorId)
             ->exists();
-
-        if (!$majorExist) throw new \Exception("❌ Lỗi server! Ngành không tồn tại.");
-        if (!$teacherExist) throw new \Exception("❌ Lỗi server! Giảng viên không dạy ngành này.");
         if (!$classExist) throw new \Exception("❌ Lỗi server! Lớp không thuộc giáo viên hoặc ngành này.");
+
+        $checkStudentCount = DB::table("user_profiles")
+            ->where("class_id", $this->classId)
+            ->count();
+
+        if ($checkStudentCount > 40) throw new \Exception("❌ Số sinh viên quá nhiều không thể import nửa!");
     }
 
     public function collection(Collection $rows)
@@ -90,6 +97,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             $phone     = trim((string)($row['phone'] ?? ''));
             $email     = strtolower(trim((string)($row['email'] ?? '')));
 
+
             if (is_numeric($birthdate)) {
                 try {
                     $birthdate = Date::excelToDateTimeObject($birthdate)->format('d/m/Y');
@@ -121,7 +129,6 @@ class StudentsImport implements ToCollection, WithHeadingRow
                 $this->logError($msv, $ten, $email, "MSSV không khớp ngành ({$major->major_name} - yêu cầu chứa: {$abbr})");
                 continue;
             }
-
 
 
 
@@ -163,8 +170,8 @@ class StudentsImport implements ToCollection, WithHeadingRow
 
                 DB::transaction(function () use ($msv, $ten, $email, $phone, $class, $birthdate) {
 
-                    // 1️⃣ Kiểm tra xem có user nào đã dùng email/sdt này chưa
-                    $conflict = User::where(function ($q) use ($email, $phone) {
+                    // Kiểm tra xem có user nào đã dùng email/sdt này chưa
+                    $conflict = User::where(function ($q) use ($email) {
                         $q->where('email', $email);
                     })
                         ->where('user_id', '!=', $msv)
@@ -175,8 +182,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                     }
 
 
-
-                    // 2️⃣ Nếu user chưa tồn tại thì tạo mới
+                    // Nếu user chưa tồn tại thì tạo mới
                     $user = User::where('user_id', $msv)->first();
 
                     if (!$user) {
@@ -188,7 +194,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
                         ]);
                     }
 
-                    // 3️⃣ Nếu profile chưa có lớp/ngành này thì thêm mới
+                    // Nếu profile chưa có lớp/ngành này thì thêm mới
                     $existsProfile = user_profile::where('user_id', $msv)
                         ->where('class_id', $this->classId)
                         ->where('major_id', $this->majorId)
@@ -215,7 +221,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
     }
 
     /**
-     * 🧾 Ghi log lỗi ImportError thống nhất format
+     * Ghi log lỗi ImportError thống nhất format
      */
     private function logError($msv, $ten, $email, $reason)
     {

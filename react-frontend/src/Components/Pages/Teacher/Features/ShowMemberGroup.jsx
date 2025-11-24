@@ -49,7 +49,7 @@ export default function ShowMemberGroup() {
             Danh sách nhóm của báo cáo nhóm {}
           </h1>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {allGroups.map((g) => (
+            {allGroups?.map((g) => (
               <div
                 key={g.rm_code}
                 className="cursor-pointer p-4 border rounded-lg hover:bg-gray-100 transition"
@@ -61,8 +61,8 @@ export default function ShowMemberGroup() {
                   <CiUser size={17} /> Thành viên: {g.total_members}
                 </p>
                 <p className="flex items-center">
-                  {g.leader_id && g.leader_name
-                    ? g.leader_id - g.leader_name
+                  {g?.leader_name
+                    ? g?.leader_id - g?.leader_name
                     : "chưa có nhóm trưởng"}
                 </p>
 

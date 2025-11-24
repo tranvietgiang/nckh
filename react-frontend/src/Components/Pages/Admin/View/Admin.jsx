@@ -15,7 +15,6 @@ import ReportsManagement from "../Features/Reports";
 import MajorImportPage from "../Features/MajorImportPage";
 import ImportTeacher from "../Features/ImportTeacher"; // 👈 thêm dòng này
 
-
 export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
@@ -31,6 +30,7 @@ export default function AdminManagement() {
   const role = getRole();
   const { user, token } = getAuth();
 
+  // localStorage.clear();
   IsLogin(user, token);
   RoleAmin(role);
 
@@ -97,7 +97,6 @@ export default function AdminManagement() {
     fetchData();
   }, []);
 
-
   const handleUpdateUser = async (updatedUser) => {
     const { user_id, ...data } = updatedUser;
     if (data.password === "") delete data.password;
@@ -130,7 +129,6 @@ export default function AdminManagement() {
     if (type === "students") navigate("/nckh-admin/import-student");
     else navigate("/nckh-admin/import-teacher");
   };
-  
 
   // tìm kiếm
   const filteredStudents = students.filter(
@@ -186,10 +184,10 @@ export default function AdminManagement() {
       {showToast && (
         <div
           className={`fixed top-5 right-5 z-50 px-4 py-3 rounded-lg shadow-lg text-white transition-all duration-300 ${
-            toastMessage.startsWith("✅")
+            (toastMessage.startsWith("✅")
               ? "bg-green-500 animate-bounce"
               : "bg-red-500 animate-shake",
-            toastMessage.startsWith("✅") ? "bg-green-500" : "bg-red-500"
+            toastMessage.startsWith("✅") ? "bg-green-500" : "bg-red-500")
           }`}
         >
           {toastMessage}
@@ -258,7 +256,10 @@ export default function AdminManagement() {
                 />
               }
             />
-            <Route path="reports" element={<ReportsManagement reports={reports} />} />
+            <Route
+              path="reports"
+              element={<ReportsManagement reports={reports} />}
+            />
             <Route path="majors" element={<MajorImportPage />} />
             {/* 👇 Thêm route mới cho import */}
             <Route path="import-teacher" element={<ImportTeacher />} />
