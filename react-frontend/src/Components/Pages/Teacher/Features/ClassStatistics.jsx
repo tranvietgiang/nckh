@@ -8,49 +8,93 @@ export default function ClassStatistics() {
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // 🔍 Tìm kiếm + lọc
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Tất cả");
 
   // 🧩 Lấy thông tin user
-  const { user, token } = getAuth();
-  const teacherId = user?.user_id;
+  const { token } = getAuth();
 
   // ==========================
-  // 🔥 LẤY DANH SÁCH SINH VIÊN
+  // 🔥 LẤY DANH SÁCH SINH VIÊN - ĐÃ SỬA
   // ==========================
   useEffect(() => {
-    if (!teacherId) return;
+    // ✅ CHUYỂN classId SANG NUMBER
+    const numericClassId = parseInt(classId);
 
+    if (!numericClassId || isNaN(numericClassId)) {
+      setError("❌ Lỗi: ID lớp học không hợp lệ");
+      setLoading(false);
+      return;
+    }
+
+    console.log("🔍 Gọi API với classId (number):", numericClassId);
+
+    // ✅ SỬA ENDPOINT: Dùng endpoint mới
     axios
-      .get(`/classes/${classId}/teachers/${teacherId}/students`, {
+      .get(`/classes/students/${numericClassId}`, { // ✅ ĐÃ SỬA
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        setStudents(res.data.list_student || []);
+        console.log("📊 API Response:", res.data);
+        // ✅ SỬA: res.data.data thay vì res.data.list_student
+        if (res.data.success) {
+          setStudents(res.data.data || []);
+        } else {
+          setError(res.data.message || "Không thể tải danh sách sinh viên");
+        }
       })
       .catch((err) => {
         console.error("❌ Lỗi khi tải danh sách sinh viên:", err);
+        setError("Lỗi kết nối server khi tải danh sách sinh viên");
       })
       .finally(() => setLoading(false));
-  }, [classId, teacherId]);
+  }, [classId, token]);
 
-  if (loading)
-    return <p className="text-center mt-10 text-gray-600">⏳ Đang tải dữ liệu...</p>;
-
-  if (!students || students.length === 0)
+  // ==========================
+  // 🎯 HIỂN THỊ TRẠNG THÁI
+  // ==========================
+  if (loading) {
     return (
-      <div className="text-center mt-10">
-        <p className="text-red-500">Không tìm thấy sinh viên nào trong lớp này!</p>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-3 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
-        >
-          ⬅ Quay lại
-        </button>
+      <div className="max-w-6xl mx-auto p-6">
+        <p className="text-center mt-10 text-gray-600">⏳ Đang tải dữ liệu...</p>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center mt-10">
+          <p className="text-red-500 text-lg mb-4">{error}</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+          >
+            ⬅ Quay lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!students || students.length === 0) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <div className="text-center mt-10">
+          <p className="text-red-500">Không tìm thấy sinh viên nào trong lớp này!</p>
+          <button
+            onClick={() => navigate(-1)}
+            className="mt-3 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
+          >
+            ⬅ Quay lại
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // ==========================
   // 📊 Thống kê số liệu
