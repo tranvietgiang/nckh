@@ -1,3 +1,4 @@
+import BackToTop from "../../../ReUse/Top/BackToTop";
 import PendingReports from "./PendingReports";
 import ReportCompleted from "./ReportCompleted";
 export default function Content() {
@@ -8,6 +9,7 @@ export default function Content() {
         <PendingReports />
         {/* phần đã hoàn thành */}
         <ReportCompleted />
+        <BackToTop />
       </main>
     </>
   );

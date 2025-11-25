@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
 import Footer from "../../Student/Home/Footer";
-
+import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function ImportTeacher() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -30,17 +30,25 @@ export default function ImportTeacher() {
       setStatus("⏳ Đang tải lên và xử lý dữ liệu...");
       setResult(null);
 
-      const response = await axios.post("/nhhh/admin/import-teachers", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await axios.post(
+        "/nhhh/admin/import-teachers",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
 
       const data = response.data;
-      setStatus(data.failed === 0 ? "✅ Import hoàn tất!" : "⚠️ Import có lỗi!");
+      setStatus(
+        data.failed === 0 ? "✅ Import hoàn tất!" : "⚠️ Import có lỗi!"
+      );
       setResult(data);
     } catch (error) {
       console.error("Lỗi import:", error);
       if (error.response && error.response.data) {
-        setStatus(`❌ ${error.response.data.message || "Lỗi xử lý file Excel!"}`);
+        setStatus(
+          `❌ ${error.response.data.message || "Lỗi xử lý file Excel!"}`
+        );
       } else {
         setStatus("⚠️ Không thể kết nối đến máy chủ. Vui lòng thử lại!");
       }
@@ -166,15 +174,23 @@ export default function ImportTeacher() {
               {/* Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-blue-50 rounded-lg p-6 text-center border border-blue-200">
-                  <div className="text-3xl font-bold text-blue-600">{result.total || 0}</div>
-                  <div className="text-gray-600 text-sm mt-2">Tổng số giảng viên</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {result.total || 0}
+                  </div>
+                  <div className="text-gray-600 text-sm mt-2">
+                    Tổng số giảng viên
+                  </div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-6 text-center border border-green-200">
-                  <div className="text-3xl font-bold text-green-600">{result.success || 0}</div>
+                  <div className="text-3xl font-bold text-green-600">
+                    {result.success || 0}
+                  </div>
                   <div className="text-gray-600 text-sm mt-2">Thành công</div>
                 </div>
                 <div className="bg-red-50 rounded-lg p-6 text-center border border-red-200">
-                  <div className="text-3xl font-bold text-red-600">{result.failed || 0}</div>
+                  <div className="text-3xl font-bold text-red-600">
+                    {result.failed || 0}
+                  </div>
                   <div className="text-gray-600 text-sm mt-2">Thất bại</div>
                 </div>
               </div>
@@ -209,12 +225,19 @@ export default function ImportTeacher() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {result.successList.map((user, idx) => (
-                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 text-sm text-gray-900 font-medium">{idx + 1}</td>
+                            <tr
+                              key={idx}
+                              className="hover:bg-gray-50 transition-colors"
+                            >
+                              <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                                {idx + 1}
+                              </td>
                               <td className="px-6 py-4 text-sm font-medium text-gray-900 font-mono">
                                 {user.user_id}
                               </td>
-                              <td className="px-6 py-4 text-sm text-gray-900">{user.fullname}</td>
+                              <td className="px-6 py-4 text-sm text-gray-900">
+                                {user.fullname}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -254,12 +277,19 @@ export default function ImportTeacher() {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {result.errors.map((err, idx) => (
-                            <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                              <td className="px-6 py-4 text-sm text-gray-900 font-medium">{idx + 1}</td>
+                            <tr
+                              key={idx}
+                              className="hover:bg-gray-50 transition-colors"
+                            >
+                              <td className="px-6 py-4 text-sm text-gray-900 font-medium">
+                                {idx + 1}
+                              </td>
                               <td className="px-6 py-4 text-sm font-medium text-gray-900 font-mono">
                                 {err.user_id || "Không rõ"}
                               </td>
-                              <td className="px-6 py-4 text-sm text-red-600">{err.reason}</td>
+                              <td className="px-6 py-4 text-sm text-red-600">
+                                {err.reason}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -272,7 +302,8 @@ export default function ImportTeacher() {
           )}
         </div>
       </div>
-      
+
+      <BackToTop />
       <Footer />
     </div>
   );

@@ -69,7 +69,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
     if (!selectedMajor) return;
     setLoadingClass(true);
     axios
-      .get(`/get-class-by-major/${selectedMajor}`)
+      .get(`/get-class-by-major-teacher/${selectedMajor}`)
       .then((res) => setClasses(res.data))
       .catch(() => setClasses([]))
       .finally(() => setLoadingClass(false));
@@ -112,7 +112,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
     try {
       setLoading(true);
       const res = await axios.post("/create-notification", formData);
-      alert(res.data.message_success || "✅ Gửi thông báo thành công!");
+      alert(res.data.message_success || "Gửi thông báo thành công!");
       setFormData({
         class_id: "",
         major_id: "",
