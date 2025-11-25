@@ -115,7 +115,7 @@ export default function TeacherDashboard() {
 
     if (name === "Tạo Thông Báo") setOpenNotification(true);
     else if (routes[name]) navigate(routes[name]);
-    else console.warn("⚠️ Chức năng chưa được định nghĩa:", name);
+    else console.warn(" Chức năng chưa được định nghĩa:", name);
   };
 
   const handleViewStats = (classId) => {

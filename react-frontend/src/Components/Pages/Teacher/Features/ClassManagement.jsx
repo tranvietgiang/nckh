@@ -30,7 +30,7 @@ export default function ClassManagement() {
     if (!user?.major_id || !token) return;
 
     axios
-      .get(`/get-class-by-major/${user.major_id}`, {
+      .get(`/get-class-by-major`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
