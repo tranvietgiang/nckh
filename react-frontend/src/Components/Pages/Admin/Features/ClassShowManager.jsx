@@ -61,7 +61,9 @@ export default function ClassShowManager() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert(res.data.message || "Import lớp học thành công!");
+      // DÙ import có lỗi 1 vài dòng vẫn coi là success request
+      alert(res.data.message || "Import lớp học hoàn tất!");
+
       setShowImportModal(false);
       setSelectedFile(null);
 
@@ -73,14 +75,16 @@ export default function ClassShowManager() {
       }
     } catch (err) {
       console.error("Lỗi khi import:", err);
+      // Chỉ báo lỗi hệ thống
       alert(
         err.response?.data?.message ||
-          "❌ Import thất bại! Vui lòng kiểm tra lại file Excel."
+        "❌ Cần Resert lại trang !!"
       );
     } finally {
       setImportLoading(false);
     }
   };
+
 
   useEffect(() => {
     axios
@@ -419,9 +423,8 @@ export default function ClassShowManager() {
                 <button
                   onClick={handleImportSubmit}
                   disabled={importLoading}
-                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${
-                    importLoading ? "opacity-70 cursor-not-allowed" : ""
-                  }`}
+                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${importLoading ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
                 >
                   {importLoading ? "Đang import..." : "Import"}
                 </button>
