@@ -153,15 +153,11 @@ class ClassController extends Controller
     public function import(Request $request)
     {
         try {
+            $request->validate([
+                'file' => 'required|mimes:xlsx,xls',
+            ]);
+
             $file = $request->file('file');
-
-            if (!$file) {
-                return response()->json([
-                    'message' => '❌ Không có file tải lên!'
-                ], 400);
-            }
-
-            // Gọi import KHÔNG cần truyền thêm teacherId hoặc majorId
             $import = new ClassImport();
             Excel::import($import, $file);
 
@@ -170,13 +166,16 @@ class ClassController extends Controller
                 'success' => $import->success,
                 'failed' => $import->failed,
                 'total' => $import->totalClass,
+                'successList' => $import->successList,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => '❌ Lỗi khi import lớp học: ' . $e->getMessage(),
+                'message' => '❌ Lỗi hệ thống khi import: ' . $e->getMessage(),
             ], 500);
         }
     }
+
+
 
     public function getYearsByClass()
     {
