@@ -14,6 +14,8 @@ import StudentsTeachersTab from "../Features/StudentsTeachersTab";
 import ReportsManagement from "../Features/Reports";
 import MajorImportPage from "../Features/MajorImportPage";
 import ImportTeacher from "../Features/ImportTeacher"; // 👈 thêm dòng này
+import BackToTop from "../../../ReUse/Top/BackToTop";
+import Footer from "../../Student/Home/Footer";
 
 export default function AdminManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -268,6 +270,8 @@ export default function AdminManagement() {
       </main>
 
       <ModalImport stateOpen={openImports} onClose={setOpenImports} />
+      <BackToTop />
+      <Footer />
     </div>
   );
 }

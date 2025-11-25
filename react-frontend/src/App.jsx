@@ -8,7 +8,7 @@ import Admin from "./Components/Pages/Admin/View/Admin";
 /**page Feature */
 import ImportAndDetailStudents from "./Components/Pages/Admin/Features/ImportAndDetailStudents";
 import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
-import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
+// import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback";
@@ -44,7 +44,7 @@ function App() {
             {/* Trang admin */}
             <Route path="/nckh-admin/*" element={<Admin />} />
             {/* Trang quản lý lớp học */}
-            <Route path="/nckh-class-manager" element={<ClassManager />} />
+            {/* <Route path="/nckh-class-manager" element={<ClassManager />} /> */}
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang giảng viên */}

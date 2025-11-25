@@ -105,7 +105,6 @@ export default function TeacherDashboard() {
   // ⚡ Thao tác nhanh
   const handleButtonClick = (name) => {
     const routes = {
-      "Quản Lý Lớp": "/nckh-class-manager",
       "Quản Lý Báo Cáo": "/nckh-report-manager",
       "Tạo Báo Cáo": "/nckh-create-report",
       "Chấm Báo cáo": "/nckh-teacher-scoringfeedback",
@@ -174,9 +173,8 @@ export default function TeacherDashboard() {
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
             THAO TÁC NHANH
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              "Quản Lý Lớp",
               "Quản Lý Báo Cáo",
               "Chấm Báo cáo",
               "Tạo Thông Báo",

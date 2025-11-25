@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "../../../../config/axios";
 import ModalMajor from "../Modal/ModalAddMajor";
-
+import BackToTop from "../../../ReUse/Top/BackToTop";
+import Footer from "../../Student/Home/Footer";
 export default function MajorImportPage() {
   const [majors, setMajors] = useState([]);
   const [majorErrors, setMajorErrors] = useState([]);
@@ -372,6 +373,9 @@ export default function MajorImportPage() {
           onSuccess={handleMajorSuccess}
         />
       )}
+
+      <BackToTop />
+      <Footer />
     </div>
   );
 }

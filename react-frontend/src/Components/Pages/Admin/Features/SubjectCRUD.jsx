@@ -5,6 +5,7 @@ import AdminHeader from "../View/AdminHeader";
 import Footer from "../../../ReUse/Footer/Footer";
 import { getRole } from "../../../Constants/INFO_USER";
 import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function SubjectImportPage() {
   const [subjects, setSubjects] = useState([]);
   const [subjectErrors, setSubjectErrors] = useState([]);
@@ -479,6 +480,7 @@ export default function SubjectImportPage() {
         />
       </div>
 
+      <BackToTop />
       <Footer />
     </>
   );
