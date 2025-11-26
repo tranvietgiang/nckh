@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Repositories\NotificationRepository;
 use App\Models\Classe;
+use App\Models\ImportError;
 use App\Models\Major;
 use App\Models\User;
 use App\Models\user_profile;
@@ -33,7 +34,7 @@ class NotificationService
             }
         }
 
-        $class = Classe::find($data['class_id']);
+        $class = Classe::where('class_id', $data['class_id'])->first();
         if (!$class) {
             return ['success' => false, 'message_error' => "Lớp này không tồn tại!"];
         }
@@ -49,8 +50,8 @@ class NotificationService
 
         $created = $this->repo->createNotificationRepository($data, $class->class_name);
 
-        // ✅ Sau khi gửi xong, check xem có lỗi gửi mail không
-        $countErrors = \App\Models\ImportError::where('typeError', 'notification')
+        // Sau khi gửi xong, check xem có lỗi gửi mail không
+        $countErrors = ImportError::where('typeError', 'notification')
             ->where('teacher_id', $data['teacher_id'])
             ->where('class_id', $data['class_id'])
             ->count();
@@ -70,19 +71,19 @@ class NotificationService
 
     public function getNotifyService(string $studentId): array
     {
-        $data = $this->repo->getNotifyRepository($studentId);
+        // $data = $this->repo->getNotifyRepository($studentId);
 
-        if ($data->count() > 0) {
-            $data = $data->map(function ($item) {
-                $teacherName = user_profile::where('user_id', $item->teacher_id)->value('fullname');
-                $item->teacher_name = $teacherName ?? 'Không rõ';
-                return $item;
-            });
-            return [
-                'status' => true,
-                'data'   => $data
-            ];
-        }
-        return ["status" => false, []];
+        // if ($data->count() > 0) {
+        //     $data = $data->map(function ($item) {
+        //         $teacherName = user_profile::where('user_id', $item->teacher_id)->value('fullname');
+        //         $item->teacher_name = $teacherName ?? 'Không rõ';
+        //         return $item;
+        //     });
+        //     return [
+        //         'status' => true,
+        //         'data'   => $data
+        //     ];
+        // }
+        // return ["status" => false, []];
     }
 }

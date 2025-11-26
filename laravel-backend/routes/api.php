@@ -99,6 +99,10 @@ Route::middleware('auth:sanctum')->prefix('nhhh')->group(function () {
     Route::get('submission/reports', [SubmissionController::class, 'getReportsByYear']);
 });
 
+// lấy ra tên báo cáo theo giáo viên
+Route::middleware('auth:sanctum')->get('/get-teacher-name-by-submission/{submission}', [TeacherController::class, 'getNameTeacherBySubmission']);
+
+
 
 /*
 |--------------------------------------------------------------------------

@@ -118,7 +118,8 @@ export default function Header() {
                   Chào {user?.fullname} - {user?.user_id}
                 </h2>
                 <p className="text-gray-600 mt-1 text-base flex items-center">
-                  <strong>Ngành {getNamMajor?.major_name ?? ""}</strong>
+                  <strong>Ngành: </strong>
+                  <span className="px-2">{getNamMajor?.major_name ?? ""}</span>
                 </p>
               </div>
               <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium w-full sm:w-auto text-center mt-2 sm:mt-0 flex items-center justify-center">
@@ -180,7 +181,7 @@ export default function Header() {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-6xl mx-auto">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-1 gap-4 max-w-6xl mx-auto">
           {/* <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center">
             Xem chi tiết
           </button> */}

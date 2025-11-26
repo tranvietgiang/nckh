@@ -65,13 +65,13 @@ class TeacherController extends Controller
     {
         AuthHelper::isLogin();
 
-        // ✅ 1. Kiểm tra lớp tồn tại
+        // Kiểm tra lớp tồn tại
         $class = Classe::with('major')->find($class_id);
         if (!$class) {
             return response()->json(['message' => 'Không tìm thấy lớp!'], 404);
         }
 
-        // ✅ 2. Lấy toàn bộ sinh viên thuộc lớp
+        // Lấy toàn bộ sinh viên thuộc lớp
         $students = DB::table('user_profiles')
             ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
             ->where('user_profiles.class_id', $class_id)
@@ -79,14 +79,14 @@ class TeacherController extends Controller
             ->select('users.user_id', 'users.full_name')
             ->get();
 
-        // ✅ 3. Lấy sinh viên đã nộp báo cáo
+        // Lấy sinh viên đã nộp báo cáo
         $submittedIds = DB::table('submissions')
             ->join('reports', 'reports.report_id', '=', 'submissions.report_id')
             ->where('reports.class_id', $class_id)
             ->pluck('submissions.student_id')
             ->toArray();
 
-        // ✅ 4. Thống kê số lượng bài
+        // Thống kê số lượng bài
         $gradedCount = DB::table('submissions')
             ->join('reports', 'reports.report_id', '=', 'submissions.report_id')
             ->where('reports.class_id', $class_id)
@@ -99,18 +99,18 @@ class TeacherController extends Controller
             ->where('submissions.status', 'rejected')
             ->count();
 
-        // ✅ 5. Tính toán
+        // Tính toán
         $total = $students->count();
         $submitted = count($submittedIds);
         $notSubmitted = $total - $submitted;
 
-        // ✅ 6. Gắn trạng thái từng sinh viên
+        // Gắn trạng thái từng sinh viên
         $students = $students->map(function ($s) use ($submittedIds) {
             $s->submitted = in_array($s->user_id, $submittedIds);
             return $s;
         });
 
-        // ✅ 7. Trả JSON cho frontend
+        // Trả JSON cho frontend
         return response()->json([
             'class' => [
                 'class_name' => $class->class_name,
