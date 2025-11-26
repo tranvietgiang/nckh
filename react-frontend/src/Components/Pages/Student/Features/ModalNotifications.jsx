@@ -42,7 +42,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
           <h3 className="text-2xl font-bold text-gray-800 flex items-center">
-            📢 Thông báo
+            Thông báo
             {unreadCount > 0 && (
               <span className="ml-3 bg-red-500 text-white text-sm font-semibold rounded-full w-7 h-7 flex items-center justify-center">
                 {unreadCount}
@@ -76,7 +76,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
                     {noti.title}
                   </h4>
                   <span className="text-sm text-gray-500">
-                    🕒 {new Date(noti.created_at).toLocaleString()}
+                    {new Date(noti.created_at).toLocaleString()}
                   </span>
                 </div>
 
@@ -84,12 +84,12 @@ export default function ModelNotifications({ stateOpen, onClose }) {
                 <div className="text-sm text-gray-600 mb-3">
                   <p>
                     <span className="font-semibold text-gray-700">
-                      👨‍🏫 Giảng viên:
+                      Giảng viên:
                     </span>{" "}
                     {noti?.teacher_name ?? ""}
                   </p>
                   <p>
-                    <span className="font-semibold text-gray-700">🏫 Lớp:</span>{" "}
+                    <span className="font-semibold text-gray-700">Lớp:</span>{" "}
                     {noti?.class_name ?? ""}
                   </p>
                 </div>
@@ -102,7 +102,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
             ))
           ) : (
             <div className="p-16 text-center text-gray-500 text-lg">
-              📭 Không có thông báo nào
+              Không có thông báo nào
             </div>
           )}
         </div>
@@ -110,7 +110,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
         {/* Footer */}
         <div className="p-5 border-t border-gray-200 bg-gray-50 text-center">
           <button className="w-full text-blue-600 hover:text-blue-800 font-semibold py-2 text-base transition-colors duration-200">
-            📋 Xem tất cả thông báo
+            Xem tất cả thông báo
           </button>
         </div>
       </div>

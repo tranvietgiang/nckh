@@ -82,7 +82,6 @@ export default function CompleteReports() {
       .get(`/get-name-group-by-student`)
       .then((res) => {
         setNameGroup(res.data || []);
-        // console.log(res.data);
       })
       .catch((err) => {
         setNameGroup([]);

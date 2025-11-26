@@ -70,7 +70,10 @@ export default function CreateNotification({ stateOpen, onClose }) {
     setLoadingClass(true);
     axios
       .get(`/get-class-by-major-teacher/${selectedMajor}`)
-      .then((res) => setClasses(res.data))
+      .then((res) => {
+        setClasses(res.data);
+        console.log(res.data);
+      })
       .catch(() => setClasses([]))
       .finally(() => setLoadingClass(false));
   }, [selectedMajor]);
@@ -124,8 +127,9 @@ export default function CreateNotification({ stateOpen, onClose }) {
       });
       setSelectedMajor("");
       onClose(false);
-    } catch {
+    } catch (err) {
       alert("❌ Gửi thất bại!");
+      console.log(err);
     } finally {
       setLoading(false);
     }
@@ -204,7 +208,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
                   )}
                 </option>
                 {classes.map((c) => (
-                  <option key={c.class_id_teacher} value={c.class_id_teacher}>
+                  <option key={c.class_id} value={c.class_id}>
                     {c.class_name}
                   </option>
                 ))}

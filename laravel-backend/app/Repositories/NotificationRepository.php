@@ -27,7 +27,7 @@ class NotificationRepository
 
             if (!$notification) return false;
 
-            // ✅ Gửi email cho sinh viên (nếu có bật)
+            //  Gửi email cho sinh viên (nếu có bật)
             if (!empty($data['sendEmail']) && $data['sendEmail'] === true) {
                 $students = user_profile::select('users.email', 'user_profiles.fullname', 'users.user_id')
                     ->join('users', 'users.user_id', '=', 'user_profiles.user_id')
@@ -40,7 +40,7 @@ class NotificationRepository
 
                 foreach ($students as $student) {
                     try {
-                        // ✅ Kiểm tra email có hợp lệ hay không
+                        // Kiểm tra email có hợp lệ hay không
                         if (!filter_var($student->email, FILTER_VALIDATE_EMAIL)) {
                             ImportError::create([
                                 'user_id'     => $student->user_id,
@@ -55,7 +55,7 @@ class NotificationRepository
                             continue;
                         }
 
-                        // ✅ Gửi mail
+                        // Gửi mail
                         Mail::to($student->email)->send(
                             new StudentNotificationMail(
                                 $student->fullname,
@@ -66,7 +66,7 @@ class NotificationRepository
                             )
                         );
                     } catch (\Exception $e) {
-                        // ✅ Nếu gửi lỗi => lưu lại trong bảng import_errors
+                        // Nếu gửi lỗi => lưu lại trong bảng import_errors
                         ImportError::create([
                             'user_id'     => $student->user_id,
                             'fullname'    => $student->fullname,
