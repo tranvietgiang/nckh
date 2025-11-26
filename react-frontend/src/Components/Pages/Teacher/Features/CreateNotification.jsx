@@ -3,6 +3,7 @@ import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
 import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { IoCloseSharp } from "react-icons/io5";
 
 // ✨ Hiệu ứng 3 chấm mượt (DotPulse)
 function DotLoading({ text = "Đang tải", color = "gray" }) {
@@ -149,12 +150,12 @@ export default function CreateNotification({ stateOpen, onClose }) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">📢 TẠO THÔNG BÁO</h1>
+            <h1 className="text-2xl font-bold"> TẠO THÔNG BÁO</h1>
             <button
               onClick={() => onClose(false)}
               className="text-2xl font-bold"
             >
-              ×
+              <IoCloseSharp />
             </button>
           </div>
 

@@ -21,5 +21,5 @@
     Trân trọng,
     Phòng Đào tạo - TDC
 
-    <small>Đây là email tự động, vui lòng không trả lời.</small>
+    Đây là email tự động, vui lòng không trả lời.
 @endcomponent
