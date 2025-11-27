@@ -285,6 +285,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/submissions/{reportId}', [TeacherScoringController::class, 'getSubmissions']);
     });
     Route::post('/grades', [TeacherScoringController::class, 'storeGrade']);
+    Route::get('/grading-report-teacher', [GradeController::class, 'getGradingReportByTeacher']);
 });
 
 

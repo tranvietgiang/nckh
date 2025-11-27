@@ -158,4 +158,43 @@ class GradeController extends Controller
 
         return response()->json($submissions, 200);
     }
+    public function getGradingReportByTeacher()
+    {
+        $teacherId = AuthHelper::isLogin();
+
+        $getData = DB::table('grades')
+            ->join('submissions', 'grades.submission_id', '=', 'submissions.submission_id')
+            ->join('reports', 'submissions.report_id', '=', 'reports.report_id')
+            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->join('report_members', 'reports.report_id', '=', 'report_members.report_id')
+            ->where('grades.teacher_id', $teacherId)
+            ->select(
+                'reports.report_id',
+                'reports.report_name',
+                'reports.start_date',
+                'reports.end_date',
+                'subjects.subject_name',
+                'classes.class_name',
+                "grades.score",
+                DB::raw('COUNT(grades.grade_id) as total_graded'),
+                "report_members.rm_name as group_name",
+            )
+            ->groupBy(
+                'reports.report_id',
+                'reports.report_name',
+                'reports.start_date',
+                'reports.end_date',
+                'subjects.subject_name',
+                'classes.class_name',
+                "grades.score",
+                "group_name",
+            )
+            ->get();
+
+        return response()->json(
+            $getData,
+            200
+        );
+    }
 }
