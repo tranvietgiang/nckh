@@ -40,7 +40,10 @@ export default function Navbar() {
           ? "/nckh-admin"
           : "/nckh-404",
     },
-    { name: "Team", href: "#", current: false },
+    {
+      href: role === "student" ? "" : "/nckh-404",
+      current: false,
+    },
   ];
 
   const [openNotification, setOpenNotification] = useState(false);
@@ -77,9 +80,9 @@ export default function Navbar() {
             </div>
             <div className="hidden sm:ml-6 sm:block">
               <div className="flex space-x-4">
-                {navigation.map((item) => (
+                {navigation.map((item, index) => (
                   <a
-                    key={item.name}
+                    key={item.name || index}
                     href={item.href}
                     aria-current={item.current ? "page" : undefined}
                     className={classNames(
@@ -132,11 +135,6 @@ export default function Navbar() {
                     className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none"
                   >
                     Hồ sơ
-                  </Link>
-                </MenuItem>
-                <MenuItem>
-                  <Link className="block px-4 py-2 text-sm text-gray-300 data-[focus]:bg-white/5 data-[focus]:outline-none">
-                    Cài đặt
                   </Link>
                 </MenuItem>
                 <MenuItem>

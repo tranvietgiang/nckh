@@ -3,7 +3,7 @@ import axios from "../../../../config/axios";
 import ReportSubmissionModal from "../Features/ReportSubmissionPage";
 import { getUser } from "../../../Constants/INFO_USER";
 
-// 🌀 Hiệu ứng loading
+//  Hiệu ứng loading
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
     color === "white"
@@ -34,43 +34,31 @@ export default function PendingReports() {
   const [uploading, setUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [submissionMap, setSubmissionMap] = useState({}); // ✅ lưu trạng thái + file_path
+  // const [submissionMap, setSubmissionMap] = useState({});
+  const [reportCount, setReportCount] = useState(null);
 
   // 🔹 Lấy danh sách báo cáo
   useEffect(() => {
     axios
-      .post("/tvg/get-report-by-student")
+      .get("/tvg/get-report-by-student")
       .then((res) => {
         setReports(res.data);
-        console.log("📄 Report data:", res.data);
       })
       .catch((error) => {
         console.log("❌ Lỗi khi load report:", error);
       })
       .finally(() => setLoading(false));
-  }, []);
-
-  // 🔹 Lấy trạng thái nộp và link file thực tế
-  useEffect(() => {
-    if (reports.length === 0) return;
 
     axios
-      .get("/tvg/get-submission/submitted")
+      .get("/tvg/get-count-report-by-student")
       .then((res) => {
-        const map = {};
-        res.data.forEach((item) => {
-          map[item.report_id] = {
-            status: item.status,
-            file_path: item.file_path,
-          };
-        });
-        setSubmissionMap(map);
-        console.log("✅ Submission map:", map);
+        setReportCount(res.data);
       })
-      .catch((error) => {
-        console.log("❌ Lỗi khi lấy submission:", error);
+      .catch((err) => {
+        setReportCount([]);
+        console.log(err);
       });
-  }, [reports]);
+  }, []);
 
   // 🔹 Hàm nộp báo cáo
   const handleSubmit = async (file) => {
@@ -87,6 +75,7 @@ export default function PendingReports() {
 
     try {
       setUploading(true);
+
       const res = await axios.post("/drive-upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -107,9 +96,9 @@ export default function PendingReports() {
 
   // 🔹 Render nút hành động
   const renderActionButton = (report) => {
-    const isLeader = report.report_m_role === "NT";
-    const submission = submissionMap[report.report_id];
-    const isSubmitted = submission?.status === "submitted";
+    const isLeader = report?.report_m_role === "NT";
+    const file_path = report?.file_path ?? null;
+    const isSubmitted = report?.submission_id ?? null;
 
     if (!isLeader) {
       return (
@@ -117,9 +106,9 @@ export default function PendingReports() {
           <div className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-center">
             👥 Bạn là thành viên trong nhóm
           </div>
-          {isSubmitted && submission.file_path && (
+          {isSubmitted && (
             <a
-              href={submission.file_path}
+              href={file_path}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-center"
@@ -133,9 +122,9 @@ export default function PendingReports() {
 
     return (
       <div className="space-y-2 mt-4">
-        {isSubmitted && submission.file_path && (
+        {isSubmitted && (
           <a
-            href={submission.file_path}
+            href={file_path}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-center"
@@ -164,7 +153,7 @@ export default function PendingReports() {
   return (
     <div className="max-w-6xl mx-auto bg-gray-50 min-h-screen p-4 rounded-lg shadow-md mt-[10px]">
       <h1 className="text-3xl font-bold text-center mb-6 text-gray-900">
-        DANH SÁCH BÁO CÁO
+        BÁO CÁO CẦN NỘP ({reportCount || 0})
       </h1>
 
       {loading ? (
@@ -177,11 +166,21 @@ export default function PendingReports() {
         </p>
       ) : (
         reports.map((report) => {
-          const submission = submissionMap[report.report_id];
-          const isSubmitted = submission?.status === "submitted";
+          const isSubmitted = report?.submission_id ?? null;
+          const file_path = report?.file_path ?? null;
+          const date = new Date();
+          const formatted =
+            date.getFullYear() +
+            "-" +
+            String(date.getMonth() + 1).padStart(2, "0") +
+            "-" +
+            String(date.getDate()).padStart(2, "0");
 
-          return (
-            <div key={report.report_id} className="mb-6">
+          return report?.start_date > report?.end_date ||
+            report?.end_date < formatted ? (
+            ""
+          ) : (
+            <div key={report?.report_id} className="mb-6">
               <div
                 className={`border border-gray-300 rounded-lg p-4 transition ${
                   isSubmitted
@@ -190,40 +189,52 @@ export default function PendingReports() {
                 }`}
               >
                 <h2 className="font-semibold text-lg mb-2 text-gray-800">
-                  {report.report_name}
+                  {report?.report_name ?? "Chưa có thông tin"}
                 </h2>
 
                 <div className="space-y-1 text-sm text-gray-600">
                   <p>
-                    <strong>Môn học:</strong> {report.report_name}
+                    <strong>Môn học:</strong>{" "}
+                    {report?.subject_name ?? "Chưa có thông tin"}
                   </p>
                   <p>
-                    <strong>Giáo viên phụ trách:</strong> {report.teacher_id}
+                    <strong>Giáo viên phụ trách:</strong>{" "}
+                    {report?.fullname ?? "Chưa có thông tin"}
                   </p>
                   <p>
-                    <strong>Hạn nộp:</strong>{" "}
-                    {new Date(report.end_date).toLocaleDateString("vi-VN")}
+                    <strong>Ngày nộp:</strong>
+                    <span className="mx-1">
+                      {new Date(report?.start_date).toLocaleDateString("vi-VN")}
+                    </span>
                   </p>
 
-                  {report.rm_name ? (
+                  <p>
+                    <strong>Hạn nộp:</strong>
+                    <span className="mx-1">
+                      {new Date(report?.end_date).toLocaleDateString("vi-VN")}
+                    </span>
+                  </p>
+
+                  {report?.rm_name ? (
                     <>
                       <p>
-                        <strong>Nhóm:</strong> {report.rm_name}
+                        <strong>Nhóm:</strong>{" "}
+                        {report?.rm_name ?? "Chưa có thông tin"}
                       </p>
                       <p>
-                        <strong>Vai trò:</strong>{" "}
+                        <strong>Vai trò:</strong>
                         <span
                           className={`px-2 font-semibold ${
-                            report.report_m_role === "NT"
+                            report?.report_m_role === "NT"
                               ? "text-blue-600"
-                              : report.report_m_role === "NP"
+                              : report?.report_m_role === "NP"
                               ? "text-green-600"
                               : "text-gray-600"
                           }`}
                         >
-                          {report.report_m_role === "NT"
+                          {report?.report_m_role === "NT"
                             ? "Nhóm trưởng"
-                            : report.report_m_role === "NP"
+                            : report?.report_m_role === "NP"
                             ? "Nhóm phó"
                             : "Thành viên"}
                         </span>
@@ -235,22 +246,22 @@ export default function PendingReports() {
                     </p>
                   )}
 
-                  {/* ✅ Trạng thái nộp + link xem file */}
+                  {/* Trạng thái nộp + link xem file */}
                   <p>
-                    <strong>Trạng thái nộp:</strong>{" "}
+                    <strong>Trạng thái nộp:</strong>
                     <span
                       className={`px-2 font-semibold ${
                         isSubmitted ? "text-green-600" : "text-red-500"
                       }`}
                     >
-                      {isSubmitted ? "✅ Đã nộp" : "❌ Chưa nộp"}
+                      {isSubmitted ? "Đã nộp" : "❌ Chưa nộp"}
                     </span>
                   </p>
 
-                  {isSubmitted && submission?.file_path && (
+                  {isSubmitted && (
                     <p>
                       <a
-                        href={submission.file_path}
+                        href={file_path}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 underline"
@@ -270,9 +281,12 @@ export default function PendingReports() {
 
       <ReportSubmissionModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          if (!uploading) setIsModalOpen(false); // Không cho đóng modal khi uploading
+        }}
         onSubmit={handleSubmit}
         reportData={selectedReport}
+        uploading={uploading} //  TRUYỀN TRẠNG THÁI VÀO MODAL
       />
 
       {uploading && (

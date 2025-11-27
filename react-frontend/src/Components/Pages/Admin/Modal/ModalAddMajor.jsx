@@ -8,7 +8,7 @@ import {
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
-export default function ModalMajor({ stateOpen, onClose }) {
+export default function ModalMajor({ stateOpen, onClose, editingMajor }) {
   const { user, token } = getAuth();
   IsLogin(user, token);
   const navigate = useNavigate();
@@ -52,12 +52,12 @@ export default function ModalMajor({ stateOpen, onClose }) {
   };
 
   const createMajor = async (data) => {
-    const res = await axios.post("/majors", data);
+    const res = await axios.post("/create-majors", data);
     return res.data;
   };
 
   const updateMajor = async (id, data) => {
-    const res = await axios.put(`/create-majors/${id}`, data);
+    const res = await axios.put(`/update-majors/${id}`, data);
     return res.data;
   };
 
@@ -110,7 +110,7 @@ export default function ModalMajor({ stateOpen, onClose }) {
         await fetchMajors();
         window.onMajorActionSuccess?.();
       } else {
-        alert(`❌ ${res.message_error || "Không rõ nguyên nhân"}`);
+        alert(`${res?.message || "❌  Không rõ nguyên nhân"}`);
       }
     } catch (err) {
       console.error("❌ Lỗi xử lý:", err);
@@ -162,6 +162,20 @@ export default function ModalMajor({ stateOpen, onClose }) {
     resetForm();
     onClose(false);
   };
+  useEffect(() => {
+    if (editingMajor) {
+      // ✅ Gán dữ liệu ngành đang sửa vào form
+      setFormData({
+        major_id: editingMajor.major_id,
+        major_name: editingMajor.major_name,
+        major_abbreviate: editingMajor.major_abbreviate,
+      });
+      setIsEditing(true);
+    } else {
+      // ✅ Reset về trạng thái thêm mới
+      resetForm();
+    }
+  }, [editingMajor]);
 
   if (!stateOpen) return null;
 

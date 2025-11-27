@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import Navbar from "../../../ReUse/Navbar/Navbar";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Footer from "../Home/Footer";
 import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
@@ -31,20 +31,20 @@ export default function ProfilePage() {
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;
     const data_user_profile = getSafeJSON("user_profiles");
-    if (data_user_profile) {
+    if (data_user_profile !== null) {
       setProfile(data_user_profile);
     }
 
     try {
       const res = await axios.get("/profiles");
-      if (role === "teacher") {
-        setProfile(res.data);
-        setSafeJSON("user_profiles", JSON.stringify(res.data));
-      } else {
-        setProfile(res.data[0]);
-        setSafeJSON("user_profiles", JSON.stringify(res.data[0]));
+      const fresh = role === "teacher" ? res.data : res.data[0];
+
+      // Chỉ update nếu data mới khác cache → tránh re-render vô nghĩa
+      if (JSON.stringify(fresh) !== JSON.stringify(data_user_profile)) {
+        setProfile(fresh);
+        setSafeJSON("user_profiles", fresh);
       }
-      console.log(res.data);
+      // console.log(res.data);
     } catch (error) {
       console.log(error);
     }
@@ -208,7 +208,7 @@ export default function ProfilePage() {
                       Trạng thái
                     </label>
                     <div className="p-2 bg-green-50 text-green-700 rounded-lg border border-green-200 inline-block">
-                      ✅ {getProfile?.status}
+                      Đang hoạt động
                     </div>
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
               {/* Đổi mật khẩu */}
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  🔒 Bảo Mật
+                  Bảo Mật
                 </h2>
 
                 {!showPasswordForm ? (
@@ -228,7 +228,7 @@ export default function ProfilePage() {
                     onClick={() => setShowPasswordForm(true)}
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200"
                   >
-                    🔑 Đổi Mật Khẩu
+                    Đổi Mật Khẩu
                   </button>
                 ) : (
                   <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -276,14 +276,14 @@ export default function ProfilePage() {
                         type="submit"
                         className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200"
                       >
-                        💾 Lưu
+                        Lưu
                       </button>
                       <button
                         type="button"
                         onClick={() => setShowPasswordForm(false)}
                         className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200"
                       >
-                        ❌ Hủy
+                        Hủy
                       </button>
                     </div>
                   </form>
@@ -293,16 +293,16 @@ export default function ProfilePage() {
               {/* Actions nhanh */}
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                  ⚡ Hành Động
+                  Hành Động
                 </h2>
 
                 <div className="space-y-3">
                   <button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center">
-                    ✏️ Chỉnh sửa thông tin
+                    Chỉnh sửa thông tin
                   </button>
 
                   <button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center">
-                    📧 Đổi email
+                    Đổi email
                   </button>
 
                   <button
@@ -313,7 +313,7 @@ export default function ProfilePage() {
                     }}
                     className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center justify-center"
                   >
-                    🚪 Đăng xuất
+                    Đăng xuất
                   </button>
                 </div>
               </div>

@@ -7,6 +7,7 @@ use App\Imports\SubjectImport;
 use App\Models\Subject;
 use App\Services\SubjectService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -19,13 +20,13 @@ class SubjectController extends Controller
         $this->subjectService = $subjectService;
     }
 
-    // 🟢 Lấy danh sách
+    // Lấy danh sách
     public function indexSubject()
     {
         $result = $this->subjectService->getAllSubjects();
         return response()->json($result, 200);
     }
-    // 🟢 Lấy danh sách
+    // Lấy danh sách
     public function getSubjectByMajor($idMajor)
     {
         $result = DB::table("subjects")
@@ -35,6 +36,40 @@ class SubjectController extends Controller
             return response()->json($result, 200);
         }
     }
+
+    // Lấy danh sách
+    public function getSubjectByMajorByTeacher($idMajor)
+    {
+        $result = DB::table("subjects")
+            ->join("majors", "subjects.major_id", "majors.major_id")
+            ->join("classes", "subjects.subject_id", "classes.subject_id")
+            ->where("subjects.major_id", $idMajor)
+            ->where("classes.teacher_id", Auth::id())
+            ->get();
+        if ($result->count() > 0) {
+            return response()->json($result, 200);
+        }
+    }
+
+    // 🟢 Lấy danh sách
+    public function getSubjectByMajorByClass($majorId, $subjectId)
+    {
+        AuthHelper::roleTeacher();
+
+        $result = DB::table("subjects")
+            ->join("majors", "subjects.major_id", "majors.major_id")
+            ->join("classes", "subjects.subject_id", "classes.subject_id")
+            ->where("subjects.major_id", $majorId)
+            ->where("classes.subject_id", $subjectId)
+            ->where("classes.teacher_id", Auth::id())
+            ->get();
+
+        if ($result->count() > 0) {
+            return response()->json($result, 200);
+        }
+    }
+
+
     public function getSubject($id)
     {
         AuthHelper::roleAmin();
@@ -121,5 +156,32 @@ class SubjectController extends Controller
             'success' => 0,
             'failed' => 0
         ], 500);
+    }
+
+    // search engine meilisearch
+    public function meilisearchSubjects(Request $r)
+    {
+        $q = trim($r->query('q', ''));
+        if ($q === '') return [];
+        // Có thể tăng limit nếu cần
+        // nếu muốn limit   take(200)->get();
+        return Subject::search($q)->get();
+    }
+
+    public function getSubjectsByClass($classId)
+    {
+        // chỉ cho teacher gọi
+        AuthHelper::roleTeacher();
+        $teacherId = AuthHelper::isLogin();
+
+        $subjects = DB::table('classes')
+            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+            ->where('classes.class_id', $classId)
+            ->where('classes.teacher_id', $teacherId)
+            ->select('subjects.subject_id', 'subjects.subject_name')
+            ->distinct()
+            ->get();
+
+        return response()->json($subjects, 200);
     }
 }

@@ -2,11 +2,17 @@
 
 namespace App\Models;
 
+use Laravel\Scout\Searchable;
+
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+
 class user_profile extends Model
 {
     //
+    use Searchable;
+
+
     protected $table = "user_profiles";
     protected $primaryKey = 'user_profile_id';
     protected $keyType = "int";
@@ -81,5 +87,19 @@ class user_profile extends Model
             'success' => true,
             'data' => $students,
         ]);
+    }
+
+
+    // Dữ liệu đưa lên index
+    public function toSearchableArray(): array
+    {
+        return [
+            'user_id'   => $this->user_id,
+            'fullname'  => $this->fullname,
+            'email'     => $this->email,
+            'phone'     => $this->phone,
+            'birthdate' => $this->birthdate,
+            'role'      => $this->user->role ?? null,  // để backend filter student
+        ];
     }
 }

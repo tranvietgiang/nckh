@@ -3,6 +3,7 @@ import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
 import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { IoCloseSharp } from "react-icons/io5";
 
 // ✨ Hiệu ứng 3 chấm mượt (DotPulse)
 function DotLoading({ text = "Đang tải", color = "gray" }) {
@@ -69,8 +70,11 @@ export default function CreateNotification({ stateOpen, onClose }) {
     if (!selectedMajor) return;
     setLoadingClass(true);
     axios
-      .get(`/get-class-by-major/${selectedMajor}`)
-      .then((res) => setClasses(res.data))
+      .get(`/get-class-by-major-teacher/${selectedMajor}`)
+      .then((res) => {
+        setClasses(res.data);
+        console.log(res.data);
+      })
       .catch(() => setClasses([]))
       .finally(() => setLoadingClass(false));
   }, [selectedMajor]);
@@ -108,11 +112,13 @@ export default function CreateNotification({ stateOpen, onClose }) {
     if (!formData.class_id) return alert("⚠️ Vui lòng chọn lớp!");
     if (!formData.title.trim()) return alert("⚠️ Vui lòng nhập tiêu đề!");
     if (!formData.content.trim()) return alert("⚠️ Vui lòng nhập nội dung!");
+    if (!formData.content.trim() > 500 || formData.title.trim() > 200)
+      return alert("⚠️ Vui lòng nhập nội dung dưới 500 ký tự!");
 
     try {
       setLoading(true);
       const res = await axios.post("/create-notification", formData);
-      alert(res.data.message_success || "✅ Gửi thông báo thành công!");
+      alert(res.data.message_success || "Gửi thông báo thành công!");
       setFormData({
         class_id: "",
         major_id: "",
@@ -124,8 +130,9 @@ export default function CreateNotification({ stateOpen, onClose }) {
       });
       setSelectedMajor("");
       onClose(false);
-    } catch {
+    } catch (err) {
       alert("❌ Gửi thất bại!");
+      console.log(err);
     } finally {
       setLoading(false);
     }
@@ -145,12 +152,12 @@ export default function CreateNotification({ stateOpen, onClose }) {
           onClick={(e) => e.stopPropagation()}
         >
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-            <h1 className="text-2xl font-bold">📢 TẠO THÔNG BÁO</h1>
+            <h1 className="text-2xl font-bold"> TẠO THÔNG BÁO</h1>
             <button
               onClick={() => onClose(false)}
               className="text-2xl font-bold"
             >
-              ×
+              <IoCloseSharp />
             </button>
           </div>
 
@@ -204,7 +211,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
                   )}
                 </option>
                 {classes.map((c) => (
-                  <option key={c.class_id_teacher} value={c.class_id_teacher}>
+                  <option key={c.class_id} value={c.class_id}>
                     {c.class_name}
                   </option>
                 ))}

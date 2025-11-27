@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Classe extends Model
 {
@@ -42,7 +43,7 @@ class Classe extends Model
                 'user_profiles.fullname',
             )
             ->where('users.role', 'teacher')
-            ->orderBy('majors.major_name')
+            ->orderBy('classes.created_at', "desc")
             ->distinct()
             ->get();
 
@@ -54,5 +55,9 @@ class Classe extends Model
         }
 
         return response()->json($classes, 200);
+    }
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'class_id', 'class_id');
     }
 }

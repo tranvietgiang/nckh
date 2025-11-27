@@ -24,6 +24,7 @@ class ReportMemberSeeder extends Seeder
                     'student_id'    => $student->user_id,
                     'report_m_role' => $index === 0 ? 'NT' : 'TV', // NT = Nhóm trưởng, TV = Thành viên
                     'rm_code'       => 'RM-' . strtoupper(uniqid()),
+                    'rm_name' => fake()->name(),
                     'created_at'    => Carbon::now(),
                     'updated_at'    => Carbon::now(),
                 ];

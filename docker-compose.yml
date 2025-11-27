@@ -33,7 +33,7 @@ services:
     working_dir: /app
     command: ["npm", "run", "dev", "--", "--host"]
     environment:
-      - CHOKIDAR_USEPOLLING=true # 👈 giúp Vite theo dõi file trong môi trường ảo hóa
+      - CHOKIDAR_USEPOLLING=true
     depends_on:
       - backend
 
@@ -50,6 +50,15 @@ services:
       UPLOAD_LIMIT: 128M
     depends_on:
       - mysql
+
+  meilisearch:
+    image: getmeili/meilisearch:latest
+    container_name: project-meilisearch
+    environment:
+      - MEILI_MASTER_KEY=mysecret
+    ports:
+      - "7700:7700"
+    restart: always
 
 volumes:
   mysql_data:

@@ -8,21 +8,23 @@ import Admin from "./Components/Pages/Admin/View/Admin";
 /**page Feature */
 import ImportAndDetailStudents from "./Components/Pages/Admin/Features/ImportAndDetailStudents";
 import ProfilePage from "./Components/Pages/Student/Features/ProfilePage";
-import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
+// import ClassManager from "./Components/Pages/Teacher/Features/ClassManagement";
 import NotFoundPage from "./Components/ReUse/404/NotFoundPage";
 import StudentDashboard from "./Components/Pages/Student/View/StudentDashboard";
 import ScoringFeedback from "./Components/Pages/Teacher/Features/ScoringFeedback";
 import StudentsTeachersTab from "./Components/Pages/Admin/Features/StudentsTeachersTab";
 import Reports from "./Components/Pages/Admin/Features/Reports";
 import Dashboard from "./Components/Pages/Admin/Features/Dashboard";
+import ImportTeacher from "./Components/Pages/Admin/Features/ImportTeacher";
 
 import ClassShowManager from "./Components/Pages/Admin/Features/ClassShowManager";
 import MajorImportPage from "./Components/Pages/Admin/Features/MajorImportPage";
-import CreateReports from "./Components/Pages/Teacher/Features/CreateReports";
+import CreateReports from "./Components/Pages/Teacher/Modal/ModalCreateReports";
 import ClassStatistics from "./Components/Pages/Teacher/Features/ClassStatistics";
 import ManagerGroups from "./Components/Pages/Teacher/Features/ManagerGroups";
 import SubjectCrud from "./Components/Pages/Admin/Features/SubjectCRUD";
-
+import ReportManager from "./Components/Pages/Teacher/Features/ReportManager";
+import ShowMemberGroup from "./Components/Pages/Teacher/Features/ShowMemberGroup";
 function App() {
   return (
     <>
@@ -42,9 +44,14 @@ function App() {
             {/* Trang admin */}
             <Route path="/nckh-admin/*" element={<Admin />} />
             {/* Trang quản lý lớp học */}
-            <Route path="/nckh-class-manager" element={<ClassManager />} />
+            {/* <Route path="/nckh-class-manager" element={<ClassManager />} /> */}
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
+            {/* Trang giảng viên */}
+            <Route
+              path="/nckh-admin/import-teacher"
+              element={<ImportTeacher />}
+            />
             {/**Trang chấm điểm GV */}
             <Route
               path="/nckh-teacher-scoringfeedback"
@@ -59,13 +66,21 @@ function App() {
             {/* Tạo môn học */}
             <Route path="/nckh-subject" element={<SubjectCrud />} />
             <Route path="/nckh-create-report" element={<CreateReports />} />
-            {/* Tạo báo cáo */}
             <Route
               path="/nckh-class-stats/:classId"
               element={<ClassStatistics />}
             />
             {/* Quản lý nhóm */}
             <Route path="/nckh-teacher-groups" element={<ManagerGroups />} />
+            /*===============================================END============================================
+            */
+            {/* Quản lý nhóm */}
+            <Route path="/nckh-report-manager" element={<ReportManager />} />
+            {/* Xem nhóm lớp */}
+            <Route
+              path="/nckh-show-group-teacher"
+              element={<ShowMemberGroup />}
+            />
             /*===============================================END============================================
             */
           </Routes>

@@ -1,171 +1,149 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
+import { getRole } from "../../../Constants/INFO_USER";
+import RouterBack from "../../../ReUse/Back/RouterBack";
+import Navbar from "../../../ReUse/Navbar/Navbar";
+import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import Footer from "../../Student/Home/Footer";
 
 export default function ClassStatistics() {
   const { classId } = useParams();
   const navigate = useNavigate();
-  const [students, setStudents] = useState([]);
+
+  const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔍 State cho tìm kiếm và lọc
-  const [searchTerm, setSearchTerm] = useState("");
+  // search + filter
+  const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("Tất cả");
 
+  // role
+  const role = getRole();
+  useRoleTeacher(role);
+
+  // fetch reports
   useEffect(() => {
     axios
-      .get(`/classes/${classId}/students`)
+      .get(`/tvg/classes/${classId}/reports`)
       .then((res) => {
-        setStudents(res.data.data);
-        setLoading(false);
+        setReports(res.data);
+        console.log(res.data);
       })
-      .catch((err) => {
-        console.error("❌ Lỗi khi tải danh sách sinh viên:", err);
-        setLoading(false);
-      });
+      .catch((err) => console.log("❌ API error:", err))
+      .finally(() => setLoading(false));
   }, [classId]);
 
-  if (loading)
-    return <p className="text-center mt-10 text-gray-600">⏳ Đang tải dữ liệu...</p>;
+  if (loading) return <p className="text-center mt-10">⏳ Đang tải...</p>;
 
-  if (!students || students.length === 0)
+  if (!reports.length)
     return (
-      <div className="text-center mt-10">
-        <p className="text-red-500">Không tìm thấy sinh viên nào trong lớp này!</p>
-        <button
-          onClick={() => navigate(-1)}
-          className="mt-3 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded"
-        >
-          ⬅ Quay lại
-        </button>
-      </div>
+      <>
+        <Navbar />
+        <div className="text-center mt-10">
+          <p className="text-red-500">Không có báo cáo nào trong lớp này!</p>
+          <RouterBack navigate={navigate} />
+        </div>
+        <Footer />
+      </>
     );
 
-  // ✅ Tính toán thống kê
-  const total = students.length;
-  const submitted = students.filter((s) => s.status === "Đã nộp").length;
-  const graded = students.filter((s) => s.status === "Đã chấm").length;
-  const rejected = students.filter((s) => s.status === "Bị từ chối").length;
-  const notSubmitted = students.filter((s) => s.status === "Chưa nộp").length;
+  // filter list
+  const filtered = reports.filter((r) => {
+    const nameMatch =
+      (r.report_name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+      (r.description?.toLowerCase() || "").includes(search.toLowerCase());
 
-  // ✅ Lọc dữ liệu theo ô tìm kiếm & dropdown trạng thái
-  const filteredStudents = students.filter((sv) => {
-    const matchNameOrId =
-      sv.fullname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sv.user_id.toString().includes(searchTerm);
-    const matchStatus =
-      statusFilter === "Tất cả" ? true : sv.status === statusFilter;
-    return matchNameOrId && matchStatus;
+    const statusMatch =
+      statusFilter === "Tất cả" ? true : r.status === statusFilter;
+
+    return nameMatch && statusMatch;
   });
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-xl mt-8">
-      {/* Nút quay lại */}
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-4 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded"
-      >
-        ⬅ Quay lại
-      </button>
+    <>
+      <Navbar />
+      <div className="max-w-6xl mx-auto p-6 bg-white shadow-lg rounded-lg mt-8">
+        <RouterBack navigate={navigate} />
 
-      {/* Tiêu đề */}
-      <h1 className="text-2xl font-bold text-blue-700 mb-2">
-        📊 Thống kê sinh viên của lớp {students[0]?.class_name}
-      </h1>
-      <p className="text-gray-600 mb-6">Tổng cộng {total} sinh viên</p>
+        <h1 className="text-2xl font-bold text-blue-700 mb-3">
+          📚 Danh sách báo cáo của lớp {classId}
+        </h1>
 
-      {/* Thống kê tổng quan */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-        <div className="bg-blue-100 p-4 rounded-lg text-center">
-          <p className="text-3xl font-bold text-blue-700">{total}</p>
-          <p>Tổng SV</p>
-        </div>
-        <div className="bg-green-100 p-4 rounded-lg text-center">
-          <p className="text-3xl font-bold text-green-700">{submitted}</p>
-          <p>Đã nộp</p>
-        </div>
-        <div className="bg-yellow-100 p-4 rounded-lg text-center">
-          <p className="text-3xl font-bold text-yellow-700">{notSubmitted}</p>
-          <p>Chưa nộp</p>
-        </div>
-        <div className="bg-purple-100 p-4 rounded-lg text-center">
-          <p className="text-3xl font-bold text-purple-700">{graded}</p>
-          <p>Đã chấm</p>
-        </div>
-        <div className="bg-red-100 p-4 rounded-lg text-center">
-          <p className="text-3xl font-bold text-red-700">{rejected}</p>
-          <p>Bị từ chối</p>
-        </div>
-      </div>
+        {/* Search + Filter */}
+        <div className="flex flex-col md:flex-row gap-4 mb-6">
+          <input
+            type="text"
+            placeholder="🔍 Tìm theo tên báo cáo hoặc mô tả..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border p-2 rounded w-full md:w-1/2"
+          />
 
-      {/* Bộ lọc tìm kiếm + trạng thái */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-        {/* Ô tìm kiếm */}
-        <input
-          type="text"
-          placeholder="🔍 Tìm theo tên hoặc mã sinh viên..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="border p-2 rounded w-full md:w-1/2"
-        />
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="border p-2 rounded w-full md:w-1/4"
+          >
+            <option value="Tất cả">Tất cả</option>
+            <option value="open">Mở</option>
+            <option value="close">Đóng</option>
+          </select>
+        </div>
 
-        {/* Dropdown lọc trạng thái */}
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="border p-2 rounded w-full md:w-1/4"
-        >
-          <option value="Tất cả">Tất cả</option>
-          <option value="Đã nộp">Đã nộp</option>
-          <option value="Chưa nộp">Chưa nộp</option>
-          <option value="Đã chấm">Đã chấm</option>
-          <option value="Bị từ chối">Bị từ chối</option>
-        </select>
-      </div>
-
-      {/* Bảng danh sách sinh viên */}
-      <table className="w-full border border-gray-200 text-sm">
-        <thead className="bg-gray-100">
-          <tr>
-            <th className="border p-2">#</th>
-            <th className="border p-2 text-left">Mã SV</th>
-            <th className="border p-2 text-left">Họ tên</th>
-            <th className="border p-2 text-left">Email</th>
-            <th className="border p-2 text-center">Trạng thái</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredStudents.length > 0 ? (
-            filteredStudents.map((sv, i) => (
-              <tr key={sv.user_id}>
+        {/* Table */}
+        <table className="w-full border border-gray-200 text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border p-2 text-center">#</th>
+              <th className="border p-2">Tên báo cáo</th>
+              <th className="border p-2">Mô tả</th>
+              <th className="border p-2 text-center">Ngày bắt đầu</th>
+              <th className="border p-2 text-center">Ngày kết thúc</th>
+              <th className="border p-2 text-center">Trạng thái</th>
+              <th className="border p-2 text-center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((r, i) => (
+              <tr key={r.report_id} className="hover:bg-gray-50">
                 <td className="border p-2 text-center">{i + 1}</td>
-                <td className="border p-2">{sv.user_id}</td>
-                <td className="border p-2">{sv.fullname}</td>
-                <td className="border p-2">{sv.email}</td>
+                <td className="border p-2">{r.report_name}</td>
+                <td className="border p-2">{r.description || "---"}</td>
+                <td className="border p-2 text-center">{r.start_date}</td>
+                <td className="border p-2 text-center">{r.end_date}</td>
+
                 <td
                   className={`border p-2 text-center font-semibold ${
-                    sv.status === "Đã nộp"
-                      ? "text-green-600"
-                      : sv.status === "Đã chấm"
-                      ? "text-blue-600"
-                      : sv.status === "Bị từ chối"
-                      ? "text-red-600"
-                      : "text-gray-500"
+                    r.status === "open"
+                      ? "text-green-600 bg-green-50"
+                      : "text-red-600 bg-red-50"
                   }`}
                 >
-                  {sv.status}
+                  {r.status}
+                </td>
+
+                <td className="border p-2 text-center">
+                  <button
+                    onClick={() =>
+                      navigate("/nckh-show-group-teacher", {
+                        state: {
+                          class_id: r?.class_id,
+                          report_id: r?.report_id,
+                        },
+                      })
+                    }
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                  >
+                    Xem nhóm
+                  </button>
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="text-center text-gray-500 p-4">
-                Không có sinh viên nào phù hợp với tiêu chí tìm kiếm.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Footer />
+    </>
   );
 }

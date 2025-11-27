@@ -3,9 +3,7 @@
 namespace App\Repositories;
 
 use App\Models\Classe;
-use App\Models\User;
 use App\Models\user_profile;
-use App\Models\ImportError;
 
 class ClassesRepository
 {
@@ -30,5 +28,30 @@ class ClassesRepository
         return Classe::where('class_id', $classId)
             ->where('teacher_id', $teacherId)
             ->delete();
+    }
+
+    public function insertClassesRepository(array $data)
+    {
+        return Classe::create([
+            'class_name'    => $data['class_name'],
+            'class_code'    => $data['class_code'],
+            'teacher_id'    => $data['teacher_id'],
+            'subject_id'    => $data['subject_id'],
+            'semester'      => $data['semester'],
+            'academic_year' => $data['academic_year'],
+            'major_id'      => $data['major_id'],
+        ]);
+    }
+    // chưa code
+    public function createTeacher(array $data)
+    {
+        return user_profile::create([
+            'fullname'     => $data['fullname'],
+            'birthdate'    => $data['fullname'],
+            'phone'        => $data['phone'],
+            'user_id'      => $data['teacher_id'],
+            'class_id'     => $data['class_id'], // lấy từ class mới tạo
+            'major_id'     => $data['major_id'],
+        ]);
     }
 }

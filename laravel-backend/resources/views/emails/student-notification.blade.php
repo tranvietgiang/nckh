@@ -1,22 +1,25 @@
 @component('mail::message')
-    # Xin chào {{ $studentName }},
+    Thông báo từ giảng viên
 
-    Bạn nhận được một **thông báo mới từ giảng viên**.
+    Xin chào {{ $studentName }},
 
-    ---
-
-    **👨‍🏫 Giảng viên:** {{ $teacherName }}
-    **🏫 Lớp:** {{ $className }}
+    Bạn có thông báo mới từ giảng viên trong lớp học.
 
     ---
 
-    ## 📢 {{ $title }}
+    Giảng viên: {{ $teacherName }}
+    Lớp: {{ $className }}
+    Tiêu đề: {{ $title }}
 
+    ---
+
+    Nội dung:
     {!! nl2br(e($content)) !!}
 
     ---
 
-    Cảm ơn bạn đã đọc thông báo.
     Trân trọng,
-    **Phòng Đào tạo – TDC**
+    Phòng Đào tạo - TDC
+
+    Đây là email tự động, vui lòng không trả lời.
 @endcomponent

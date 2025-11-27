@@ -8,6 +8,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import axios from "../../../../config/axios";
 
 export default function StudentsTeachersTab({
   activeMenu,
@@ -16,7 +17,7 @@ export default function StudentsTeachersTab({
   setActiveTab,
   searchTerm,
   setSearchTerm,
-  openModal, // Giả sử hàm này dùng để mở modal Thêm/Sửa từ component cha
+  openModal,
   showToast,
   toastMessage,
   filteredStudents,
@@ -26,6 +27,11 @@ export default function StudentsTeachersTab({
 }) {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [q, setQ] = useState("");
+  const typingTimer = React.useRef(null);
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+
 
   // 🧩 Mở modal edit
   const openEditModal = (user) => {
@@ -49,14 +55,17 @@ export default function StudentsTeachersTab({
 
   // ⚙️ Xác định dữ liệu và tổng trang
   const data =
-    activeTab === "students" ? filteredStudents : filteredTeachers;
+    searchRows.length > 0
+      ? searchRows
+      : activeTab === "students"
+        ? filteredStudents
+        : filteredTeachers;
+
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // ⚙️ Cắt dữ liệu theo trang
-  const paginatedData = data.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const uniqueData = Array.from(new Map(data.map(u => [u.user_id, u])).values());
+  const paginatedData = uniqueData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // ⚙️ Xử lý chuyển trang
   const handlePrevPage = () => {
@@ -81,6 +90,53 @@ export default function StudentsTeachersTab({
     closeEditModal();
   };
 
+  //Search engier
+  const runSearch = async (keyword) => {
+    const query = keyword.trim();
+    setCurrentPage(1); // reset pagination
+
+    if (!query) {
+      setSearchRows([]);
+      return;
+    }
+
+    setLoadingSearch(true);
+    try {
+      const role = activeTab === "students" ? "student" : "teacher";
+      const res = await axios.get(`/search/users?q=${encodeURIComponent(query)}&role=${role}`);
+      setSearchRows(res.data || []);
+    } catch (err) {
+      console.error("Lỗi tìm kiếm:", err);
+      setSearchRows([]);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+
+
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    setQ(value);
+    setSearchTerm(value);
+    if (typingTimer.current) clearTimeout(typingTimer.current);
+    typingTimer.current = setTimeout(() => runSearch(value), 500);
+  };
+
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(searchTerm);
+    } else if (e.key === "Escape") {
+      setSearchTerm("");
+      setSearchRows([]);
+    }
+  };
+
+
+
   return (
     <div>
       <div className="bg-white rounded-lg shadow-md mb-4 sm:mb-6">
@@ -93,11 +149,10 @@ export default function StudentsTeachersTab({
                 setActiveMenu("students");
                 navigate("/nckh-admin/students");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "students"
-                  ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "students"
+                ? "border-indigo-600 text-indigo-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -111,11 +166,10 @@ export default function StudentsTeachersTab({
                 setActiveMenu("teachers");
                 navigate("/nckh-admin/teachers");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
-                activeTab === "teachers"
-                  ? "border-indigo-600 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "teachers"
+                ? "border-indigo-600 text-indigo-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -132,8 +186,9 @@ export default function StudentsTeachersTab({
             <input
               type="text"
               placeholder="Tìm kiếm..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={q}
+              onChange={handleChange}
+              onKeyDown={handleKeyDown}
               className="w-full pl-9 sm:pl-10 pr-3 sm:pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
             />
           </div>
@@ -168,7 +223,7 @@ export default function StudentsTeachersTab({
                       Mã SV
                     </th>
                     <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
+                      Họ Và Tên
                     </th>
                     <th className="hidden md:table-cell px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Email
@@ -216,18 +271,18 @@ export default function StudentsTeachersTab({
                   </td>
                   <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-900">
                     {/* Hiển thị Tên thay vì Role cho GV */}
-                    {activeTab === "teachers" ? item.name : item.role}
+                    {activeTab === "teachers" ? item.fullname : item.fullname}
                   </td>
                   <td className="hidden md:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
                     {item.email}
                   </td>
                   <td className="hidden lg:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                    {/* Hiển thị Khoa (department) cho GV, Chuyên ngành (department) cho SV */}
-                    {item.department || ""}
+                    {/* Hiển thị Khoa cho GV, Chuyên ngành cho SV */}
+                    {item.major_name}
                   </td>
                   <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
-                    {/* Hiển thị Chức vụ (position) cho GV, Lớp (class_name) cho SV */}
-                    {activeTab === "teachers" ? item.position : item.class_name || ""}
+                    {/* Hiển thị Chức vụ cho GV, Lớp cho SV */}
+                    {activeTab === "teachers" ? item.profile?.position : item.class_student || ""}
                   </td>
                   <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
                     <div className="flex items-center space-x-2 sm:space-x-4">
@@ -308,11 +363,11 @@ export default function StudentsTeachersTab({
                 </label>
                 <input
                   type="text"
-                  value={selectedUser.name || ""}
+                  value={selectedUser.fullname || ""}
                   onChange={(e) =>
                     setSelectedUser({
                       ...selectedUser,
-                      name: e.target.value,
+                      fullname: e.target.value,
                     })
                   }
                   className="w-full border p-2 rounded mt-1"
@@ -364,8 +419,8 @@ export default function StudentsTeachersTab({
                     <label className="block text-sm font-medium text-gray-700">Chuyên ngành</label>
                     <input
                       type="text"
-                      value={selectedUser.department || ""}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
+                      value={selectedUser.major_name || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, major_id: e.target.value })}
                       className="w-full border p-2 rounded mt-1"
                     />
                   </div>
@@ -373,8 +428,8 @@ export default function StudentsTeachersTab({
                     <label className="block text-sm font-medium text-gray-700">Lớp</label>
                     <input
                       type="text"
-                      value={selectedUser.class_name || ""}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, class_name: e.target.value })}
+                      value={selectedUser.class_student || ""}
+                      onChange={(e) => setSelectedUser({ ...selectedUser, class_student: e.target.value })}
                       className="w-full border p-2 rounded mt-1"
                     />
                   </div>

@@ -2,7 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import axios from "../../../../config/axios";
 import ModalSubject from "../Modal/ModalSubject";
 import AdminHeader from "../View/AdminHeader";
-
+import Footer from "../../../ReUse/Footer/Footer";
+import { getRole } from "../../../Constants/INFO_USER";
+import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function SubjectImportPage() {
   const [subjects, setSubjects] = useState([]);
   const [subjectErrors, setSubjectErrors] = useState([]);
@@ -12,9 +15,65 @@ export default function SubjectImportPage() {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedMajorId, setSelectedMajorId] = useState("");
   const fileInputRef = useRef(null);
+  const [q, setQ] = useState("");
+  const [searchRows, setSearchRows] = useState([]);
+  const [loadingSearch, setLoadingSearch] = useState(false);
+  const timerRef = useRef(null);
+  const role = getRole();
+  RoleAdmin(role);
 
-  // 🟢 Load dữ liệu ban đầu
+  // gõ để tìm (debounce) + Enter để tìm ngay ========= search engine
+  const runSearch = async (value) => {
+    if (!value.trim()) {
+      setSearchRows([]); // xoá tìm kiếm => về dữ liệu gốc
+      return;
+    }
+    setLoadingSearch(true);
+    try {
+      const res = await axios.get(
+        `/search/subjects?q=${encodeURIComponent(value)}`
+      );
+      setSearchRows(res.data || []);
+    } finally {
+      setLoadingSearch(false);
+    }
+  };
+
+  const onChange = (e) => {
+    const v = e.target.value;
+    setQ(v);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => runSearch(v), 300);
+  };
+
+  const onKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      runSearch(q); // Enter => tìm ngay
+    } else if (e.key === "Escape") {
+      setQ("");
+      setSearchRows([]);
+    }
+  };
+
+  /* tập hợp danh sách ngành từ “dữ liệu đang hiển thị” để lọc hợp lý
+  Nếu ô tìm kiếm q có ký tự (sau khi trim) → dùng kết quả tìm kiếm (searchRows).
+  Nếu ô tìm kiếm rỗng → dùng toàn bộ danh sách (subjects).
+  */
+
+  const baseRows = q.trim() ? searchRows : subjects;
+  const filteredByMajor =
+    selectedMajorId === ""
+      ? baseRows
+      : baseRows.filter((s) => String(s.major_id) === String(selectedMajorId));
+
+  // displayedSubjects là dữ liệu hiển thị trong bảng
+  const displayedSubjects = filteredByMajor;
+  //  ========= search engine
+
+  // Load dữ liệu ban đầu
   useEffect(() => {
     fetchSubjects();
     fetchSubjectErrors();
@@ -44,16 +103,14 @@ export default function SubjectImportPage() {
       .catch(() => setSubjectErrors([]));
   };
 
-  // === Xoá lỗi import ===
-
-  // 🔴 Hàm xử lý nút Xóa lỗi
+  // Xoá lỗi import
   const handleDeleteError = async () => {
     if (!window.confirm("Bạn có chắc muốn xóa toàn bộ lỗi import không?"))
       return;
     try {
       setLoading(true);
       await axios.delete("/subject/import-errors");
-      await fetchSubjectErrors(); // load lại danh sách
+      await fetchSubjectErrors(); // load lại sau khi xóa
     } catch (err) {
       console.error("Lỗi khi xóa lỗi:", err);
     } finally {
@@ -124,7 +181,7 @@ export default function SubjectImportPage() {
 
   const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "-");
 
-  // === Hàm lấy màu cho từng ngành ===
+  // === Màu theo ngành
   const getMajorColor = (majorId) => {
     const colors = [
       "text-blue-600 bg-blue-50",
@@ -138,164 +195,229 @@ export default function SubjectImportPage() {
       "text-yellow-600 bg-yellow-50",
       "text-cyan-600 bg-cyan-50",
     ];
-    const index = majorId % colors.length;
+    const index = (majorId ?? 0) % colors.length;
     return colors[index];
   };
 
-  // === Nhóm môn học theo ngành ===
-  const groupedSubjects = subjects.reduce((acc, subject) => {
-    const majorId = subject.major_id;
-    if (!acc[majorId]) {
-      acc[majorId] = {
-        major_name: subject.major_name,
-        subjects: [],
-        color: getMajorColor(majorId),
-      };
-    }
-    acc[majorId].subjects.push(subject);
-    return acc;
-  }, {});
+  //Lấy danh sách ngành duy nhất
+  const majors = Array.from(
+    new Map(subjects.map((s) => [s.major_id, s.major_name])).entries()
+  ).map(([id, name]) => ({ id, name }));
 
-  // === JSX ===
+  //Lọc theo ngành được chọn
+  const filteredSubjects =
+    selectedMajorId === ""
+      ? subjects
+      : subjects.filter((s) => s.major_id === Number(selectedMajorId));
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminHeader />
-      <div className="flex">
-        <div className="flex-1 p-6">
-          <h1 className="text-2xl font-bold mb-2">Quản lý Môn Học</h1>
-          <p className="text-gray-600 mb-6">
-            Quản lý danh sách các môn học trong hệ thống
-          </p>
+    <>
+      <div className="min-h-screen bg-gray-50">
+        <AdminHeader />
+        <div className="flex">
+          <div className="flex-1 p-6">
+            <h1 className="text-2xl font-bold mb-2">Quản lý Môn Học</h1>
+            <p className="text-gray-600 mb-4">
+              Quản lý danh sách các môn học trong hệ thống
+            </p>
 
-          {/* ACTION BAR */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-              Tổng {subjects?.length || 0} môn học
-            </span>
-            <div className="flex flex-col sm:flex-row gap-2 items-center">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <button
-                onClick={openFileDialog}
-                className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50"
-              >
-                📁 Chọn file Excel
-              </button>
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFile || importing}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white ${
-                  !selectedFile || importing
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700"
-                }`}
-              >
-                {importing ? "Đang import..." : "Import Môn Học"}
-              </button>
-              {selectedFile && (
-                <div className="text-sm text-gray-600">
-                  📄 <b>{selectedFile.name}</b>
-                </div>
-              )}
-            </div>
-          </div>
-          {subjectErrors?.length > 0 && (
-            <div className="mt-8 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
-              <h3 className="text-lg font-semibold text-red-700 mb-3">
-                ⚠️ Danh sách lỗi import môn học ({subjectErrors.length})
-              </h3>
-
-              <button
-                className="p-2 w-[120px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
-                onClick={handleDeleteError}
-                disabled={loading}
-              >
-                {loading ? "Đang xóa..." : "🗑️ Xóa lỗi"}
-              </button>
-
-              <table className="min-w-full divide-y divide-red-200">
-                <thead className="bg-red-100">
-                  <tr>
-                    <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                      Tên môn
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                      Ngành / Mã môn
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
-                      Lý do lỗi
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-red-100">
-                  {subjectErrors.map((e, i) => (
-                    <tr key={i} className="hover:bg-red-50">
-                      <td className="px-4 py-2 text-sm text-gray-800">
-                        {e.fullname || "-"}
-                      </td>
-                      <td className="px-4 py-2 text-sm text-gray-800">
-                        {e.email || "-"}
-                      </td>
-                      <td className="px-4 py-2 text-sm text-red-600">
-                        {e.reason}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {/* Nút thêm */}
-          <button
-            onClick={() => setOpenModalAdd(true)}
-            className="flex items-center gap-2 mb-5 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-          >
-            ➕ Thêm Môn Học
-          </button>
-
-          {/* Bảng */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            {loading ? (
-              <div className="py-12 flex justify-center items-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+            {/* ACTION BAR */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                Tổng {subjects?.length || 0} môn học
+              </span>
+              <div className="flex flex-col sm:flex-row gap-2 items-center">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <button
+                  onClick={openFileDialog}
+                  className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50"
+                >
+                  📁 Chọn file Excel
+                </button>
+                <button
+                  onClick={handleUpload}
+                  disabled={!selectedFile || importing}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-white ${
+                    !selectedFile || importing
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-green-600 hover:bg-green-700"
+                  }`}
+                >
+                  {importing ? "Đang import..." : "Import Môn Học"}
+                </button>
+                {selectedFile && (
+                  <div className="text-sm text-gray-600">
+                    📄 <b>{selectedFile.name}</b>
+                  </div>
+                )}
               </div>
-            ) : (
-              <div className="w-full overflow-x-auto">
-                <table className="min-w-full border-collapse divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+            </div>
+
+            {/* Danh sách lỗi import (vẫn giữ nguyên) */}
+            {subjectErrors?.length > 0 && (
+              <div className="mt-2 bg-red-50 border border-red-300 rounded-lg p-4 mb-6">
+                <h3 className="text-lg font-semibold text-red-700 mb-3">
+                  ⚠️ Danh sách lỗi import môn học ({subjectErrors.length})
+                </h3>
+
+                <button
+                  className="p-2 w-[120px] mb-5 rounded-md bg-red-500 hover:bg-red-600 text-white disabled:opacity-60"
+                  onClick={handleDeleteError}
+                  disabled={loading}
+                >
+                  {loading ? "Đang xóa..." : "🗑️ Xóa lỗi"}
+                </button>
+
+                <table className="min-w-full divide-y divide-red-200">
+                  <thead className="bg-red-100">
                     <tr>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        ID
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
+                        Tên môn
                       </th>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        Tên môn học
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
+                        Ngành / Mã môn
                       </th>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        Mã môn học
-                      </th>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        Ngành
-                      </th>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        Ngày tạo
-                      </th>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        Cập nhật
-                      </th>
-                      <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
-                        Thao tác
+                      <th className="px-4 py-2 text-left text-xs font-semibold text-red-700 uppercase">
+                        Lý do lỗi
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200 text-sm">
-                    {Object.entries(groupedSubjects).map(([, group]) =>
-                      group.subjects.map((s) => (
+                  <tbody className="bg-white divide-y divide-red-100">
+                    {subjectErrors.map((e, i) => (
+                      <tr key={i} className="hover:bg-red-50">
+                        <td className="px-4 py-2 text-sm text-gray-800">
+                          {e.fullname || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-gray-800">
+                          {e.email || "-"}
+                        </td>
+                        <td className="px-4 py-2 text-sm text-red-600">
+                          {e.reason}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              {/* Nút thêm */}
+              <button
+                onClick={() => setOpenModalAdd(true)}
+                className="flex items-center gap-2 mb-5 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              >
+                ➕ Thêm Môn Học
+              </button>
+
+              {/* Select chọn ngành */}
+              <div className="mb-6 flex flex-col sm:flex-row items-center gap-3">
+                <select
+                  value={selectedMajorId}
+                  onChange={(e) => setSelectedMajorId(e.target.value)}
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+                >
+                  <option value="">-- 🎓 Chọn ngành --</option>
+                  {majors.map((m) => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                {selectedMajorId && (
+                  <button
+                    onClick={() => setSelectedMajorId("")}
+                    className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  >
+                    ✖ Bỏ lọc
+                  </button>
+                )}
+              </div>
+            </div>
+            {/** search engine-meilisearch */}
+            <div className="w-full max-w-xl flex items-center gap-2">
+              <input
+                value={q}
+                onChange={onChange}
+                onKeyDown={onKeyDown}
+                placeholder="Tìm môn học (tên, mã)…"
+                className="w-full border rounded px-3 py-2"
+              />
+              {q && (
+                <button
+                  onClick={() => {
+                    setQ("");
+                    setSearchRows([]);
+                  }}
+                  className="px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
+                  title="Xoá tìm kiếm"
+                >
+                  ✖
+                </button>
+              )}
+            </div>
+
+            {/* Badge thống kê */}
+            <div className="mt-2 text-sm text-gray-600">
+              {loadingSearch ? (
+                "🔎 Đang tìm…"
+              ) : q.trim() ? (
+                <>
+                  Kết quả tìm: <b>{displayedSubjects.length}</b> môn học (từ
+                  khoá: “{q}”)
+                </>
+              ) : (
+                <>
+                  Tổng: <b>{subjects.length}</b> môn học
+                </>
+              )}
+            </div>
+
+            {/* Bảng */}
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              {loading ? (
+                <div className="py-12 flex justify-center items-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">
+                    Đang tải dữ liệu...
+                  </span>
+                </div>
+              ) : (
+                <div className="w-full overflow-x-auto">
+                  <table className="min-w-full border-collapse divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          ID
+                        </th>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          Tên môn học
+                        </th>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          Mã môn học
+                        </th>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          Ngành
+                        </th>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          Ngày tạo
+                        </th>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          Cập nhật
+                        </th>
+                        <th className="p-2 text-xs font-semibold text-gray-600 uppercase">
+                          Thao tác
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200 text-sm">
+                      {displayedSubjects.map((s) => (
                         <tr key={s.subject_id} className="hover:bg-gray-50">
                           <td className="p-2 text-center font-semibold text-gray-900">
                             {s.subject_id}
@@ -304,7 +426,9 @@ export default function SubjectImportPage() {
                           <td className="p-2 text-center">{s.subject_code}</td>
                           <td className="p-2 text-center">
                             <span
-                              className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${group.color}`}
+                              className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getMajorColor(
+                                s.major_id
+                              )}`}
                             >
                               {s.major_name}
                             </span>
@@ -332,29 +456,32 @@ export default function SubjectImportPage() {
                             </div>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+                      ))}
+                    </tbody>
+                  </table>
 
-                {subjects.length === 0 && (
-                  <div className="py-8 text-center text-gray-500">
-                    Không có môn học nào
-                  </div>
-                )}
-              </div>
-            )}
+                  {filteredSubjects.length === 0 && (
+                    <div className="py-8 text-center text-gray-500">
+                      Không có môn học nào
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
+
+        {/*Modal thêm & sửa */}
+        <ModalSubject stateOpen={openModalAdd} onClose={handleCloseAdd} />
+        <ModalSubject
+          stateOpen={openModalEdit}
+          onClose={handleCloseEdit}
+          editData={currentSubject}
+        />
       </div>
 
-      {/* ✅ Modal thêm & sửa */}
-      <ModalSubject stateOpen={openModalAdd} onClose={handleCloseAdd} />
-      <ModalSubject
-        stateOpen={openModalEdit}
-        onClose={handleCloseEdit}
-        editData={currentSubject}
-      />
-    </div>
+      <BackToTop />
+      <Footer />
+    </>
   );
 }
