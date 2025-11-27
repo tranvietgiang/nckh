@@ -77,6 +77,6 @@ class NotificationService
                 'data'   => $data
             ];
         }
-        return ["status" => false, []];
+        return ["status" => false, "data" => []];
     }
 }
