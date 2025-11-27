@@ -285,6 +285,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/submissions/{reportId}', [TeacherScoringController::class, 'getSubmissions']);
     });
     Route::post('/grades', [TeacherScoringController::class, 'storeGrade']);
+    Route::get('/grading-report-teacher', [GradeController::class, 'getGradingReportByTeacher']);
 });
 
 
@@ -306,7 +307,8 @@ Route::middleware('auth:sanctum')->get('/pc/get-class-by-teaching-teacher', [Cla
 |--------------------------------------------------------------------------
 */
 
-Route::middleware('auth:sanctum')->get('/reports-filter/{selectedMajor}/{selectedSubject}/{selectedClass}/{selectedYear}', [ReportController::class, 'getReportsByMajorClassSubjectTeacher']);
+Route::middleware('auth:sanctum')->get('/reports-filter/{selectedMajor}/{selectedSubject}/{selectedClass}/{selectedYear}', [ReportController::class, 'getReportsByMajorClassSubjectTeacher']); // bỏ
+Route::middleware('auth:sanctum')->get('/reports-filter/{selectedMajor}/{selectedSubject}', [ReportController::class, 'getReportsOverviewBySubject']);
 
 Route::middleware('auth:sanctum')->get('/submission-filter/{selectedMajor}/{selectedSubject}/{selectedClass}/{selectedYear}/{selectedReportId}', [SubmissionController::class, 'getSubmissionsByMajorClassSubjectTeacher']);
 

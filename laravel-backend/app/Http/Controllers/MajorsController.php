@@ -38,7 +38,7 @@ class MajorsController extends Controller
 
     public function getMajorsByClass($idTeacher)
     {
-        AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
 
         $majors = Classe::select('majors.*', 'classes.teacher_id', 'classes.major_id')
             ->join('majors', 'classes.major_id', '=', 'majors.major_id')
