@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Interface\AuthInterface;
 use App\Repositories\AuthRepository;
+use App\Interface\NotificationInterface;
+use App\Repositories\NotificationRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,10 +15,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // auth bind
         $this->app->bind(
             AuthInterface::class,
-            AuthRepository::class
+            AuthRepository::class,
+        );
+
+        // notification bind
+        $this->app->bind(
+            NotificationInterface::class,
+            NotificationRepository::class
         );
     }
 

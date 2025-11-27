@@ -24,7 +24,10 @@ class NotificationController extends Controller
         $studentId =  AuthHelper::isLogin();
 
         $result = $this->service->getNotifyService($studentId);
+        if ($result['status']) {
+            return response()->json($result["data"], 200);
+        }
 
-        return response()->json($result, $result['status'] ? 200 : 400);
+        return response()->json(["message_error" => "Lỗi server"], 500);
     }
 }
