@@ -67,4 +67,79 @@ class SubmissionFileController extends Controller
 
         return response()->json($data, 200);
     }
+
+    public function getReportPendingGrading($reportId, $classId)
+    {
+        $teacherId = AuthHelper::isLogin();
+        AuthHelper::roleTeacher();
+
+        // Kiểm tra báo cáo có thuộc lớp + đúng giáo viên
+        $report = DB::table('reports')
+            ->join('classes', 'classes.class_id', '=', 'reports.class_id')
+            ->where('reports.report_id', $reportId)
+            ->where('reports.class_id', $classId)
+            ->where('reports.teacher_id', $teacherId)
+            ->first();
+
+        if (!$report) {
+            return response()->json([
+                "message_error" => "Báo cáo không tồn tại hoặc không thuộc lớp này!"
+            ], 404);
+        }
+
+        // Lấy danh sách nhóm + khoảng submission
+        $data = DB::table('report_members as rm')
+
+            // mặc định rm không có class_id → join qua report
+            ->join('reports', 'reports.report_id', '=', 'rm.report_id')
+
+            // join lớp để bảo đảm đúng class
+            ->join('classes', 'classes.class_id', '=', 'reports.class_id')
+
+            // nhóm trưởng
+            ->leftJoin('report_members as leader', function ($join) {
+                $join->on('leader.report_id', '=', 'rm.report_id')
+                    ->on('leader.rm_code', '=', 'rm.rm_code')
+                    ->where('leader.report_m_role', 'NT');
+            })
+
+            // sinh viên nhóm trưởng
+            ->leftJoin('user_profiles as up', 'up.user_id', '=', 'leader.student_id')
+
+            // submission mới nhất của nhóm trưởng
+            ->leftJoin('submissions as s', function ($join) {
+                $join->on('s.student_id', '=', 'leader.student_id');
+            })
+
+            // file mới nhất
+            ->leftJoin('submission_files as sf', 'sf.submission_id', '=', 's.submission_id')
+
+            // điểm
+            ->leftJoin('grades as g', 'g.submission_id', '=', 's.submission_id')
+
+            ->where('rm.report_id', $reportId)
+            ->where('classes.class_id', $classId)
+
+            ->select(
+                'rm.rm_name',
+                'leader.student_id',
+                'up.fullname as student_name',
+
+                DB::raw('MAX(s.submission_id) as submission_id'),
+                DB::raw('MAX(s.submission_time) as submission_time'),
+                DB::raw('MAX(sf.file_path) as file_path'),
+                DB::raw('MAX(g.score) as score')
+            )
+
+            ->groupBy(
+                'rm.rm_name',
+                'leader.student_id',
+                'up.fullname'
+            )
+
+            ->orderBy('rm.rm_name')
+            ->get();
+
+        return response()->json($data, 200);
+    }
 }

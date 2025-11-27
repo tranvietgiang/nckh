@@ -47,7 +47,13 @@ class GradeController extends Controller
         $request->validate([
             'submission_id' => 'required|exists:submissions,submission_id',
             'report_id' => 'required|exists:reports,report_id',
-            'score' => 'required|numeric|min:0|max:10',
+            'score' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:10',
+                'regex:/^\d+(\.\d{1,2})?$/' // Cho phép tối đa 2 chữ số thập phân
+            ],
             'feedback' => 'nullable|string|max:500',
         ], [
             'submission_id.required' => 'Thiếu ID bài nộp.',
@@ -58,6 +64,7 @@ class GradeController extends Controller
             'score.numeric' => 'Điểm phải là số.',
             'score.min' => 'Điểm tối thiểu là 0.',
             'score.max' => 'Điểm tối đa là 10.',
+            'score.regex' => 'Điểm chỉ được phép có tối đa 2 chữ số thập phân (ví dụ: 8.5, 9.25).',
             'feedback.max' => 'Phản hồi tối đa 500 ký tự.',
         ]);
 

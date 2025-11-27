@@ -1,251 +1,256 @@
 import React, { useState, useEffect } from "react";
+import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { getAuth } from "../../../Constants/INFO_USER";
-import {
-  Eye,
-  Send,
-  RefreshCw,
-  Filter,
-  Calendar,
-  Users,
-  BookOpen,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
+import { Eye, Send, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-export default function ScoringFeedbackBySubject() {
-  const navigate = useNavigate();
-  const { user } = getAuth();
-  const idTeacher = user?.user_id ?? null;
-
+export default function ScoringFeedback() {
   useEffect(() => {
-    document.title = "Chấm điểm theo môn học";
+    document.title = "Quản lý chấm điểm & phản hồi";
   }, []);
 
-  // ===================== STATE =====================
   const [majors, setMajors] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [reportGroups, setReportGroups] = useState([]); // [{report_id, report_name, classes:[...]}]
-
   const [selectedMajor, setSelectedMajor] = useState("");
+
+  const [subjects, setSubjects] = useState([]);
   const [selectedSubject, setSelectedSubject] = useState("");
 
-  const [expandedClassKey, setExpandedClassKey] = useState(null);
-  const [classSubmissions, setClassSubmissions] = useState({});
+  const [classes, setClasses] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("");
 
+  const [years, setYears] = useState([]);
+  const [selectedYear, setSelectedYear] = useState("");
+
+  const [reports, setReports] = useState([]);
+  const [selectedReportId, setSelectedReportId] = useState("");
+
+  const [submissions, setSubmissions] = useState([]);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState(null);
   const [score, setScore] = useState("");
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // ===================== DỮ LIỆU MẪU =====================
-  const fakeReports = [
-    {
-      report_id: 1,
-      report_name: "Chương 2 – Phân tích hệ thống",
-      classes: [
-        { class_id: 5, class_name: "22T1", total_submissions: 5 },
-        { class_id: 6, class_name: "22T2", total_submissions: 3 },
-      ],
-    },
-    {
-      report_id: 2,
-      report_name: "Bài tập lớn OOP",
-      classes: [
-        { class_id: 5, class_name: "22T1", total_submissions: 4 },
-        { class_id: 9, class_name: "22T5", total_submissions: 2 },
-      ],
-    },
-  ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  const navigate = useNavigate();
+  const { user } = getAuth();
+  const idTeacher = user?.user_id ?? null;
 
-  const fakeSubmissions = {
-    "1-5": [
-      {
-        submission_id: 1001,
-        rm_name: "Nhóm 1",
-        student_id: "23211TT1234",
-        student_name: "Nguyễn Văn A",
-        submission_time: "2025-01-12 13:40",
-        file_path: "https://drive/file1.pdf",
-        score: 0,
-      },
-      {
-        submission_id: 1002,
-        rm_name: "Nhóm 2",
-        student_id: "23211TT5678",
-        student_name: "Trần Văn B",
-        submission_time: "2025-01-12 14:10",
-        file_path: "https://drive/file2.pdf",
-        score: 8.5,
-      },
-    ],
-
-    "1-6": [
-      {
-        submission_id: 1010,
-        rm_name: "Nhóm 4",
-        student_id: "22211TT4455",
-        student_name: "Lê Minh C",
-        submission_time: "2025-01-13 09:50",
-        file_path: "https://drive/file3.pdf",
-        score: 0,
-      },
-    ],
-
-    "2-5": [
-      {
-        submission_id: 2001,
-        rm_name: "Nhóm 1",
-        student_id: "23211TT8888",
-        student_name: "Phạm Văn D",
-        submission_time: "2025-02-01 10:15",
-        file_path: "https://drive/file4.pdf",
-        score: 7,
-      },
-    ],
-
-    "2-9": [
-      {
-        submission_id: 2010,
-        rm_name: "Nhóm 3",
-        student_id: "24211TT9999",
-        student_name: "Võ Hoài Nam",
-        submission_time: "2025-02-01 11:00",
-        file_path: "https://drive/file5.pdf",
-        score: 0,
-      },
-    ],
-  };
-
-  // ===================== LOAD NGÀNH (MẪU) =====================
+  // === 1️⃣ Lấy danh sách ngành của giảng viên ===
   useEffect(() => {
-    setMajors([
-      { major_id: 1, major_name: "Công nghệ thông tin" },
-      { major_id: 2, major_name: "Quản trị kinh doanh" },
-    ]);
+    const fetchMajors = async () => {
+      try {
+        const res = await axios.get(`/major-by-teacher/${idTeacher}`);
+        setMajors(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải danh sách ngành:", err);
+        setMajors([]);
+      }
+    };
+    fetchMajors();
   }, []);
 
-  // ===================== LOAD MÔN THEO NGÀNH (MẪU) =====================
+  // === 2️⃣ Khi chọn ngành → tải danh sách môn học ===
   useEffect(() => {
     if (!selectedMajor) {
       setSubjects([]);
-      setReportGroups([]);
+      setSelectedSubject("");
+      setClasses([]);
+      setSelectedClass("");
+      setYears([]);
+      setSelectedYear("");
+      setReports([]);
+      setSelectedReportId("");
+      setSubmissions([]);
       return;
     }
 
-    setSubjects([
-      { subject_id: 1, subject_name: "Phân tích thiết kế hệ thống" },
-      { subject_id: 2, subject_name: "Lập trình OOP" },
-    ]);
-
-    setReportGroups([]);
+    const fetchSubjects = async () => {
+      try {
+        const res = await axios.get(
+          `/getSubject-major-class-teacher/${selectedMajor}`
+        );
+        setSubjects(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải môn học:", err);
+        setSubjects([]);
+      }
+    };
+    fetchSubjects();
   }, [selectedMajor]);
 
-  // ===================== TẢI DANH SÁCH REPORT THEO MÔN (MẪU) =====================
+  // === 3️⃣ Khi chọn môn học → tải danh sách lớp ===
   useEffect(() => {
-    if (!selectedMajor || !selectedSubject) {
-      setReportGroups([]);
+    if (!selectedSubject) {
+      setClasses([]);
+      setSelectedClass("");
+      setYears([]);
+      setSelectedYear("");
+      setReports([]);
+      setSelectedReportId("");
+      setSubmissions([]);
       return;
     }
 
-    // Load dữ liệu mẫu
-    setReportGroups(fakeReports);
+    const fetchClasses = async () => {
+      try {
+        const res = await axios.get(
+          `/classes-by-subject/${selectedMajor}/${selectedSubject}`
+        );
+        setClasses(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải lớp:", err);
+        setClasses([]);
+      }
+    };
+    fetchClasses();
+  }, [selectedSubject]);
 
-    // Reset lại state
-    setClassSubmissions({});
-    setExpandedClassKey(null);
-    setSelectedSubmissionId(null);
-  }, [selectedMajor, selectedSubject]);
-
-  // ===================== MỞ / ĐÓNG LỚP + LOAD SUBMISSION =====================
-  const handleToggleClass = (report, cls) => {
-    const key = `${report.report_id}-${cls.class_id}`;
-
-    if (expandedClassKey === key) {
-      setExpandedClassKey(null);
+  // === 4️⃣ Khi chọn lớp → tải danh sách năm học ===
+  useEffect(() => {
+    if (!selectedClass) {
+      setYears([]);
+      setSelectedYear("");
+      setReports([]);
+      setSelectedReportId("");
+      setSubmissions([]);
       return;
     }
 
-    setExpandedClassKey(key);
+    const fetchYears = async () => {
+      try {
+        const res = await axios.get(`/years-by-class/${selectedClass}`);
+        setYears(res.data || []);
+      } catch (err) {
+        console.log("Lỗi tải năm học:", err);
+        setYears([]);
+      }
+    };
+    fetchYears();
+  }, [selectedClass]);
 
-    // Nếu đã load rồi thì không load lại
-    if (classSubmissions[key]) return;
+  // === 5️⃣ Khi chọn năm học → tải danh sách báo cáo ===
+  useEffect(() => {
+    if (!selectedYear) {
+      setReports([]);
+      setSelectedReportId("");
+      setSubmissions([]);
+      return;
+    }
 
-    // Load mẫu
-    setClassSubmissions((prev) => ({
-      ...prev,
-      [key]: fakeSubmissions[key] || [],
-    }));
+    const fetchReports = async () => {
+      try {
+        const res = await axios.get(
+          `/reports-filter/${selectedMajor}/${selectedSubject}/${selectedClass}/${selectedYear}`
+        );
+        setReports(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải báo cáo:", err);
+        setReports([]);
+      }
+    };
+    fetchReports();
+  }, [selectedYear]);
+
+  // === 6️⃣ Khi chọn báo cáo → tải danh sách submissions ===
+  useEffect(() => {
+    if (!selectedReportId) {
+      setSubmissions([]);
+      return;
+    }
+
+    const fetchSubmissions = async () => {
+      try {
+        const res = await axios.get(
+          `/submission-filter/${selectedMajor}/${selectedSubject}/${selectedClass}/${selectedYear}/${selectedReportId}`
+        );
+        setSubmissions(res.data || []);
+      } catch (err) {
+        console.error("Lỗi tải submissions:", err);
+        setSubmissions([]);
+      }
+    };
+    fetchSubmissions();
+  }, [selectedReportId]);
+
+  // === Gửi điểm & phản hồi ===
+  const handleSubmit = async (submission) => {
+    if (!score || !feedback.trim())
+      return alert("⚠️ Vui lòng nhập đủ điểm và phản hồi!");
+
+    try {
+      setLoading(true);
+
+      await axios.post("/grades/update", {
+        submission_id: submission.submission_id,
+        teacher_id: idTeacher,
+        report_id: selectedReportId,
+        class_id: selectedClass,
+        subject_id: selectedSubject,
+        major_id: selectedMajor,
+        academic_year: selectedYear,
+        score: parseFloat(score),
+        feedback: feedback.trim(),
+      });
+
+      setSuccessMessage(`✅ Đã chấm điểm thành công`);
+      setSelectedSubmissionId(null);
+      setScore("");
+      setFeedback("");
+
+      // Refresh list
+      const refresh = await axios.get(
+        `/submission-filter/${selectedMajor}/${selectedSubject}/${selectedClass}/${selectedYear}/${selectedReportId}`
+      );
+      setSubmissions(refresh.data || []);
+
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (err) {
+      console.error("Lỗi khi chấm điểm:", err);
+      alert(`❌ ${err.response?.data?.message || "Chấm điểm thất bại!"}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // ===================== GỬI ĐIỂM =====================
-  const handleSubmitScore = (report, cls, submission) => {
-    if (!score || !feedback.trim()) {
-      alert("⚠️ Vui lòng nhập điểm + phản hồi");
-      return;
-    }
+  // === Phân trang ===
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentItems = submissions.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(submissions.length / itemsPerPage);
 
-    const key = `${report.report_id}-${cls.class_id}`;
-
-    setClassSubmissions((prev) => ({
-      ...prev,
-      [key]: prev[key].map((s) =>
-        s.submission_id === submission.submission_id
-          ? { ...s, score: parseFloat(score) }
-          : s
-      ),
-    }));
-
-    setSelectedSubmissionId(null);
-    setScore("");
-    setFeedback("");
-    setSuccessMessage(`Đã chấm nhóm ${submission.rm_name}`);
-
-    setTimeout(() => setSuccessMessage(""), 2000);
-  };
-
-  // ===================== SUMMARY =====================
-  const allSubs = Object.values(classSubmissions).flat();
-  const pending = allSubs.filter((s) => !s.score || s.score === 0).length;
-  const graded = allSubs.filter((s) => s.score > 0).length;
-
-  // ===================== UI =====================
   return (
     <>
       <Navbar />
-
-      <div className="p-4 sm:p-6 bg-gray-50 min-h-screen">
+      <div className="p-4 sm:p-6 bg-gray-100 min-h-screen">
         <RouterBack navigate={navigate} />
 
-        {successMessage && (
-          <div className="fixed bottom-5 right-5 bg-green-600 text-white px-6 py-3 rounded-xl shadow-lg">
-            {successMessage}
-          </div>
-        )}
-
-        <div className="bg-white shadow-lg rounded-2xl p-6">
-          <h1 className="text-2xl font-bold mb-6 flex items-center gap-3">
-            <div className="w-3 h-8 bg-blue-600 rounded-full" />
-            Chấm điểm theo môn
+        <div className="bg-white shadow-md rounded-xl p-4 sm:p-6">
+          <h1 className="text-2xl font-bold text-gray-700 mb-6 flex items-center gap-2">
+            📊 Quản lý chấm điểm & phản hồi
           </h1>
 
-          {/* FILTER */}
-          <div className="bg-blue-50 p-5 rounded-2xl border mb-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Filter className="text-blue-600" />
-              <span className="font-semibold">Chọn ngành & môn học</span>
+          {successMessage && (
+            <div className="fixed bottom-5 right-5 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg animate-fadeIn z-50">
+              {successMessage}
             </div>
+          )}
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              {/* Ngành */}
+          {/* 🔹 Bộ lọc 4 cấp */}
+          <div className="flex flex-wrap gap-4 mb-6">
+            {/* Ngành */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                1️⃣ Ngành học:
+              </label>
               <select
                 value={selectedMajor}
                 onChange={(e) => setSelectedMajor(e.target.value)}
-                className="p-3 border rounded-xl"
+                className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
               >
                 <option value="">-- Chọn ngành --</option>
                 {majors.map((m) => (
@@ -254,12 +259,17 @@ export default function ScoringFeedbackBySubject() {
                   </option>
                 ))}
               </select>
+            </div>
 
-              {/* Môn */}
+            {/* Môn học */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                2️⃣ Môn học:
+              </label>
               <select
                 value={selectedSubject}
                 onChange={(e) => setSelectedSubject(e.target.value)}
-                className="p-3 border rounded-xl"
+                className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
                 disabled={!selectedMajor}
               >
                 <option value="">-- Chọn môn học --</option>
@@ -270,284 +280,215 @@ export default function ScoringFeedbackBySubject() {
                 ))}
               </select>
             </div>
-          </div>
 
-          {/* SUMMARY */}
-          <div className="grid md:grid-cols-3 gap-4 mb-6">
-            <StatBox
-              label="Tổng báo cáo"
-              value={reportGroups.length}
-              icon={<BookOpen />}
-            />
-            <StatBox
-              label="Đã chấm"
-              value={graded}
-              icon={<Send />}
-              color="green"
-            />
-            <StatBox
-              label="Chờ chấm"
-              value={pending}
-              icon={<Users />}
-              color="orange"
-            />
-          </div>
-
-          {/* DANH SÁCH BÁO CÁO */}
-          {selectedMajor && selectedSubject ? (
-            reportGroups.length > 0 ? (
-              <div className="space-y-6">
-                {reportGroups.map((report) => (
-                  <div
-                    key={report.report_id}
-                    className="border rounded-2xl shadow-sm"
-                  >
-                    <div className="px-4 py-3 bg-gray-100 border-b">
-                      <h2 className="font-semibold text-lg">
-                        📄 Báo cáo:{" "}
-                        <span className="text-blue-700">
-                          {report.report_name}
-                        </span>
-                      </h2>
-                    </div>
-
-                    {/* CLASS LIST */}
-                    {report.classes.map((cls) => {
-                      const key = `${report.report_id}-${cls.class_id}`;
-                      const submissions = classSubmissions[key] || [];
-                      const isOpen = expandedClassKey === key;
-
-                      return (
-                        <div
-                          key={cls.class_id}
-                          className="border-b last:border-0"
-                        >
-                          <button
-                            onClick={() => handleToggleClass(report, cls)}
-                            className="w-full px-4 py-3 flex justify-between hover:bg-gray-50"
-                          >
-                            <div className="flex items-center gap-3">
-                              {isOpen ? <ChevronDown /> : <ChevronRight />}
-                              <div>
-                                <div className="font-semibold">
-                                  Lớp {cls.class_name}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1">
-                                  Tổng nhóm: {cls.total_submissions}
-                                </div>
-                              </div>
-                            </div>
-                          </button>
-
-                          {/* SUBMISSIONS */}
-                          {isOpen && (
-                            <div className="bg-blue-50 p-4">
-                              {submissions.length > 0 ? (
-                                <table className="w-full bg-white border rounded-xl overflow-hidden">
-                                  <thead className="bg-gray-100 text-gray-600 text-xs uppercase">
-                                    <tr>
-                                      <th className="p-3 text-left">Nhóm</th>
-                                      <th className="p-3 text-left">
-                                        SV trưởng
-                                      </th>
-                                      <th className="p-3 text-left">
-                                        Thời gian
-                                      </th>
-                                      <th className="p-3 text-center">Điểm</th>
-                                      <th className="p-3 text-center">
-                                        Thao tác
-                                      </th>
-                                    </tr>
-                                  </thead>
-
-                                  <tbody className="divide-y">
-                                    {submissions.map((sub) => (
-                                      <React.Fragment key={sub.submission_id}>
-                                        <tr
-                                          className={
-                                            selectedSubmissionId ===
-                                            sub.submission_id
-                                              ? "bg-blue-50"
-                                              : ""
-                                          }
-                                        >
-                                          <td className="p-3 font-semibold">
-                                            {sub.rm_name}
-                                          </td>
-                                          <td className="p-3">
-                                            {sub.student_name} ({sub.student_id}
-                                            )
-                                          </td>
-                                          <td className="p-3 flex items-center gap-2">
-                                            <Calendar size={14} />{" "}
-                                            {sub.submission_time}
-                                          </td>
-                                          <td className="p-3 text-center">
-                                            {sub.score ? (
-                                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs">
-                                                {sub.score}
-                                              </span>
-                                            ) : (
-                                              <span className="px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-xs">
-                                                Chưa chấm
-                                              </span>
-                                            )}
-                                          </td>
-                                          <td className="p-3 text-center">
-                                            <div className="flex justify-center gap-2">
-                                              <button
-                                                onClick={() =>
-                                                  window.open(
-                                                    sub.file_path,
-                                                    "_blank"
-                                                  )
-                                                }
-                                                className="px-3 py-1 border rounded-lg text-xs flex items-center gap-1"
-                                              >
-                                                <Eye size={14} /> Xem
-                                              </button>
-
-                                              <button
-                                                onClick={() =>
-                                                  setSelectedSubmissionId(
-                                                    selectedSubmissionId ===
-                                                      sub.submission_id
-                                                      ? null
-                                                      : sub.submission_id
-                                                  )
-                                                }
-                                                className="px-3 py-1 border rounded-lg text-xs flex items-center gap-1"
-                                              >
-                                                <Send size={14} />
-                                                {selectedSubmissionId ===
-                                                sub.submission_id
-                                                  ? "Đóng"
-                                                  : "Chấm"}
-                                              </button>
-                                            </div>
-                                          </td>
-                                        </tr>
-
-                                        {/* FORM CHẤM ĐIỂM */}
-                                        {selectedSubmissionId ===
-                                          sub.submission_id && (
-                                          <tr>
-                                            <td
-                                              colSpan="5"
-                                              className="bg-blue-50 p-4"
-                                            >
-                                              <h4 className="font-semibold mb-3">
-                                                Chấm điểm cho {sub.student_name}
-                                              </h4>
-
-                                              <div className="grid md:grid-cols-2 gap-4">
-                                                <input
-                                                  type="number"
-                                                  min="0"
-                                                  max="10"
-                                                  step="0.1"
-                                                  value={score}
-                                                  onChange={(e) =>
-                                                    setScore(e.target.value)
-                                                  }
-                                                  className="border p-3 rounded-xl"
-                                                  placeholder="Điểm (0 - 10)"
-                                                />
-
-                                                <textarea
-                                                  rows={3}
-                                                  value={feedback}
-                                                  onChange={(e) =>
-                                                    setFeedback(e.target.value)
-                                                  }
-                                                  className="border p-3 rounded-xl md:col-span-2"
-                                                  placeholder="Phản hồi..."
-                                                />
-
-                                                <div className="flex gap-3">
-                                                  <button
-                                                    className="bg-blue-600 text-white px-5 py-2 rounded-xl text-sm"
-                                                    onClick={() =>
-                                                      handleSubmitScore(
-                                                        report,
-                                                        cls,
-                                                        sub
-                                                      )
-                                                    }
-                                                    disabled={loading}
-                                                  >
-                                                    {loading
-                                                      ? "Đang gửi..."
-                                                      : "Lưu & Gửi"}
-                                                  </button>
-
-                                                  <button
-                                                    className="bg-gray-200 text-gray-800 px-5 py-2 rounded-xl text-sm flex items-center gap-1"
-                                                    onClick={() => {
-                                                      setSelectedSubmissionId(
-                                                        null
-                                                      );
-                                                      setScore("");
-                                                      setFeedback("");
-                                                    }}
-                                                  >
-                                                    <RefreshCw size={14} />
-                                                    Hủy
-                                                  </button>
-                                                </div>
-                                              </div>
-                                            </td>
-                                          </tr>
-                                        )}
-                                      </React.Fragment>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              ) : (
-                                <p className="text-sm text-gray-500">
-                                  Chưa có nhóm nào nộp.
-                                </p>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
+            {/* Lớp */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                3️⃣ Lớp học:
+              </label>
+              <select
+                value={selectedClass}
+                onChange={(e) => setSelectedClass(e.target.value)}
+                className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
+                disabled={!selectedSubject}
+              >
+                <option value="">-- Chọn lớp học --</option>
+                {classes.map((c) => (
+                  <option key={c.class_id} value={c.class_id}>
+                    {c.class_name}
+                  </option>
                 ))}
-              </div>
+              </select>
+            </div>
+
+            {/* Năm học */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                4️⃣ Năm học:
+              </label>
+              <select
+                value={selectedYear}
+                onChange={(e) => {
+                  setSelectedYear(e.target.value);
+                }}
+                className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
+                disabled={!selectedClass}
+              >
+                <option value="">-- Chọn năm học --</option>
+                {years.map((y) => (
+                  <option key={y.year_id} value={y.year_id}>
+                    {y.academic_year}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Báo cáo */}
+          {selectedYear && (
+            <div className="mb-6">
+              <label className="block mb-2 font-medium text-gray-700">
+                5️⃣ Báo cáo:
+              </label>
+              <select
+                value={selectedReportId}
+                onChange={(e) => setSelectedReportId(e.target.value)}
+                className="border p-2 rounded-lg w-full max-w-xs focus:ring focus:ring-blue-300"
+              >
+                <option value="">-- Chọn báo cáo --</option>
+                {reports.map((r) => (
+                  <option key={r.report_id} value={r.report_id}>
+                    {r.report_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Bảng submissions */}
+          {selectedReportId ? (
+            submissions.length > 0 ? (
+              <>
+                <div className="overflow-x-auto border rounded-lg shadow-sm">
+                  <table className="w-full text-sm text-left text-gray-600">
+                    <thead className="bg-gray-200 text-gray-700 uppercase text-xs">
+                      <tr>
+                        <th className="px-3 py-2">Tên nhóm</th>
+                        <th className="px-3 py-2">Mã SV nhóm trưởng</th>
+                        <th className="px-3 py-2">Thời gian nộp</th>
+                        <th className="px-3 py-2">Trạng thái</th>
+                        <th className="px-3 py-2 text-center">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentItems.map((sub) => (
+                        <React.Fragment key={sub.submission_id}>
+                          <tr
+                            className={`border-b hover:bg-blue-50 transition ${
+                              selectedSubmissionId === sub.submission_id
+                                ? "bg-blue-100"
+                                : ""
+                            }`}
+                          >
+                            <td className="px-3 py-2 font-medium">
+                              {sub?.rm_name ?? "N/A"}
+                            </td>
+                            <td className="px-3 py-2">{sub.student_id}</td>
+                            <td className="px-3 py-2">{sub.submission_time}</td>
+                            <td className="px-3 py-2 text-blue-600 font-semibold">
+                              {sub.score === 0 ? "Chưa chấm" : ""}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              <button
+                                onClick={() =>
+                                  setSelectedSubmissionId(
+                                    selectedSubmissionId === sub.submission_id
+                                      ? null
+                                      : sub.submission_id
+                                  )
+                                }
+                                className="flex items-center gap-1 mx-auto text-blue-600 hover:text-blue-800 transition"
+                              >
+                                <Eye size={16} />
+                                {selectedSubmissionId === sub.submission_id
+                                  ? "Đóng"
+                                  : "Xem chi tiết"}
+                              </button>
+                            </td>
+                          </tr>
+                          <a
+                            href={sub?.file_path ?? ""}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Xem báo cáo
+                          </a>
+
+                          {selectedSubmissionId === sub.submission_id && (
+                            <tr className="bg-gray-50">
+                              <td colSpan="5" className="p-4">
+                                <div className="border-t pt-4">
+                                  <h2 className="text-lg font-semibold text-gray-700 mb-2">
+                                    📝 Chấm điểm cho{" "}
+                                    <span className="text-blue-600">
+                                      {sub.student_name}
+                                    </span>
+                                  </h2>
+                                  <div className="grid sm:grid-cols-2 gap-4">
+                                    <div>
+                                      <label className="block mb-1 font-medium">
+                                        Điểm (0 - 10)
+                                      </label>
+                                      <input
+                                        type="number"
+                                        className="w-full border p-2 rounded-lg focus:ring focus:ring-blue-300"
+                                        value={score}
+                                        onChange={(e) =>
+                                          setScore(e.target.value)
+                                        }
+                                        min="0"
+                                        max="10"
+                                        step="0.1"
+                                      />
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                      <label className="block mb-1 font-medium">
+                                        Phản hồi
+                                      </label>
+                                      <textarea
+                                        rows="3"
+                                        className="w-full border p-2 rounded-lg focus:ring focus:ring-blue-300"
+                                        value={feedback}
+                                        onChange={(e) =>
+                                          setFeedback(e.target.value)
+                                        }
+                                        placeholder="Nhập nhận xét..."
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="mt-4 flex gap-3">
+                                    <button
+                                      onClick={() => handleSubmit(sub)}
+                                      disabled={loading}
+                                      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                                    >
+                                      <Send size={16} />{" "}
+                                      {loading
+                                        ? "Đang gửi..."
+                                        : "Lưu & Gửi phản hồi"}
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        setSelectedSubmissionId(null)
+                                      }
+                                      className="flex items-center gap-2 bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
+                                    >
+                                      <RefreshCw size={16} /> Hủy
+                                    </button>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             ) : (
-              <p className="text-center text-gray-500 py-8">
-                Không có báo cáo cho môn này.
-              </p>
+              <div className="text-gray-500 mt-6">
+                Chưa có submissions trong báo cáo này.
+              </div>
             )
           ) : (
-            <p className="text-center text-gray-500 py-8">
-              Vui lòng chọn Ngành & Môn học.
-            </p>
+            <div className="text-gray-500 mt-6">
+              Vui lòng chọn Ngành → Môn → Lớp → Năm → Báo cáo.
+            </div>
           )}
         </div>
       </div>
-
       <Footer />
     </>
-  );
-}
-
-// ===================== COMPONENT THỐNG KÊ =====================
-function StatBox({ label, value, icon, color = "blue" }) {
-  const colors = {
-    blue: "text-blue-600",
-    orange: "text-orange-600",
-    green: "text-green-600",
-  };
-
-  return (
-    <div className="bg-white border p-4 rounded-2xl shadow-sm">
-      <div className={`text-2xl font-bold ${colors[color]}`}>{value}</div>
-      <div className="text-gray-600 text-sm flex items-center gap-1">
-        {icon} {label}
-      </div>
-    </div>
   );
 }
