@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
-import { getRole } from "../../../Constants/INFO_USER";
+import { getRole, getUser } from "../../../Constants/INFO_USER";
 import RoleStudent from "../../../ReUse/IsLogin/RoleStudent";
 import {
   getSafeJSON,
@@ -13,13 +13,18 @@ export default function ModelNotifications({ stateOpen, onClose }) {
   const [loading, setLoading] = useState(false);
 
   const role = getRole();
+  const user = getUser();
   if (role === "student") {
     RoleStudent(role);
   }
 
+  // localStorage.clear();
   useEffect(() => {
-    if (role !== "student") return;
-    const cachedNotifications = getSafeJSON("student_notifications", []);
+    if (role !== "student" || !user?.user_id) return;
+    const cachedNotifications = getSafeJSON(
+      `student_notifications_${user?.user_id}`,
+      []
+    );
 
     if (cachedNotifications !== null && cachedNotifications.length > 0) {
       setNotifications(cachedNotifications);
@@ -31,7 +36,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
       .then((res) => {
         setNotifications(res.data);
         if (JSON.stringify(cachedNotifications) !== JSON.stringify(res.data)) {
-          setSafeJSON("student_notifications", res.data);
+          setSafeJSON(`student_notifications_${user?.user_id}`, res.data);
         }
       })
       .catch((error) => {
@@ -39,7 +44,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
         setNotifications([]);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [user?.user_id]);
 
   const unreadCount = notifications.filter((noti) => !noti.isRead).length;
   const handleClose = () => {

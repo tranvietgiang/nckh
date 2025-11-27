@@ -26,8 +26,10 @@ class NotificationController extends Controller
         $result = $this->service->getNotifyService($studentId);
         if ($result['status']) {
             return response()->json($result["data"], 200);
+        } else {
+            return response()->json([], 200);
         }
 
-        return response()->json(["message_error" => "Lỗi server"], 500);
+        return response()->json([], 500);
     }
 }
