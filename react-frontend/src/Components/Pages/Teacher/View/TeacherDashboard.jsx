@@ -122,7 +122,7 @@ export default function TeacherDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 font-sans">
+    <div className="min-h-screen bg-gray-100 font-sans ">
       <Navbar />
 
       {/* HEADER */}
@@ -191,6 +191,16 @@ export default function TeacherDashboard() {
           </div>
         </div>
 
+        {/* Quick Actions */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-1 gap-4 max-w-6xl mx-auto">
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-green-600 hover:bg-green-700 text-white py-3 px-5 rounded-lg text-base font-medium transition-colors duration-200 flex items-center justify-center"
+          >
+            Cập nhật - {new Date().toLocaleDateString("vi-VN")}
+          </button>
+        </div>
+
         {/* DANH SÁCH LỚP */}
         <div className="mt-10">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">
@@ -233,22 +243,7 @@ export default function TeacherDashboard() {
             </div>
           )}
         </div>
-
-        {/* FOOTER NHỎ */}
-        <div className="flex justify-between items-center mt-8 border-t pt-4 text-sm text-gray-500">
-          <p>Cập nhật: {new Date().toLocaleDateString("vi-VN")}</p>
-          <div className="flex gap-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg shadow">
-              Xem chi tiết
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow"
-            >
-              Làm mới
-            </button>
-          </div>
-        </div>
+        <p className="mt-[50px]"></p>
       </div>
 
       {/* Modal Thông Báo */}
