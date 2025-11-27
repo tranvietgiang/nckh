@@ -309,7 +309,9 @@ class ReportController extends Controller
 
             // $studentId = 1;
             $studentId = $checkLeaderSubmit->user_id;
-            $checkSubmission = Submission::where("student_id", $studentId)->where('report_id', $reportId)->first();
+            $checkSubmission = Submission::where("student_id", $studentId)->where('report_id', $reportId)
+                ->orderBy('version', 'desc')
+                ->first();
 
             $submission = Submission::create([
                 'report_id' => $reportId,
@@ -374,11 +376,13 @@ class ReportController extends Controller
     {
         $studentId = AuthHelper::isLogin();
 
-        $groups = DB::table('report_members')
+        $subquery = DB::table('report_members')
             ->join('reports', 'report_members.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
+            ->leftJoin('submissions', 'reports.report_id', '=', 'submissions.report_id')
+            ->leftJoin('submission_files', 'submissions.submission_id', '=', 'submission_files.submission_id')
             ->select(
                 'report_members.rm_code',
                 'report_members.rm_name',
@@ -395,10 +399,36 @@ class ReportController extends Controller
 
                 'subjects.subject_name',
                 'user_profiles.fullname',
+                'submissions.submission_id',
+                'submissions.version',
+                'submissions.submission_time',
+                'submission_files.file_path',
+                DB::raw('ROW_NUMBER() OVER (PARTITION BY reports.report_id ORDER BY submissions.version DESC, submissions.submission_id DESC) as rn')
             )
-            ->where('report_members.student_id', $studentId)
-            ->distinct()
-            ->orderBy('reports.report_id', 'asc')
+            ->where('report_members.student_id', $studentId);
+
+        $groups = DB::table(DB::raw("({$subquery->toSql()}) as ranked"))
+            ->mergeBindings($subquery)
+            ->select(
+                'rm_code',
+                'rm_name',
+                'report_m_role',
+                'report_id',
+                'report_name',
+                'teacher_id',
+                'start_date',
+                'end_date',
+                'class_id',
+                'class_name',
+                'subject_name',
+                'fullname',
+                'submission_id',
+                'version',
+                'submission_time',
+                'file_path'
+            )
+            ->where('rn', 1)
+            ->orderBy('report_id', 'asc')
             ->get();
 
         if ($groups->isEmpty()) {
@@ -568,6 +598,7 @@ class ReportController extends Controller
             'report'  => $report,
         ], 201);
     }
+
     public function getNameReportGroup($majorId, $classId)
     {
         AuthHelper::roleTeacher();
@@ -591,33 +622,104 @@ class ReportController extends Controller
     }
 
 
-    public function getReportsByMajorClassSubjectTeacher($selectedMajor, $selectedSubject, $selectedClass, $selectedYear)
+    // public function getReportsByMajorClassSubjectTeacher($selectedMajor, $selectedSubject, $selectedClass, $selectedYear)
+    // {
+    //     AuthHelper::roleTeacher();
+    //     $teacherId = Auth::id();
+
+    //     $reports = DB::table('reports')
+    //         ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+    //         ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
+    //         ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
+    //         ->where('majors.major_id', $selectedMajor)
+    //         ->where('subjects.subject_id', $selectedSubject)
+    //         ->where('classes.class_id', $selectedClass)
+    //         ->where('classes.academic_year', $selectedYear)
+    //         ->where('classes.teacher_id', $teacherId)
+    //         ->distinct()
+    //         ->select(
+    //             "reports.*"
+    //         )
+    //         ->get();
+
+    //     if ($reports->isEmpty()) {
+    //         return response()->json([
+    //             'message' => 'Không tìm thấy báo cáo nào với các tiêu chí đã chọn.'
+    //         ], 404);
+    //     }
+
+    //     return response()->json($reports, 200);
+    // }
+
+    public function getReportsOverviewBySubject($selectedMajor, $selectedSubject)
     {
         AuthHelper::roleTeacher();
-        $teacherId = Auth::id();
+        $teacherId = AuthHelper::isLogin();
 
-        $reports = DB::table('reports')
-            ->join('classes', 'reports.class_id', '=', 'classes.class_id')
-            ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
-            ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
-            ->where('majors.major_id', $selectedMajor)
-            ->where('subjects.subject_id', $selectedSubject)
-            ->where('classes.class_id', $selectedClass)
-            ->where('classes.academic_year', $selectedYear)
-            ->where('classes.teacher_id', $teacherId)
-            ->distinct()
+        // Lấy tất cả báo cáo theo môn + ngành của GV
+        $reports = DB::table('reports as r')
+            ->join('classes as c', 'r.class_id', '=', 'c.class_id')
+            ->join('subjects as s', 'c.subject_id', '=', 's.subject_id')
+            ->join('majors as m', 's.major_id', '=', 'm.major_id')
+            ->where('m.major_id', $selectedMajor)
+            ->where('s.subject_id', $selectedSubject)
+            ->where('c.teacher_id', $teacherId)
             ->select(
-                "reports.*"
+                'r.report_id',
+                'r.report_name',
+                'c.class_id',
+                'c.class_name'
             )
+            ->orderBy('r.report_id')
+            ->orderBy('c.class_name')
             ->get();
 
         if ($reports->isEmpty()) {
-            return response()->json([
-                'message' => 'Không tìm thấy báo cáo nào với các tiêu chí đã chọn.'
-            ], 404);
+            return response()->json([]);
         }
 
-        return response()->json($reports, 200);
+        // LẤY SỐ LƯỢNG SUBMISSION CHO TỪNG (report_id, class_id)
+        $submissionCounts = DB::table('submissions as sub')
+            ->join('reports as r', 'sub.report_id', '=', 'r.report_id')
+            ->join('classes as c', 'r.class_id', '=', 'c.class_id')
+            ->select(
+                'sub.report_id',
+                'c.class_id',    // <-- FIX: rõ ràng
+                DB::raw('COUNT(*) as total')
+            )
+            ->whereIn('sub.report_id', $reports->pluck('report_id'))
+            ->whereIn('c.class_id', $reports->pluck('class_id'))
+            ->groupBy('sub.report_id', 'c.class_id')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->report_id . '-' . $item->class_id;
+            });
+
+
+        // CHUYỂN THÀNH FORMAT MONG MUỐN
+        $formatted = [];
+
+        foreach ($reports as $row) {
+            $key = $row->report_id . '-' . $row->class_id;
+            $count = $submissionCounts[$key]->total ?? 0;
+
+            if (!isset($formatted[$row->report_id])) {
+                $formatted[$row->report_id] = [
+                    'report_id'   => $row->report_id,
+                    'report_name' => $row->report_name,
+                    'classes'     => []
+                ];
+            }
+
+            $formatted[$row->report_id]['classes'][] = [
+                'class_id'          => $row->class_id,
+                'class_name'        => $row->class_name,
+                'total_submissions' => $count,
+            ];
+        }
+
+        // Trả về mảng values
+        return response()->json(array_values($formatted));
     }
 
     public function getTeacherReports(Request $request)
@@ -679,7 +781,7 @@ class ReportController extends Controller
     }
 
     /**
-     * ✅ Lấy chi tiết báo cáo theo ID - SỬA LẠI
+     * Lấy chi tiết báo cáo theo ID - SỬA LẠI
      */
     public function getReportDetail($id)
     {
@@ -815,6 +917,7 @@ class ReportController extends Controller
 
         return response()->json($count_report, 200);
     }
+
     public function getReportsOfClass($classId)
     {
         $teacherId = AuthHelper::isLogin();
@@ -828,120 +931,4 @@ class ReportController extends Controller
 
         return response()->json($reports, 200);
     }
-
-
-
-
-
-
-
-    // public function getClassesGroupStatus($classId)
-    // {
-    //     $teacherId = AuthHelper::isLogin();
-    //     AuthHelper::roleTeacher();
-
-    //     // ✨ Lấy danh sách nhóm
-    //     $groups = DB::table("reports")
-    //         ->leftJoin("submissions", "reports.report_id", "=", "submissions.report_id")
-    //         ->leftJoin("grades", "submissions.submission_id", "=", "grades.submission_id")
-    //         ->where("reports.class_id", $classId)
-    //         ->where("reports.teacher_id", $teacherId)
-    //         ->select(
-    //             "reports.report_id as group_id",
-    //             "reports.report_name as group_name",
-    //             "reports.description as topic",
-    //             "reports.start_date",
-    //             "reports.end_date",
-
-    //             // UI cần status => chuẩn hóa:
-    //             DB::raw("
-    //             CASE
-    //                 WHEN grades.score IS NOT NULL THEN 'Đã chấm'
-    //                 WHEN submissions.status = 'rejected' THEN 'Bị từ chối'
-    //                 WHEN submissions.status = 'submitted' THEN 'Đã nộp'
-    //                 ELSE 'Chưa nộp'
-    //             END as status
-    //         "),
-
-    //             "submissions.submission_time as submitted_date",
-    //             "grades.score as grade"
-    //         )
-    //         ->get();
-
-    //     // ✨ Lấy danh sách thành viên mỗi nhóm
-    //     foreach ($groups as $g) {
-    //         $members = DB::table("report_members")
-    //             ->join("user_profiles", "report_members.student_id", "=", "user_profiles.user_id")
-    //             ->join("users", "user_profiles.user_id", "=", "users.user_id")
-    //             ->select(
-    //                 "report_members.student_id as user_id",
-    //                 "user_profiles.fullname",
-    //                 "users.email",
-    //                 DB::raw("'Đã nộp' as status") // hoặc lấy status từ report_members nếu có
-    //             )
-    //             ->where("report_members.report_id", $g->group_id)
-    //             ->distinct() // CHỐT QUAN TRỌNG: XOÁ DUPLICATE
-    //             ->get();
-
-    //         $g->members = $members;
-    //     }
-
-    //     return response()->json($groups, 200);
-    // }
-
-
-    // public function getShowMemberGroup()
-    // { {
-    //         $teacherId = AuthHelper::isLogin();
-    //         AuthHelper::roleTeacher();
-
-    //         // ✨ Lấy danh sách nhóm
-    //         $groups = DB::table("reports")
-    //             ->leftJoin("submissions", "reports.report_id", "=", "submissions.report_id")
-    //             ->leftJoin("grades", "submissions.submission_id", "=", "grades.submission_id")
-    //             ->where("reports.class_id", $classId)
-    //             ->where("reports.teacher_id", $teacherId)
-    //             ->select(
-    //                 "reports.report_id as group_id",
-    //                 "reports.report_name as group_name",
-    //                 "reports.description as topic",
-    //                 "reports.start_date",
-    //                 "reports.end_date",
-
-    //                 // UI cần status => chuẩn hóa:
-    //                 DB::raw("
-    //             CASE
-    //                 WHEN grades.score IS NOT NULL THEN 'Đã chấm'
-    //                 WHEN submissions.status = 'rejected' THEN 'Bị từ chối'
-    //                 WHEN submissions.status = 'submitted' THEN 'Đã nộp'
-    //                 ELSE 'Chưa nộp'
-    //             END as status
-    //         "),
-
-    //                 "submissions.submission_time as submitted_date",
-    //                 "grades.score as grade"
-    //             )
-    //             ->get();
-
-    //         // ✨ Lấy danh sách thành viên mỗi nhóm
-    //         foreach ($groups as $g) {
-    //             $members = DB::table("report_members")
-    //                 ->join("user_profiles", "report_members.student_id", "=", "user_profiles.user_id")
-    //                 ->join("users", "user_profiles.user_id", "=", "users.user_id")
-    //                 ->select(
-    //                     "report_members.student_id as user_id",
-    //                     "user_profiles.fullname",
-    //                     "users.email",
-    //                     DB::raw("'Đã nộp' as status") // hoặc lấy status từ report_members nếu có
-    //                 )
-    //                 ->where("report_members.report_id", $g->group_id)
-    //                 ->distinct() // CHỐT QUAN TRỌNG: XOÁ DUPLICATE
-    //                 ->get();
-
-    //             $g->members = $members;
-    //         }
-
-    //         return response()->json($groups, 200);
-    //     }
-    // }
 }

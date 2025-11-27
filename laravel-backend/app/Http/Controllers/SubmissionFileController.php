@@ -21,17 +21,17 @@ class SubmissionFileController extends Controller
             ->join('reports', 'rm.report_id', '=', 'reports.report_id')
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
 
-            // 🔥 lấy nhóm trưởng (NT) của nhóm
+            // lấy nhóm trưởng (NT) của nhóm
             ->leftJoin('report_members as leader', function ($join) {
                 $join->on('leader.report_id', '=', 'rm.report_id')
                     ->on('leader.rm_code', '=', 'rm.rm_code')
                     ->where('leader.report_m_role', 'NT');
             })
 
-            // 🔥 lấy submission của nhóm trưởng
+            // lấy submission của nhóm trưởng
             ->leftJoin('submissions', 'submissions.student_id', '=', 'leader.student_id')
 
-            // 🔥 file submission
+            // file submission
             ->leftJoin('submission_files', 'submission_files.submission_id', '=', 'submissions.submission_id')
 
             ->where('rm.student_id', $studentId)
@@ -47,7 +47,7 @@ class SubmissionFileController extends Controller
                 'submissions.submission_time',
                 'submission_files.file_path',
 
-                // 🔥 status code
+                // status code
                 DB::raw("
                 CASE
                     WHEN submission_files.file_id IS NOT NULL THEN 'submitted'

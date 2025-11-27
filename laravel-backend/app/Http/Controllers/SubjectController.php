@@ -20,13 +20,13 @@ class SubjectController extends Controller
         $this->subjectService = $subjectService;
     }
 
-    // 🟢 Lấy danh sách
+    // Lấy danh sách
     public function indexSubject()
     {
         $result = $this->subjectService->getAllSubjects();
         return response()->json($result, 200);
     }
-    // 🟢 Lấy danh sách
+    // Lấy danh sách
     public function getSubjectByMajor($idMajor)
     {
         $result = DB::table("subjects")
@@ -37,7 +37,7 @@ class SubjectController extends Controller
         }
     }
 
-    // 🟢 Lấy danh sách
+    // Lấy danh sách
     public function getSubjectByMajorByTeacher($idMajor)
     {
         $result = DB::table("subjects")

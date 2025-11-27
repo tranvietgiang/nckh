@@ -34,7 +34,7 @@ export default function PendingReports() {
   const [uploading, setUploading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
-  const [submissionMap, setSubmissionMap] = useState({});
+  // const [submissionMap, setSubmissionMap] = useState({});
   const [reportCount, setReportCount] = useState(null);
 
   // 🔹 Lấy danh sách báo cáo
@@ -59,27 +59,6 @@ export default function PendingReports() {
         console.log(err);
       });
   }, []);
-
-  // 🔹 Lấy trạng thái nộp và link file thực tế
-  useEffect(() => {
-    if (reports.length === 0) return;
-
-    axios
-      .get("/tvg/get-submission/submitted")
-      .then((res) => {
-        const map = {};
-        res.data.forEach((item) => {
-          map[item.report_id] = {
-            status: item.status,
-            file_path: item.file_path,
-          };
-        });
-        setSubmissionMap(map);
-      })
-      .catch((error) => {
-        console.log("❌ Lỗi khi lấy submission:", error);
-      });
-  }, [reports]);
 
   // 🔹 Hàm nộp báo cáo
   const handleSubmit = async (file) => {
@@ -117,9 +96,9 @@ export default function PendingReports() {
 
   // 🔹 Render nút hành động
   const renderActionButton = (report) => {
-    const isLeader = report.report_m_role === "NT";
-    const submission = submissionMap[report.report_id];
-    const isSubmitted = submission?.status === "submitted";
+    const isLeader = report?.report_m_role === "NT";
+    const file_path = report?.file_path ?? null;
+    const isSubmitted = report?.submission_id ?? null;
 
     if (!isLeader) {
       return (
@@ -127,9 +106,9 @@ export default function PendingReports() {
           <div className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg text-center">
             👥 Bạn là thành viên trong nhóm
           </div>
-          {isSubmitted && submission.file_path && (
+          {isSubmitted && (
             <a
-              href={submission.file_path}
+              href={file_path}
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-center"
@@ -143,9 +122,9 @@ export default function PendingReports() {
 
     return (
       <div className="space-y-2 mt-4">
-        {isSubmitted && submission.file_path && (
+        {isSubmitted && (
           <a
-            href={submission.file_path}
+            href={file_path}
             target="_blank"
             rel="noopener noreferrer"
             className="block w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg text-center"
@@ -187,8 +166,8 @@ export default function PendingReports() {
         </p>
       ) : (
         reports.map((report) => {
-          const submission = submissionMap[report?.report_id];
-          const isSubmitted = submission?.status === "submitted";
+          const isSubmitted = report?.submission_id ?? null;
+          const file_path = report?.file_path ?? null;
           const date = new Date();
           const formatted =
             date.getFullYear() +
@@ -267,7 +246,7 @@ export default function PendingReports() {
                     </p>
                   )}
 
-                  {/* ✅ Trạng thái nộp + link xem file */}
+                  {/* Trạng thái nộp + link xem file */}
                   <p>
                     <strong>Trạng thái nộp:</strong>
                     <span
@@ -275,14 +254,14 @@ export default function PendingReports() {
                         isSubmitted ? "text-green-600" : "text-red-500"
                       }`}
                     >
-                      {isSubmitted ? "✅ Đã nộp" : "❌ Chưa nộp"}
+                      {isSubmitted ? "Đã nộp" : "❌ Chưa nộp"}
                     </span>
                   </p>
 
-                  {isSubmitted && submission?.file_path && (
+                  {isSubmitted && (
                     <p>
                       <a
-                        href={submission.file_path}
+                        href={file_path}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 underline"
