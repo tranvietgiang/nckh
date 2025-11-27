@@ -381,7 +381,10 @@ class ReportController extends Controller
             ->join('classes', 'reports.class_id', '=', 'classes.class_id')
             ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
             ->join('user_profiles', 'reports.teacher_id', '=', 'user_profiles.user_id')
-            ->leftJoin('submissions', 'reports.report_id', '=', 'submissions.report_id')
+            ->leftJoin('submissions', function ($join) {
+                $join->on('submissions.report_id', '=', 'reports.report_id')
+                    ->on('submissions.student_id', '=', 'report_members.student_id');
+            })
             ->leftJoin('submission_files', 'submissions.submission_id', '=', 'submission_files.submission_id')
             ->select(
                 'report_members.rm_code',
@@ -622,34 +625,6 @@ class ReportController extends Controller
     }
 
 
-    // public function getReportsByMajorClassSubjectTeacher($selectedMajor, $selectedSubject, $selectedClass, $selectedYear)
-    // {
-    //     AuthHelper::roleTeacher();
-    //     $teacherId = Auth::id();
-
-    //     $reports = DB::table('reports')
-    //         ->join('classes', 'reports.class_id', '=', 'classes.class_id')
-    //         ->join('subjects', 'classes.subject_id', '=', 'subjects.subject_id')
-    //         ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
-    //         ->where('majors.major_id', $selectedMajor)
-    //         ->where('subjects.subject_id', $selectedSubject)
-    //         ->where('classes.class_id', $selectedClass)
-    //         ->where('classes.academic_year', $selectedYear)
-    //         ->where('classes.teacher_id', $teacherId)
-    //         ->distinct()
-    //         ->select(
-    //             "reports.*"
-    //         )
-    //         ->get();
-
-    //     if ($reports->isEmpty()) {
-    //         return response()->json([
-    //             'message' => 'Không tìm thấy báo cáo nào với các tiêu chí đã chọn.'
-    //         ], 404);
-    //     }
-
-    //     return response()->json($reports, 200);
-    // }
 
     public function getReportsOverviewBySubject($selectedMajor, $selectedSubject)
     {
@@ -722,7 +697,7 @@ class ReportController extends Controller
         return response()->json(array_values($formatted));
     }
 
-    public function getTeacherReports(Request $request)
+    public function getTeacherReports()
     {
         try {
             $userId = AuthHelper::isLogin();
