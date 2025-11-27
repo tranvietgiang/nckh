@@ -18,6 +18,10 @@ class NotificationService
         if (empty($data)) {
             return ['success' => false, 'message_error' => 'Dữ liệu gửi đi không tồn tại!'];
         }
+        // Kiểm tra độ dài dữ liệu 
+        if ($data['title'] > 200 || $data['content'] > 500) {
+            return ['success' => false, 'message_error' => 'Kỹ tự tiêu đề hoặc nội dung vượt quá giới hạn!'];
+        }
 
         // Check ngành tồn tại
         if (!Major::where("major_id", $data['major_id'])->exists()) {

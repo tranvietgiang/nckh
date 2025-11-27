@@ -2,6 +2,10 @@ import { useEffect, useState } from "react";
 import axios from "../../../../config/axios";
 import { getRole } from "../../../Constants/INFO_USER";
 import RoleStudent from "../../../ReUse/IsLogin/RoleStudent";
+import {
+  getSafeJSON,
+  setSafeJSON,
+} from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function ModelNotifications({ stateOpen, onClose }) {
   const [notifications, setNotifications] = useState([]);
@@ -15,10 +19,21 @@ export default function ModelNotifications({ stateOpen, onClose }) {
 
   useEffect(() => {
     if (role !== "student") return;
+    const cachedNotifications = getSafeJSON("student_notifications", []);
+
+    if (cachedNotifications !== null && cachedNotifications.length > 0) {
+      setNotifications(cachedNotifications);
+    }
+
     setLoading(true);
     axios
       .get("/tvg/get-notify")
-      .then((res) => setNotifications(res.data))
+      .then((res) => {
+        setNotifications(res.data);
+        if (JSON.stringify(cachedNotifications) !== JSON.stringify(res.data)) {
+          setSafeJSON("student_notifications", res.data);
+        }
+      })
       .catch((error) => {
         console.log(error);
         setNotifications([]);
@@ -88,16 +103,6 @@ export default function ModelNotifications({ stateOpen, onClose }) {
                     : "hover:bg-gray-50"
                 }`}
               >
-                {/* Tiêu đề */}
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="text-lg font-semibold text-gray-800">
-                    {noti.title}
-                  </h4>
-                  <span className="text-sm text-gray-500">
-                    {new Date(noti.created_at).toLocaleString()}
-                  </span>
-                </div>
-
                 {/* Giảng viên + lớp */}
                 <div className="text-sm text-gray-600 mb-3">
                   <p>
@@ -111,7 +116,15 @@ export default function ModelNotifications({ stateOpen, onClose }) {
                     {noti?.class_name ?? ""}
                   </p>
                 </div>
-
+                {/* Tiêu đề */}
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="text-lg font-semibold text-gray-800">
+                    {noti.title}
+                  </h4>
+                  <span className="text-sm text-gray-500">
+                    {new Date(noti.created_at).toLocaleString()}
+                  </span>
+                </div>
                 {/* Nội dung */}
                 <p className="text-gray-700 text-base leading-relaxed">
                   {noti.content}
