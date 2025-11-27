@@ -112,6 +112,8 @@ export default function CreateNotification({ stateOpen, onClose }) {
     if (!formData.class_id) return alert("⚠️ Vui lòng chọn lớp!");
     if (!formData.title.trim()) return alert("⚠️ Vui lòng nhập tiêu đề!");
     if (!formData.content.trim()) return alert("⚠️ Vui lòng nhập nội dung!");
+    if (!formData.content.trim() > 500 || formData.title.trim() > 200)
+      return alert("⚠️ Vui lòng nhập nội dung dưới 500 ký tự!");
 
     try {
       setLoading(true);
