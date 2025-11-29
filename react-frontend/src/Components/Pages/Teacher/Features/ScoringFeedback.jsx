@@ -16,6 +16,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import BackToTop from "../../../ReUse/Top/BackToTop";
+import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 
 export default function ScoringFeedbackBySubject() {
   const navigate = useNavigate();
@@ -25,10 +27,11 @@ export default function ScoringFeedbackBySubject() {
     document.title = "Chấm điểm theo môn học";
   }, []);
 
+  useRoleTeacher(user?.role);
   // ===================== STATE =====================
   const [majors, setMajors] = useState([]);
   const [subjects, setSubjects] = useState([]);
-  const [reportGroups, setReportGroups] = useState([]); // [{report_id, report_name, classes:[...]}]
+  const [reportGroups, setReportGroups] = useState([]);
 
   const [selectedMajor, setSelectedMajor] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -41,7 +44,6 @@ export default function ScoringFeedbackBySubject() {
   const [feedback, setFeedback] = useState("");
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
-
 
   // ===================== LOAD NGÀNH (MẪU) =====================
   const fetchMajors = async () => {
@@ -537,6 +539,7 @@ export default function ScoringFeedbackBySubject() {
         </div>
       </div>
 
+      <BackToTop />
       <Footer />
     </>
   );
