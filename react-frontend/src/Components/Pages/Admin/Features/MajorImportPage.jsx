@@ -3,6 +3,9 @@ import axios from "../../../../config/axios";
 import ModalMajor from "../Modal/ModalAddMajor";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 import Footer from "../../Student/Home/Footer";
+import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { getAuth } from "../../../Constants/INFO_USER";
 export default function MajorImportPage() {
   const [majors, setMajors] = useState([]);
   const [majorErrors, setMajorErrors] = useState([]);
@@ -13,13 +16,17 @@ export default function MajorImportPage() {
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
 
-  // 🔍 SEARCH STATE
+  const { user, token } = getAuth();
+  IsLogin(user, token);
+  RoleAdmin(user?.role);
+
+  // SEARCH STATE
   const [q, setQ] = useState("");
   const [searchRows, setSearchRows] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const typingTimer = useRef(null);
 
-  // 🟢 Load danh sách ngành và lỗi khi khởi động
+  // Load danh sách ngành và lỗi khi khởi động
   useEffect(() => {
     fetchMajors();
     fetchMajorErrors();

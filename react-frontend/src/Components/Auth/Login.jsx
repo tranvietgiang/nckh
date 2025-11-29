@@ -9,7 +9,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false); // ✅ checkbox ghi nhớ
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function Login() {
   // Nếu đã đăng nhập thì chuyển hướng
   RouterHome(user, token);
 
-  // 🟢 Khi load trang: tự động điền lại nếu trước đó có lưu thông tin
+  // Khi load trang: tự động điền lại nếu trước đó có lưu thông tin
   useEffect(() => {
     document.title = "Đăng nhập";
 
@@ -40,11 +40,11 @@ export default function Login() {
         password,
       });
 
-      // ✅ Nếu đăng nhập thành công
+      // Nếu đăng nhập thành công
       localStorage.setItem("user", JSON.stringify(res.data.user));
       localStorage.setItem("token", res.data.token);
 
-      // ✅ Nếu người dùng chọn "Ghi nhớ"
+      // Nếu người dùng chọn "Ghi nhớ"
       if (remember) {
         localStorage.setItem("savedUser", username);
         localStorage.setItem("savedPass", password); // ⚠️ Có thể mã hóa nhẹ bằng btoa() nếu cần
@@ -53,7 +53,7 @@ export default function Login() {
         localStorage.removeItem("savedPass");
       }
 
-      // ✅ Điều hướng
+      // Điều hướng
       const role = res.data.user.role;
       if (role === "student") navigate("/nckh-home");
       else if (role === "teacher") navigate("/nckh-teacher");

@@ -8,11 +8,12 @@ import { useEffect } from "react";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 export default function StudentDashboard() {
   const { user, token } = getAuth();
-  IsLogin(user, token);
-  RoleStudent(user?.role);
   useEffect(() => {
     document.title = "Trang chủ sinh viên";
   }, []);
+  IsLogin(user, token);
+  RoleStudent(user?.role);
+
   return (
     <>
       <Header />

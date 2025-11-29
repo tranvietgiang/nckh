@@ -18,15 +18,17 @@ import {
 import { useNavigate } from "react-router-dom";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ScoringFeedbackBySubject() {
   const navigate = useNavigate();
-  const { user } = getAuth();
+  const { user, token } = getAuth();
 
   useEffect(() => {
     document.title = "Chấm điểm theo môn học";
   }, []);
 
+  IsLogin(user, token);
   useRoleTeacher(user?.role);
   // ===================== STATE =====================
   const [majors, setMajors] = useState([]);

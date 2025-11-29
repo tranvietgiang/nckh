@@ -9,6 +9,7 @@ import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
+import RoleStudent from "../../../ReUse/IsLogin/RoleStudent";
 
 export default function ProfilePage() {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -23,10 +24,11 @@ export default function ProfilePage() {
     document.title = "Hồ sơ";
   }, []);
 
-  IsLogin(user, token);
-
   const role = user?.role ?? null;
   const user_id = user?.user_id ?? null;
+
+  IsLogin(user, token);
+  RoleStudent(role);
 
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;

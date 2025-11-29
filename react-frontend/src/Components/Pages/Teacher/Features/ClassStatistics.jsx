@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
-import { getRole } from "../../../Constants/INFO_USER";
+import { getAuth } from "../../../Constants/INFO_USER";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 import Footer from "../../Student/Home/Footer";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ClassStatistics() {
   const { classId } = useParams();
@@ -19,8 +20,10 @@ export default function ClassStatistics() {
   const [statusFilter, setStatusFilter] = useState("Tất cả");
 
   // role
-  const role = getRole();
-  useRoleTeacher(role);
+  const { user, token } = getAuth();
+  IsLogin(user, token);
+
+  useRoleTeacher(user?.role);
 
   // fetch reports
   useEffect(() => {

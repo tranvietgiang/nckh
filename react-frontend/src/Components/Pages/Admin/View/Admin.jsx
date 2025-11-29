@@ -32,7 +32,6 @@ export default function AdminManagement() {
   const role = getRole();
   const { user, token } = getAuth();
 
-  // localStorage.clear();
   IsLogin(user, token);
   RoleAmin(role);
 

@@ -16,6 +16,7 @@ import { getRole } from "../../Constants/INFO_USER";
 import IsLogin from "../IsLogin/IsLogin";
 import { getAuth } from "../../Constants/INFO_USER";
 import { BsMoon } from "react-icons/bs";
+import TopLoadingBar from "../TopLoadingBar/TopLoadingBar.jsx";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -55,6 +56,7 @@ export default function Navbar() {
       as="nav"
       className="relative bg-gray-800/50 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-white/10"
     >
+      <TopLoadingBar />
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-16 items-center justify-between">
           <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">

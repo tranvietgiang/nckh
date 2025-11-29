@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
 import Footer from "../../Student/Home/Footer";
 import BackToTop from "../../../ReUse/Top/BackToTop";
+import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { getAuth } from "../../../Constants/INFO_USER";
 export default function ImportTeacher() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -15,6 +18,10 @@ export default function ImportTeacher() {
     setStatus("");
     setResult(null);
   };
+
+  const { user, token } = getAuth();
+  IsLogin(user, token);
+  RoleAdmin(user?.role);
 
   const handleImport = async () => {
     if (!file) {

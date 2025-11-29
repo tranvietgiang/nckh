@@ -9,7 +9,7 @@ function IsLogin(user, token) {
       localStorage.removeItem("token");
       navigate("/nckh-login");
     }
-  }, [user, token, navigate]);
+  }, []);
   return null;
 }
 export default IsLogin;

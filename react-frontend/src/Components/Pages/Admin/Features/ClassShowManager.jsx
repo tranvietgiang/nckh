@@ -19,12 +19,19 @@ import {
   // getSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 import AdminHeader from "../View/AdminHeader";
+import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { getAuth } from "../../../Constants/INFO_USER";
 export default function ClassShowManager() {
   const navigate = useNavigate();
 
   useEffect(() => {
     document.title = "Xem lớp học";
   }, []);
+
+  const { user, token } = getAuth();
+  IsLogin(user, token);
+  RoleAdmin(user?.role);
 
   const [isCreateClassOpen, setIsCreateClassOpen] = useState(false);
   const [getClasses, setClasses] = useState([]);
@@ -76,15 +83,11 @@ export default function ClassShowManager() {
     } catch (err) {
       console.error("Lỗi khi import:", err);
       // Chỉ báo lỗi hệ thống
-      alert(
-        err.response?.data?.message ||
-        "❌ Cần Resert lại trang !!"
-      );
+      alert(err.response?.data?.message || "❌ Cần Resert lại trang !!");
     } finally {
       setImportLoading(false);
     }
   };
-
 
   useEffect(() => {
     axios
@@ -423,8 +426,9 @@ export default function ClassShowManager() {
                 <button
                   onClick={handleImportSubmit}
                   disabled={importLoading}
-                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${importLoading ? "opacity-70 cursor-not-allowed" : ""
-                    }`}
+                  className={`bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-200 ${
+                    importLoading ? "opacity-70 cursor-not-allowed" : ""
+                  }`}
                 >
                   {importLoading ? "Đang import..." : "Import"}
                 </button>
