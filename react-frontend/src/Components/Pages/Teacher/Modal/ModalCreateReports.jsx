@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ModalCreateReport({ open, onClose, onSuccess }) {
-  const { token } = getAuth();
+  const { user, token } = getAuth();
+
+  useIsLogin(user, token, "teacher");
 
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -17,9 +20,8 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // ==========================
-  // 🔥 LOAD DANH SÁCH LỚP GIẢNG VIÊN
-  // ==========================
+  // LOAD DANH SÁCH LỚP GIẢNG VIÊN
+
   useEffect(() => {
     if (!open) return;
 
@@ -38,9 +40,8 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
       .finally(() => setLoading(false));
   }, [open, token]);
 
-  // ==========================
-  // 🔍 Validate
-  // ==========================
+  // Validate
+
   const errors = useMemo(() => {
     let e = {};
     if (!selectedClass) e.class_id = "Hãy chọn lớp.";

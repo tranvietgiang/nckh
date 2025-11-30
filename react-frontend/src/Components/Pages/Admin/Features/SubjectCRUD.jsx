@@ -3,10 +3,13 @@ import axios from "../../../../config/axios";
 import ModalSubject from "../Modal/ModalSubject";
 import AdminHeader from "../View/AdminHeader";
 import Footer from "../../../ReUse/Footer/Footer";
-import { getRole } from "../../../Constants/INFO_USER";
-import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
+import { getAuth } from "../../../Constants/INFO_USER";
 import BackToTop from "../../../ReUse/Top/BackToTop";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 export default function SubjectImportPage() {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
   const [subjects, setSubjects] = useState([]);
   const [subjectErrors, setSubjectErrors] = useState([]);
   const [openModalAdd, setOpenModalAdd] = useState(false);
@@ -21,8 +24,6 @@ export default function SubjectImportPage() {
   const [searchRows, setSearchRows] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const timerRef = useRef(null);
-  const role = getRole();
-  RoleAdmin(role);
 
   // gõ để tìm (debounce) + Enter để tìm ngay ========= search engine
   const runSearch = async (value) => {

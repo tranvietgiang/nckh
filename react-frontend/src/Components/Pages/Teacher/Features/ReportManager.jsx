@@ -20,20 +20,23 @@ import {
   BookOpen,
 } from "lucide-react";
 import { getAuth } from "../../../Constants/INFO_USER";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ReportManager() {
   useEffect(() => {
     document.title = "Quản lý báo cáo";
   }, []);
 
-  const { token } = getAuth();
+  const { user, token } = getAuth();
+
+  useIsLogin(user, token, "teacher");
 
   const [open, setOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
-  // ⭐ DỮ LIỆU REPORT
+  // DỮ LIỆU REPORT
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -47,9 +50,7 @@ export default function ReportManager() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/teacher/reports", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get("/teacher/reports");
 
       const mapped = res.data.map((r) => ({
         id: r.report_id,
@@ -88,7 +89,7 @@ export default function ReportManager() {
     }
   };
 
-  // ⭐ HÀM CẬP NHẬT BÁO CÁO
+  // HÀM CẬP NHẬT BÁO CÁO
   const handleUpdateReport = (reportId) => {
     const currentReport = reports.find((r) => r.id === reportId);
     if (currentReport) {
@@ -97,14 +98,14 @@ export default function ReportManager() {
     }
   };
 
-  // ⭐ HÀM XỬ LÝ CẬP NHẬT THÀNH CÔNG
+  // HÀM XỬ LÝ CẬP NHẬT THÀNH CÔNG
   const handleUpdateSuccess = () => {
     setUpdateModalOpen(false);
     setSelectedReport(null);
     fetchReports();
   };
 
-  // ⭐ FILTER - CHỈ ĐỂ LỌC THEO TÌM KIẾM
+  // FILTER - CHỈ ĐỂ LỌC THEO TÌM KIẾM
   const filteredReports = reports.filter((report) => {
     const matchesSearch =
       report.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,7 +113,7 @@ export default function ReportManager() {
     return matchesSearch;
   });
 
-  // ⭐ CẬP NHẬT STATUS INFO
+  // CẬP NHẬT STATUS INFO
   const getStatusInfo = (status) => {
     switch (status) {
       case "in-progress":

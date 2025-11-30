@@ -1,14 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import axios from "../../../../config/axios";
-import { getUser } from "../../../Constants/INFO_USER";
+import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { useNavigate } from "react-router-dom";
 import ModalViewDetailGroups from "../Modal/ModalViewDetailGroups";
-import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 import BackToTop from "../../../ReUse/Top/BackToTop";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
+
 export default function ManagerGroups() {
+  const { user, token } = getAuth();
+  const teacherId = user?.user_id;
+
+  useIsLogin(user, token, "teacher");
+
   useEffect(() => {
     document.title = "Quản lý Nhóm ";
   }, []);
@@ -28,17 +34,9 @@ export default function ManagerGroups() {
   const [loadingClasses, setLoadingClasses] = useState(false);
   const [loadingGroups, setLoadingGroups] = useState(false);
 
-  // const [subjects, setSubjects] = useState([]);
-  // const [selectedSubjectId, setSelectedSubjectId] = useState("");
-  // const [loadingSubjects, setLoadingSubjects] = useState(false);
-
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileRef = useRef(null);
-
-  const user = getUser();
-  const teacherId = user?.user_id;
-  useRoleTeacher(user?.role);
 
   // ===== 1) Lấy ngành theo giảng viên =====
   useEffect(() => {

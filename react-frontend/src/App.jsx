@@ -43,8 +43,6 @@ function App() {
             <Route path="/nckh-profile" element={<ProfilePage />} />
             {/* Trang admin */}
             <Route path="/nckh-admin/*" element={<Admin />} />
-            {/* Trang quản lý lớp học */}
-            {/* <Route path="/nckh-class-manager" element={<ClassManager />} /> */}
             {/* Trang giảng viên */}
             <Route path="/nckh-teacher" element={<TeacherDashboard />} />
             {/* Trang giảng viên */}
@@ -72,8 +70,6 @@ function App() {
             />
             {/* Quản lý nhóm */}
             <Route path="/nckh-teacher-groups" element={<ManagerGroups />} />
-            /*===============================================END============================================
-            */
             {/* Quản lý nhóm */}
             <Route path="/nckh-report-manager" element={<ReportManager />} />
             {/* Xem nhóm lớp */}

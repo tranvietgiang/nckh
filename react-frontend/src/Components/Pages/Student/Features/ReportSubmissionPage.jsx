@@ -1,4 +1,6 @@
 import { useState, useRef } from "react";
+import { getAuth } from "../../../Constants/INFO_USER";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 function DotLoading({ text = "Đang tải", color = "gray" }) {
   const dotColor =
@@ -25,6 +27,9 @@ function DotLoading({ text = "Đang tải", color = "gray" }) {
 }
 
 export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "student");
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -56,7 +61,7 @@ export default function ReportSubmissionModal({ isOpen, onClose, onSubmit }) {
     setUploading(true);
     try {
       await onSubmit(selectedFile);
-      console.log("✅ File submitted:", selectedFile);
+      console.log("File submitted:", selectedFile);
       setSelectedFile(null);
       onClose();
     } catch (error) {

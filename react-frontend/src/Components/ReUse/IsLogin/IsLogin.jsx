@@ -1,15 +1,29 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-function IsLogin(user, token) {
+
+export default function useIsLogin(user, token, allowRole = null) {
   const navigate = useNavigate();
+  const hasRedirected = useRef(false);
+
   useEffect(() => {
+    if (hasRedirected.current) return;
+
+    //  Chưa đăng nhập
     if (!user || !token) {
-      alert("Bạn chưa đăng nhập!");
+      hasRedirected.current = true;
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+      alert("Bạn chưa đăng nhập!");
       navigate("/nckh-login");
+      return;
     }
-  }, [user, token, navigate]);
-  return null;
+
+    // Kiểm tra role nếu có yêu cầu
+    if (allowRole && user.role !== allowRole) {
+      hasRedirected.current = true;
+      alert("Bạn không có quyền truy cập!");
+      navigate("/nckh-404");
+      return;
+    }
+  }, [user, token, allowRole, navigate]);
 }
-export default IsLogin;

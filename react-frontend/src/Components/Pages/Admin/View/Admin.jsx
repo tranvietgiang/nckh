@@ -2,9 +2,7 @@
 import { useState, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import ModalImport from "../Modal/ModalImport";
-import RoleAmin from "../../../ReUse/IsLogin/RoleAdmin";
-import { getRole } from "../../../Constants/INFO_USER";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
 import AdminSidebar from "./AdminSidebar";
 import AdminHeader from "./AdminHeader";
@@ -13,11 +11,15 @@ import Dashboard from "../Features/Dashboard";
 import StudentsTeachersTab from "../Features/StudentsTeachersTab";
 import ReportsManagement from "../Features/Reports";
 import MajorImportPage from "../Features/MajorImportPage";
-import ImportTeacher from "../Features/ImportTeacher"; // 👈 thêm dòng này
+import ImportTeacher from "../Features/ImportTeacher"; //
 import BackToTop from "../../../ReUse/Top/BackToTop";
 import Footer from "../../Student/Home/Footer";
 
 export default function AdminManagement() {
+  const navigate = useNavigate();
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
   const [students, setStudents] = useState([]);
@@ -28,13 +30,6 @@ export default function AdminManagement() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [reports, setReports] = useState([]);
-  const navigate = useNavigate();
-  const role = getRole();
-  const { user, token } = getAuth();
-
-  // localStorage.clear();
-  IsLogin(user, token);
-  RoleAmin(role);
 
   const handleDelete = async (id, type) => {
     if (

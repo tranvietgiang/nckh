@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
 import Footer from "../../Student/Home/Footer";
 import BackToTop from "../../../ReUse/Top/BackToTop";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
+import { getAuth } from "../../../Constants/INFO_USER";
 export default function ImportTeacher() {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -57,10 +62,6 @@ export default function ImportTeacher() {
     }
   };
 
-  const handleGoBack = () => {
-    navigate(-1); // Quay lại trang trước
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -69,7 +70,7 @@ export default function ImportTeacher() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
-                onClick={handleGoBack}
+                onClick={() => navigate(-1)}
                 className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
               >
                 <span className="text-lg">←</span>

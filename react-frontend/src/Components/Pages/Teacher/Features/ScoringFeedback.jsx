@@ -17,17 +17,16 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BackToTop from "../../../ReUse/Top/BackToTop";
-import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ScoringFeedbackBySubject() {
   const navigate = useNavigate();
-  const { user } = getAuth();
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "teacher");
 
   useEffect(() => {
     document.title = "Chấm điểm theo môn học";
   }, []);
-
-  useRoleTeacher(user?.role);
   // ===================== STATE =====================
   const [majors, setMajors] = useState([]);
   const [subjects, setSubjects] = useState([]);

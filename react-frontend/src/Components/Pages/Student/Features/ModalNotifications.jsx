@@ -18,7 +18,6 @@ export default function ModelNotifications({ stateOpen, onClose }) {
     RoleStudent(role);
   }
 
-  // localStorage.clear();
   useEffect(() => {
     if (role !== "student" || !user?.user_id) return;
     const cachedNotifications = getSafeJSON(

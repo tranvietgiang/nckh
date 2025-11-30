@@ -5,8 +5,14 @@ import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { CiUser } from "react-icons/ci";
+import { getAuth } from "../../../Constants/INFO_USER";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ShowMemberGroup() {
+  const { user, token } = getAuth();
+
+  useIsLogin(user, token, "teacher");
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -14,11 +20,10 @@ export default function ShowMemberGroup() {
   const reportId = location.state?.report_id;
   const rmCode = location.state?.rm_code;
 
-  const [allGroups, setAllGroups] = useState([]); // danh sách nhóm
+  const [allGroups, setAllGroups] = useState([]);
 
-  // ================================
-  // 📌 Tải danh sách nhóm cho thống kê + chọn nhóm
-  // ================================
+  //  Tải danh sách nhóm cho thống kê + chọn nhóm
+
   useEffect(() => {
     if (!classId || !reportId) return;
 
@@ -31,13 +36,10 @@ export default function ShowMemberGroup() {
       .catch((err) => console.error(err));
   }, [classId, reportId]);
 
-  // ================================
-  // 📌 Nếu có rmCode thì tải chi tiết nhóm
-  // ================================
+  // Nếu có rmCode thì tải chi tiết nhóm
 
-  // ==================================================
-  // 🟦 CHẾ ĐỘ 1: KHÔNG CÓ rm_code → HIỂN THỊ DANH SÁCH NHÓM
-  // ==================================================
+  // KHÔNG CÓ rm_code → HIỂN THỊ DANH SÁCH NHÓM
+
   if (!rmCode) {
     return (
       <>

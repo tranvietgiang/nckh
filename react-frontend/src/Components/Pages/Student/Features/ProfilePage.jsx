@@ -4,29 +4,30 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../Home/Footer";
 import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function ProfilePage() {
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [getProfile, setProfile] = useState({});
   const { user, token } = getAuth();
-  const navigate = useNavigate();
+  const role = user?.role ?? null;
+  const user_id = user?.user_id ?? null;
+
+  useIsLogin(user, token, "student");
 
   useEffect(() => {
     document.title = "Hồ sơ";
   }, []);
 
-  IsLogin(user, token);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [getProfile, setProfile] = useState({});
 
-  const role = user?.role ?? null;
-  const user_id = user?.user_id ?? null;
+  const navigate = useNavigate();
 
   const fetchDataProfile = async () => {
     if (!user_id || !role) return;

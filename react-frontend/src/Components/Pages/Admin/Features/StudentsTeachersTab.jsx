@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "../../../../config/axios";
+import { getAuth } from "../../../Constants/INFO_USER";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function StudentsTeachersTab({
   activeMenu,
@@ -25,13 +27,15 @@ export default function StudentsTeachersTab({
   handleDelete,
   handleUpdateUser, // Giả sử hàm này được truyền từ cha để xử lý update
 }) {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [q, setQ] = useState("");
   const typingTimer = React.useRef(null);
   const [searchRows, setSearchRows] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
-
 
   // 🧩 Mở modal edit
   const openEditModal = (user) => {
@@ -58,14 +62,19 @@ export default function StudentsTeachersTab({
     searchRows.length > 0
       ? searchRows
       : activeTab === "students"
-        ? filteredStudents
-        : filteredTeachers;
+      ? filteredStudents
+      : filteredTeachers;
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // ⚙️ Cắt dữ liệu theo trang
-  const uniqueData = Array.from(new Map(data.map(u => [u.user_id, u])).values());
-  const paginatedData = uniqueData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const uniqueData = Array.from(
+    new Map(data.map((u) => [u.user_id, u])).values()
+  );
+  const paginatedData = uniqueData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // ⚙️ Xử lý chuyển trang
   const handlePrevPage = () => {
@@ -103,7 +112,9 @@ export default function StudentsTeachersTab({
     setLoadingSearch(true);
     try {
       const role = activeTab === "students" ? "student" : "teacher";
-      const res = await axios.get(`/search/users?q=${encodeURIComponent(query)}&role=${role}`);
+      const res = await axios.get(
+        `/search/users?q=${encodeURIComponent(query)}&role=${role}`
+      );
       setSearchRows(res.data || []);
     } catch (err) {
       console.error("Lỗi tìm kiếm:", err);
@@ -113,9 +124,6 @@ export default function StudentsTeachersTab({
     }
   };
 
-
-
-
   const handleChange = (e) => {
     const value = e.target.value;
     setQ(value);
@@ -123,7 +131,6 @@ export default function StudentsTeachersTab({
     if (typingTimer.current) clearTimeout(typingTimer.current);
     typingTimer.current = setTimeout(() => runSearch(value), 500);
   };
-
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
@@ -134,8 +141,6 @@ export default function StudentsTeachersTab({
       setSearchRows([]);
     }
   };
-
-
 
   return (
     <div>
@@ -149,10 +154,11 @@ export default function StudentsTeachersTab({
                 setActiveMenu("students");
                 navigate("/nckh-admin/students");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "students"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "students"
+                  ? "border-indigo-600 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -166,10 +172,11 @@ export default function StudentsTeachersTab({
                 setActiveMenu("teachers");
                 navigate("/nckh-admin/teachers");
               }}
-              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${activeTab === "teachers"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+              className={`px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors ${
+                activeTab === "teachers"
+                  ? "border-indigo-600 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
             >
               <div className="flex items-center space-x-1 sm:space-x-2">
                 <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -282,7 +289,9 @@ export default function StudentsTeachersTab({
                   </td>
                   <td className="hidden xl:table-cell px-3 sm:px-6 py-3 text-xs sm:text-sm text-gray-600">
                     {/* Hiển thị Chức vụ cho GV, Lớp cho SV */}
-                    {activeTab === "teachers" ? item.profile?.position : item.class_student || ""}
+                    {activeTab === "teachers"
+                      ? item.profile?.position
+                      : item.class_student || ""}
                   </td>
                   <td className="px-3 sm:px-6 py-3 text-xs sm:text-sm font-medium">
                     <div className="flex items-center space-x-2 sm:space-x-4">
@@ -413,52 +422,79 @@ export default function StudentsTeachersTab({
               </div>
 
               {/* Thêm các trường khác tùy thuộc vào role */}
-              {selectedUser.role === 'student' && (
+              {selectedUser.role === "student" && (
                 <>
                   <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700">Chuyên ngành</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Chuyên ngành
+                    </label>
                     <input
                       type="text"
                       value={selectedUser.major_name || ""}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, major_id: e.target.value })}
+                      onChange={(e) =>
+                        setSelectedUser({
+                          ...selectedUser,
+                          major_id: e.target.value,
+                        })
+                      }
                       className="w-full border p-2 rounded mt-1"
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700">Lớp</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Lớp
+                    </label>
                     <input
                       type="text"
                       value={selectedUser.class_student || ""}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, class_student: e.target.value })}
+                      onChange={(e) =>
+                        setSelectedUser({
+                          ...selectedUser,
+                          class_student: e.target.value,
+                        })
+                      }
                       className="w-full border p-2 rounded mt-1"
                     />
                   </div>
                 </>
               )}
 
-              {selectedUser.role === 'teacher' && (
+              {selectedUser.role === "teacher" && (
                 <>
                   <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700">Khoa</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Khoa
+                    </label>
                     <input
                       type="text"
                       value={selectedUser.department || ""}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, department: e.target.value })}
+                      onChange={(e) =>
+                        setSelectedUser({
+                          ...selectedUser,
+                          department: e.target.value,
+                        })
+                      }
                       className="w-full border p-2 rounded mt-1"
                     />
                   </div>
                   <div className="mb-3">
-                    <label className="block text-sm font-medium text-gray-700">Chức vụ</label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Chức vụ
+                    </label>
                     <input
                       type="text"
                       value={selectedUser.position || ""}
-                      onChange={(e) => setSelectedUser({ ...selectedUser, position: e.target.value })}
+                      onChange={(e) =>
+                        setSelectedUser({
+                          ...selectedUser,
+                          position: e.target.value,
+                        })
+                      }
                       className="w-full border p-2 rounded mt-1"
                     />
                   </div>
                 </>
               )}
-
 
               <div className="flex justify-end space-x-2">
                 <button
