@@ -19,8 +19,8 @@ class NotificationService
             return ['success' => false, 'message_error' => 'Dữ liệu gửi đi không tồn tại!'];
         }
         // Kiểm tra độ dài dữ liệu 
-        if ($data['title'] > 200 || $data['content'] > 500) {
-            return ['success' => false, 'message_error' => 'Kỹ tự tiêu đề hoặc nội dung vượt quá giới hạn!'];
+        if (strlen($data['title']) > 200 || strlen($data['content']) > 500) {
+            return ['success' => false, 'message_error' => 'Ký tự tiêu đề hoặc nội dung vượt quá giới hạn!'];
         }
 
         // Check ngành tồn tại
