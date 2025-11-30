@@ -16,10 +16,6 @@ export default function ImportAndDetailStudents() {
   const { user, token } = getAuth();
   useIsLogin(user, token, "admin");
 
-  useEffect(() => {
-    document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
-  }, [checkPage]);
-
   const [students, setStudents] = useState([]);
   const [studentError, setStudentErrors] = useState([]);
   const [totalStudent, setTotalStudent] = useState(0);
@@ -46,6 +42,10 @@ export default function ImportAndDetailStudents() {
   const typeView = location.state?.view;
   const checkPage = typeView === 1;
   const name_class = location.state?.name_class;
+
+  useEffect(() => {
+    document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
+  }, [checkPage]);
 
   // ====== SEARCH ENGINE (Meilisearch) ======
   const runSearch = async (value) => {
