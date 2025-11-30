@@ -6,14 +6,12 @@ import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { CiUser } from "react-icons/ci";
 import { getAuth } from "../../../Constants/INFO_USER";
-import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ShowMemberGroup() {
   const { user, token } = getAuth();
 
-  IsLogin(user, token);
-  useRoleTeacher(user?.role);
+  useIsLogin(user, token, "teacher");
 
   const navigate = useNavigate();
   const location = useLocation();

@@ -19,8 +19,7 @@ import {
   // getSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 import AdminHeader from "../View/AdminHeader";
-import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
 export default function ClassShowManager() {
   const navigate = useNavigate();
@@ -30,8 +29,8 @@ export default function ClassShowManager() {
   }, []);
 
   const { user, token } = getAuth();
-  IsLogin(user, token);
-  RoleAdmin(user?.role);
+
+  useIsLogin(user, token, "admin");
 
   const [isCreateClassOpen, setIsCreateClassOpen] = useState(false);
   const [getClasses, setClasses] = useState([]);

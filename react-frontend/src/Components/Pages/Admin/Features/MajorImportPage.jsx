@@ -3,10 +3,12 @@ import axios from "../../../../config/axios";
 import ModalMajor from "../Modal/ModalAddMajor";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 import Footer from "../../Student/Home/Footer";
-import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
 export default function MajorImportPage() {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
   const [majors, setMajors] = useState([]);
   const [majorErrors, setMajorErrors] = useState([]);
   const [openModalMajor, setOpenModalMajor] = useState(false);
@@ -15,10 +17,6 @@ export default function MajorImportPage() {
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
-
-  const { user, token } = getAuth();
-  IsLogin(user, token);
-  RoleAdmin(user?.role);
 
   // SEARCH STATE
   const [q, setQ] = useState("");

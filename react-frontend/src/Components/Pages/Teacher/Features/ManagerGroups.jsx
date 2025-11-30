@@ -6,10 +6,15 @@ import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { useNavigate } from "react-router-dom";
 import ModalViewDetailGroups from "../Modal/ModalViewDetailGroups";
-import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
 import BackToTop from "../../../ReUse/Top/BackToTop";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
+
 export default function ManagerGroups() {
+  const { user, token } = getAuth();
+  const teacherId = user?.user_id;
+
+  useIsLogin(user, token, "teacher");
+
   useEffect(() => {
     document.title = "Quản lý Nhóm ";
   }, []);
@@ -32,11 +37,6 @@ export default function ManagerGroups() {
   const [importing, setImporting] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileRef = useRef(null);
-
-  const { user, token } = getAuth();
-  const teacherId = user?.user_id;
-  IsLogin(user, token);
-  useRoleTeacher(user?.role);
 
   // ===== 1) Lấy ngành theo giảng viên =====
   useEffect(() => {

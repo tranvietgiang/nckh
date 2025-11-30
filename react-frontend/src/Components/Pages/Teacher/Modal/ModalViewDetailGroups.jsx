@@ -5,6 +5,8 @@ import {
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 import axios from "../../../../config/axios";
+import { getAuth } from "../../../Constants/INFO_USER";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 export default function ModalViewDetailGroups({
   statusOpen,
   onClose,
@@ -12,6 +14,9 @@ export default function ModalViewDetailGroups({
   majorId,
   classId,
 }) {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "teacher");
+
   const [getMemberOfGroup, setMemberOfGroup] = useState([]);
   const [loadingMember, setLoadingMember] = useState(false);
 

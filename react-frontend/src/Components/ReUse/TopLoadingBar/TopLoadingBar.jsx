@@ -1,28 +1,41 @@
 import { useEffect, useState } from "react";
 
-export default function TopLoadingBar() {
-  const [show, setShow] = useState(true);
+export default function TopLoadingBar({ loading }) {
+  const [width, setWidth] = useState(0);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Ẩn sau 1.2 giây
-    const timer = setTimeout(() => setShow(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+    if (loading) {
+      setVisible(true);
 
-  if (!show) return null;
+      // chạy CHẬM hơn (tăng 0.6% mỗi 50ms)
+      const interval = setInterval(() => {
+        setWidth((prev) => {
+          if (prev < 80) return prev + 0.2; // tốc độ chậm
+          return prev;
+        });
+      }, 50);
+
+      return () => clearInterval(interval);
+    } else {
+      // khi load xong thì chạy nhanh tới 100%
+      setWidth(100);
+
+      setTimeout(() => {
+        setVisible(false);
+        setWidth(0);
+      }, 400);
+    }
+  }, [loading]);
+
+  if (!visible) return null;
 
   return (
-    <div className="fixed top-0 left-0 w-full h-[3px] bg-transparent z-[9999] overflow-hidden">
+    <div className="fixed top-0 left-0 w-full h-[3px] z-[9999] bg-transparent">
       <div
-        className="
-          h-full w-1/3 bg-blue-500 rounded-r-full
-          animate-[loading_1.2s_ease-in-out]
-        "
-        style={{
-          "--tw-keyframes-loading":
-            "{0%{transform:translateX(-100%);}100%{transform:translateX(100%);}}",
-        }}
-      />
+        className="h-full bg-blue-500 transition-all duration-200 rounded-r-full"
+        style={{ width: `${width}%` }}
+      ></div>
     </div>
   );
 }

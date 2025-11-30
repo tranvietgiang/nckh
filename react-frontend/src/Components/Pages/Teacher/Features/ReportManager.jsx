@@ -20,8 +20,7 @@ import {
   BookOpen,
 } from "lucide-react";
 import { getAuth } from "../../../Constants/INFO_USER";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
-import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ReportManager() {
   useEffect(() => {
@@ -29,8 +28,8 @@ export default function ReportManager() {
   }, []);
 
   const { user, token } = getAuth();
-  IsLogin(user, token);
-  useRoleTeacher(user?.role);
+
+  useIsLogin(user, token, "teacher");
 
   const [open, setOpen] = useState(false);
   const [updateModalOpen, setUpdateModalOpen] = useState(false);

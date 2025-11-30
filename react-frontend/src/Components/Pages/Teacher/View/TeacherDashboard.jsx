@@ -1,31 +1,29 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import CreateNotification from "../Features/CreateNotification";
-import RouterHome from "../../../ReUse/Router/RouterHome";
 import { getAuth } from "../../../Constants/INFO_USER";
 import Navbar from "../../../ReUse/Navbar/Navbar";
 import Footer from "../../Student/Home/Footer";
 import axios from "../../../../config/axios";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
-import RoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function TeacherDashboard() {
+  const { user, token } = getAuth();
+
+  useIsLogin(user, token, "teacher");
+
   const [openNotification, setOpenNotification] = useState(false);
   const [classes, setClasses] = useState([]);
   const [majorInfo, setMajorInfo] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { user, token } = getAuth();
+
   const [getStatisticsClasses, setStatisticsClasses] = useState(null);
   const [getStatisticsReport, setStatisticsReport] = useState(null);
   const navigate = useNavigate();
-
-  // Kiểm tra đăng nhập + quyền
-  IsLogin(user, token);
-  RoleTeacher(user?.role);
 
   const fetchStatisticsClasses = async () => {
     const count_classes_teaching = getSafeJSON("count_classes_teaching");

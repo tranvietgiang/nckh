@@ -4,10 +4,12 @@ import ModalSubject from "../Modal/ModalSubject";
 import AdminHeader from "../View/AdminHeader";
 import Footer from "../../../ReUse/Footer/Footer";
 import { getAuth } from "../../../Constants/INFO_USER";
-import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
 import BackToTop from "../../../ReUse/Top/BackToTop";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 export default function SubjectImportPage() {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
   const [subjects, setSubjects] = useState([]);
   const [subjectErrors, setSubjectErrors] = useState([]);
   const [openModalAdd, setOpenModalAdd] = useState(false);
@@ -22,10 +24,6 @@ export default function SubjectImportPage() {
   const [searchRows, setSearchRows] = useState([]);
   const [loadingSearch, setLoadingSearch] = useState(false);
   const timerRef = useRef(null);
-  const { user, token } = getAuth();
-
-  IsLogin(user, token);
-  RoleAdmin(user?.role);
 
   // gõ để tìm (debounce) + Enter để tìm ngay ========= search engine
   const runSearch = async (value) => {

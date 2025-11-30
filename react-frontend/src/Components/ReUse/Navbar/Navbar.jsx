@@ -17,6 +17,7 @@ import IsLogin from "../IsLogin/IsLogin";
 import { getAuth } from "../../Constants/INFO_USER";
 import { BsMoon } from "react-icons/bs";
 import TopLoadingBar from "../TopLoadingBar/TopLoadingBar.jsx";
+import useRouteLoading from "../useRouteLoading/useRouteLoading.js";
 function classNames(...classes) {
   return classes.filter(Boolean).join(" ");
 }
@@ -30,7 +31,7 @@ export default function Navbar() {
   const { user, token } = getAuth();
 
   IsLogin(user, token);
-
+  const loading = useRouteLoading();
   const navigation = [
     {
       name: "Trang chủ",
@@ -56,7 +57,7 @@ export default function Navbar() {
       as="nav"
       className="relative bg-gray-800/50 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-white/10"
     >
-      <TopLoadingBar />
+      <TopLoadingBar loading={loading} />
       <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
         <div className="relative flex h-16 items-center justify-between">
           <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
@@ -103,16 +104,46 @@ export default function Navbar() {
             </div>
           </div>
           <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
+            <div></div>
             {role === "student" ? (
-              <button
-                onClick={() => setOpenNotification(true)}
-                type="button"
-                className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
-              >
-                <span className="absolute -inset-1.5" />
-                <span className="sr-only">Xem Thông báo</span>
-                <BellIcon aria-hidden="true" className="size-6" />
-              </button>
+              <div>
+                <button
+                  onClick={() => setOpenNotification(true)}
+                  type="button"
+                  className="relative rounded-full p-1 text-gray-400 hover:text-white focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-indigo-500"
+                >
+                  <span className="absolute -inset-1.5" />
+                  <span className="sr-only">Xem Thông báo</span>
+                  <BellIcon aria-hidden="true" className="size-6" />
+                </button>
+                <button>
+                  <Menu as="div" className="relative ml-3">
+                    <MenuButton className="relative flex rounded-full bg-gray-800 p-1 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                      <span className="absolute -inset-1.5" />
+                      <span className="sr-only">Open user menu</span>
+                      <CiLight
+                        size={24}
+                        className="text-gray-300 hover:text-yellow-400 transition-colors"
+                      />
+                    </MenuButton>
+
+                    <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-gray-800 py-2 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <MenuItem>
+                        <button className="flex w-full items-center px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700">
+                          <CiLight className="mr-3" size={18} />
+                          Sáng
+                        </button>
+                      </MenuItem>
+                      <MenuItem>
+                        <button className="flex w-full items-center px-4 py-2 text-sm text-white transition-colors hover:bg-gray-700">
+                          <BsMoon className="mr-3" size={16} />
+                          Tối
+                        </button>
+                      </MenuItem>
+                    </MenuItems>
+                  </Menu>
+                </button>
+              </div>
             ) : (
               <Menu as="div" className="relative ml-3">
                 <MenuButton className="relative flex rounded-full bg-gray-800 p-1 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">

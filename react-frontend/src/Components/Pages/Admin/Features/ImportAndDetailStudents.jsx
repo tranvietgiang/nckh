@@ -5,15 +5,21 @@ import AdminHeader from "../View/AdminHeader";
 import Footer from "../../Student/Home/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { getAuth } from "../../../Constants/INFO_USER";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
-import RoleAdmin from "../../../ReUse/IsLogin/RoleAdmin";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 
 export default function ImportAndDetailStudents() {
+  const { user, token } = getAuth();
+  useIsLogin(user, token, "admin");
+
+  useEffect(() => {
+    document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
+  }, [checkPage]);
+
   const [students, setStudents] = useState([]);
   const [studentError, setStudentErrors] = useState([]);
   const [totalStudent, setTotalStudent] = useState(0);
@@ -26,10 +32,9 @@ export default function ImportAndDetailStudents() {
   const timerRef = useRef(null);
 
   const navigate = useNavigate();
-  const { user, token } = getAuth();
+
   const [file, setFile] = useState(null);
   const location = useLocation();
-  const role = user?.role;
 
   const class_id = location.state?.class_id;
   const major_id = location.state?.major_id;
@@ -39,15 +44,8 @@ export default function ImportAndDetailStudents() {
   const semester = location.state?.semester;
 
   const typeView = location.state?.view;
-  const checkPage = typeView === 1; // true = xem chi tiết, false = import
+  const checkPage = typeView === 1;
   const name_class = location.state?.name_class;
-
-  useEffect(() => {
-    document.title = checkPage ? "Trang Xem chi tiết" : "Trang Import";
-  }, [checkPage]);
-
-  IsLogin(user, token);
-  RoleAdmin(role);
 
   // ====== SEARCH ENGINE (Meilisearch) ======
   const runSearch = async (value) => {

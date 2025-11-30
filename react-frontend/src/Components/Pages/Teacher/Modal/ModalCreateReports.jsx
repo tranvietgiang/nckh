@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
-import useRoleTeacher from "../../../ReUse/IsLogin/RoleTeacher";
-import IsLogin from "../../../ReUse/IsLogin/IsLogin";
+import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ModalCreateReport({ open, onClose, onSuccess }) {
+  const { user, token } = getAuth();
+
+  useIsLogin(user, token, "teacher");
+
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [reportName, setReportName] = useState("");
@@ -16,10 +19,6 @@ export default function ModalCreateReport({ open, onClose, onSuccess }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const { user, token } = getAuth();
-  IsLogin(user, token);
-  useRoleTeacher(user?.role);
 
   // LOAD DANH SÁCH LỚP GIẢNG VIÊN
 
