@@ -142,7 +142,9 @@ export default function CreateNotification({ stateOpen, onClose }) {
     <>
       <div
         className="fixed inset-0 bg-black bg-opacity-50 z-30"
-        onClick={(e) => e.target === e.currentTarget && onClose(false)}
+        onClick={(e) =>
+          e.target === e.currentTarget && !loading && onClose(false)
+        }
       />
       <div className="fixed inset-0 flex items-center justify-center z-40">
         <div
@@ -152,7 +154,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
             <h1 className="text-2xl font-bold"> TẠO THÔNG BÁO</h1>
             <button
-              onClick={() => onClose(false)}
+              onClick={() => !loading && onClose(false)}
               className="text-2xl font-bold"
             >
               <IoCloseSharp />
@@ -279,7 +281,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
             <div className="flex justify-end gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => onClose(false)}
+                onClick={() => !loading && onClose(false)}
                 className="px-5 py-2 border rounded-lg hover:bg-gray-50"
               >
                 Hủy

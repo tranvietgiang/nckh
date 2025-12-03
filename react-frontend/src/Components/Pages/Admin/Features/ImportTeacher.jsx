@@ -5,6 +5,7 @@ import Footer from "../../Student/Home/Footer";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
+import RouterBack from "../../../ReUse/Back/RouterBack";
 export default function ImportTeacher() {
   const { user, token } = getAuth();
   useIsLogin(user, token, "admin");
@@ -69,13 +70,7 @@ export default function ImportTeacher() {
         <div className="max-w-full px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate(-1)}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
-              >
-                <span className="text-lg">←</span>
-                <span>Quay lại</span>
-              </button>
+              <RouterBack navigate={navigate} />
               <div className="h-6 w-px bg-gray-300"></div>
               <h1 className="text-2xl font-bold text-gray-800">
                 📚 Import Danh Sách Giảng Viên

@@ -166,7 +166,7 @@ export default function CreateClass({ stateOpen, onClose }) {
 
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-2xl bg-white rounded-xl shadow-2xl z-50 max-h-[90vh] overflow-hidden">
         <div className="p-6 border-b bg-blue-600 text-white flex justify-between items-center">
-          <h3 className="text-2xl font-bold">🏫 Tạo Lớp Học Mới</h3>
+          <h3 className="text-2xl font-bold">Tạo Lớp Học Mới</h3>
           <button
             onClick={() => onClose(false)}
             className="text-white hover:text-gray-200 text-2xl font-bold"
@@ -180,7 +180,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           className="p-6 overflow-y-auto max-h-[70vh] space-y-5"
         >
           <div>
-            <label className="block mb-2 font-medium">📝 Tên lớp *</label>
+            <label className="block mb-2 font-medium">Tên lớp *</label>
             <input
               type="text"
               name="class_name"
@@ -191,7 +191,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">🔤 Mã lớp *</label>
+            <label className="block mb-2 font-medium">Mã lớp *</label>
             <input
               type="text"
               name="class_code"
@@ -202,7 +202,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">🧑‍💻 Ngành *</label>
+            <label className="block mb-2 font-medium">Ngành *</label>
             <select
               name="major_id"
               value={formData.major_id}
@@ -219,7 +219,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">👩‍🏫 Giáo viên *</label>
+            <label className="block mb-2 font-medium">Giáo viên *</label>
             <select
               name="teacher_id"
               value={formData.teacher_id}
@@ -236,7 +236,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">📘 Môn học *</label>
+            <label className="block mb-2 font-medium">Môn học *</label>
             <select
               name="subject_id"
               value={formData.subject_id}
@@ -253,7 +253,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">📅 Học kỳ *</label>
+            <label className="block mb-2 font-medium">Học kỳ *</label>
             <select
               name="semester"
               value={formData.semester}
@@ -268,7 +268,7 @@ export default function CreateClass({ stateOpen, onClose }) {
           </div>
 
           <div>
-            <label className="block mb-2 font-medium">🗓️ Năm học *</label>
+            <label className="block mb-2 font-medium">Năm học *</label>
             <input
               type="text"
               name="academic_year"

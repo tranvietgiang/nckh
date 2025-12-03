@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('user_id', 15)->nullable();
             $table->string('fullname', 50)->nullable();
             $table->string('email')->nullable();
-            $table->text('reason')->nullable();
+            $table->text('reason', 600)->nullable();
 
             // Phân loại lỗi (major, class, group, student, ...)
             $table->string('typeError', 50)->nullable();

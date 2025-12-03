@@ -4,18 +4,15 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../Home/Footer";
 import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
-import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
 
 export default function ProfilePage() {
-  const { user, token } = getAuth();
+  const { user } = getAuth();
   const role = user?.role ?? null;
   const user_id = user?.user_id ?? null;
-
-  useIsLogin(user, token, "student");
 
   useEffect(() => {
     document.title = "Hồ sơ";
@@ -30,6 +27,11 @@ export default function ProfilePage() {
   const navigate = useNavigate();
 
   const fetchDataProfile = async () => {
+    if (!user || !user_id) {
+      navigate("/nckh-login");
+      return;
+    }
+
     if (!user_id || !role) return;
     const data_user_profile = getSafeJSON("user_profiles");
     if (data_user_profile !== null) {
