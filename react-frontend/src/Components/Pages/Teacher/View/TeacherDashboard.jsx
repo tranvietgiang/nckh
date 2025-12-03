@@ -10,6 +10,7 @@ import {
   getSafeJSON,
   setSafeJSON,
 } from "../../../ReUse/LocalStorage/LocalStorageSafeJSON";
+import BackToTop from "../../../ReUse/Top/BackToTop";
 
 export default function TeacherDashboard() {
   const { user, token } = getAuth();
@@ -250,6 +251,7 @@ export default function TeacherDashboard() {
         onClose={setOpenNotification}
       />
 
+      <BackToTop />
       <Footer />
     </div>
   );

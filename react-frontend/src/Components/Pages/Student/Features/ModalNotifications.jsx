@@ -68,7 +68,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
       {/* Overlay */}
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-        onClick={handleClose}
+        onClick={() => handleClose()}
       />
 
       {/* Modal */}
@@ -84,7 +84,7 @@ export default function ModelNotifications({ stateOpen, onClose }) {
             )}
           </h3>
           <button
-            onClick={handleClose}
+            onClick={() => handleClose()}
             className="text-gray-500 hover:text-gray-700 text-3xl font-bold"
           >
             ×

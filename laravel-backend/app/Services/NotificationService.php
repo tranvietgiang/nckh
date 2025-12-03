@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Major;
 use App\Models\User;
 use App\Models\user_profile;
-use App\Interface\NotificationInterface;  // ĐÚNG
+use App\Interface\NotificationInterface;
 
 
 class NotificationService

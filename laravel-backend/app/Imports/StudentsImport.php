@@ -61,7 +61,7 @@ class StudentsImport implements ToCollection, WithHeadingRow
             ->where("class_id", $this->classId)
             ->count();
 
-        if ($checkStudentCount > 40) throw new \Exception("❌ Số sinh viên quá nhiều không thể import nửa!");
+        if ($checkStudentCount > 70) throw new \Exception("❌ Số sinh viên quá nhiều không thể import nửa!");
     }
 
     public function collection(Collection $rows)
