@@ -47,21 +47,33 @@ class ClassesService
     {
         // 1Validate dữ liệu đầu vào
         $validator = Validator::make($data, [
-            'class_name'    => 'required|string|max:10',
-            'class_code'    => 'required|string|max:10',
+            'class_name' => [
+                'required',
+                'string',
+                'max:10',
+                'regex:/^[A-Za-zÀ-ỹ0-9 _-]{3,10}$/u',   // <-- ĐÃ SỬA
+            ],
+            'class_code' => [
+                'required',
+                'string',
+                'max:10',
+                'regex:/^[A-Za-z0-9_-]{3,10}$/',
+            ],
             'major_id'      => 'required|integer',
             'teacher_id'    => 'required|string',
             'subject_id'    => 'required|integer',
             'semester'      => 'required|string|max:10',
-            'academic_year' => 'required|string|max:20',
+            'academic_year' => 'required|string|max:20|regex:/^\d{4}\s*-\s*\d{4}$/',
         ], [
             // class_name
             'class_name.required' => 'Tên lớp không được để trống.',
             'class_name.max' => 'Tên lớp vượt quá :max ký tự.',
+            'class_name.regex' => 'Tên lớp chỉ được chứa chữ, số, khoảng trắng và dấu - hoặc _.',
 
             // class_code
             'class_code.required' => 'Mã lớp không được để trống.',
             'class_code.max' => 'Mã lớp vượt quá :max ký tự.',
+            'class_code.regex' => 'Mã lớp chỉ được chứa chữ cái, số và dấu - hoặc _, không khoảng trắng.',
 
             // major_id
             'major_id.required' => 'Vui lòng chọn ngành.',
@@ -81,6 +93,7 @@ class ClassesService
             // academic_year
             'academic_year.required' => 'Năm học không được để trống.',
             'academic_year.max' => 'Năm học vượt quá :max ký tự.',
+            'academic_year.regex' => 'Năm học phải có dạng 2024 - 2025.',
         ]);
 
 
@@ -89,6 +102,17 @@ class ClassesService
                 'success' => false,
                 'message_error' => $validator->errors()->first(),
             ];
+        }
+        // Kiểm tra năm học hợp lệ (2024 - 2025)
+        if (!empty($data['academic_year'])) {
+            [$start, $end] = array_map('trim', explode('-', $data['academic_year']));
+
+            if ($end <= $start) {
+                return [
+                    'success' => false,
+                    'message_error' => 'Năm sau phải lớn hơn năm trước.',
+                ];
+            }
         }
 
         //  Kiểm tra ngành

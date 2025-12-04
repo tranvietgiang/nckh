@@ -91,21 +91,21 @@ export default function CreateClass({ stateOpen, onClose }) {
   };
 
   const validateClassFields = (class_code, class_name) => {
-    const codeRegex = /^[A-Z0-9_-]{3,20}$/;
-    const nameRegex = /^[A-Za-zÀ-ỹ0-9 _-]{3,50}$/;
-
-    // Kiểm tra mã lớp
-    if (!codeRegex.test(class_code)) {
-      alert(
-        "❌ Mã lớp chỉ được chứa chữ IN HOA, số, không dấu, không khoảng trắng (VD: CNTT01)"
-      );
-      return false;
-    }
+    const nameRegex = /^[A-Za-zÀ-ỹ0-9 _-]{3,10}$/;
+    const codeRegex = /^[A-Za-z0-9_-]{3,20}$/;
 
     // Kiểm tra tên lớp
     if (!nameRegex.test(class_name)) {
       alert(
         "❌ Tên lớp chỉ được chứa chữ, số, khoảng trắng, dấu -, _ và dài 1-10 ký tự!"
+      );
+      return false;
+    }
+
+    // Kiểm tra mã lớp
+    if (!codeRegex.test(class_code)) {
+      alert(
+        "❌ Mã lớp chỉ được chứa chữ IN HOA, số, không dấu, không khoảng trắng (VD: CNTT01)"
       );
       return false;
     }
@@ -181,13 +181,13 @@ export default function CreateClass({ stateOpen, onClose }) {
       return;
     }
 
+    if (!validateClassFields(formData.class_code, formData.class_name)) return;
+
     const yearRegex = /^\d{4}-\d{4}$/;
     if (!yearRegex.test(academic_year)) {
       alert("❌ Năm học phải có định dạng YYYY-YYYY!");
       return;
     }
-
-    if (!validateClassFields(formData.class_code, formData.class_name)) return;
 
     try {
       setLoading(true);
@@ -339,14 +339,14 @@ export default function CreateClass({ stateOpen, onClose }) {
               onClick={() => onClose(false)}
               className="flex-1 border rounded-lg py-3 hover:bg-gray-50"
             >
-              ❌ Hủy bỏ
+              Hủy bỏ
             </button>
             <button
               type="submit"
               disabled={loading}
               className="flex-1 bg-blue-500 text-white rounded-lg py-3 hover:bg-blue-600 disabled:opacity-50"
             >
-              {loading ? "⏳ Đang tạo..." : "✅ Tạo lớp"}
+              {loading ? "Đang tạo..." : " Tạo lớp"}
             </button>
           </div>
         </form>
