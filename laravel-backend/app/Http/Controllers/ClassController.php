@@ -64,9 +64,6 @@ class ClassController extends Controller
         return user_profile::getStudentsByClass($classId);
     }
 
-    // return \App\Models\user_profile::getStudentsByClass($classId);
-
-
 
     public function insertClassNew(Request $request)
     {

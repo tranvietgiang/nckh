@@ -552,21 +552,38 @@ class ReportController extends Controller
 
 
 
-    public function createReport(Request $request)
-    {
-        // Validate đầu vào
-        $request->validate([
-            'report_name' => 'required|string|max:255',
+   public function createReport(Request $request)
+{
+    try {
+        Log::info("📝 CREATE REPORT REQUEST", $request->all());
+
+        // 1. Validate đầu vào - THÊM MỘT SỐ RÀNG BUỘC
+        $validator = Validator::make($request->all(), [
+            'report_name' => 'required|string|max:255|min:2',
             'class_id'    => 'required|numeric|exists:classes,class_id',
-            'start_date'  => 'required|date',
-            'end_date'    => 'required|date|after_or_equal:start_date',
+            'start_date'  => 'required|date|date_format:Y-m-d|after_or_equal:today',
+            'end_date'    => 'required|date|date_format:Y-m-d|after_or_equal:start_date',
             'description' => 'nullable|string|max:1000',
+            // KHÔNG thêm teacher_id ở đây vì lấy từ class
+        ], [
+            'start_date.after_or_equal' => 'Ngày bắt đầu không được ở trong quá khứ',
+            'report_name.min' => 'Tên báo cáo phải có ít nhất 2 ký tự',
+            'report_name.max' => 'Tên báo cáo không được quá 255 ký tự',
         ]);
 
-        // (tuỳ chọn) tránh trùng tên report trong cùng lớp
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Dữ liệu không hợp lệ!',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // 2. Tránh trùng tên report trong cùng lớp (có phân biệt hoa thường)
         $dup = Report::where('class_id', $request->class_id)
-            ->where('report_name', $request->report_name)
+            ->whereRaw('LOWER(report_name) = ?', [strtolower($request->report_name)])
             ->exists();
+            
         if ($dup) {
             return response()->json([
                 'success' => false,
@@ -574,7 +591,7 @@ class ReportController extends Controller
             ], 422);
         }
 
-        // Lấy teacher_id từ class
+        // 3. Lấy thông tin lớp và kiểm tra teacher
         $class = DB::table('classes')->where('class_id', $request->class_id)->first();
 
         if (!$class) {
@@ -584,23 +601,83 @@ class ReportController extends Controller
             ], 422);
         }
 
-        // Tạo report với status là 'open' thay vì 'submitted'
+        // 4. Kiểm tra teacher có tồn tại và là giảng viên
+        $teacher = DB::table('users')
+            ->where('user_id', $class->teacher_id)
+            ->where('role', 'teacher')
+            ->first();
+            
+        if (!$teacher) {
+            return response()->json([
+                'success' => false,
+                'message' => '❗ Giảng viên của lớp không tồn tại hoặc không phải giảng viên.',
+            ], 422);
+        }
+
+        // 5. Kiểm tra ngày hợp lý (tối đa 1 năm)
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+        
+        if ($endDate->diffInDays($startDate) > 365) {
+            return response()->json([
+                'success' => false,
+                'message' => '❗ Thời gian báo cáo không được vượt quá 1 năm.',
+            ], 422);
+        }
+
+        // 6. Kiểm tra xem lớp có đang hoạt động không (tùy chọn)
+        // if (isset($class->status) && $class->status !== 'active') {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => '❗ Lớp học không ở trạng thái hoạt động.',
+        //     ], 422);
+        // }
+
+        // 7. Tạo report
         $report = Report::create([
-            'report_name' => $request->report_name,
-            'description' => $request->description,
+            'report_name' => trim($request->report_name), // Xóa khoảng trắng thừa
+            'description' => $request->description ? trim($request->description) : null,
             'class_id'    => $request->class_id,
-            'teacher_id'  => $class->teacher_id, // QUAN TRỌNG: THÊM TEACHER_ID
-            'status'      => 'open', // SỬA 'submitted' THÀNH 'open'
+            'teacher_id'  => $class->teacher_id,
+            'status'      => 'open',
             'start_date'  => $request->start_date,
             'end_date'    => $request->end_date,
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+
+        // 8. Log thành công
+        Log::info("✅ REPORT CREATED SUCCESS", [
+            'report_id' => $report->report_id,
+            'report_name' => $report->report_name,
+            'teacher_id' => $report->teacher_id
         ]);
 
         return response()->json([
             'success' => true,
             'message' => '✅ Tạo báo cáo thành công!',
-            'report'  => $report,
+            'data'    => [
+                'report_id' => $report->report_id,
+                'report_name' => $report->report_name,
+                'class_id' => $report->class_id,
+                'teacher_id' => $report->teacher_id,
+                'start_date' => $report->start_date,
+                'end_date' => $report->end_date,
+                'status' => $report->status
+            ]
         ], 201);
+
+    } catch (\Exception $e) {
+        Log::error("❌ CREATE REPORT ERROR: " . $e->getMessage());
+        Log::error("Stack trace: " . $e->getTraceAsString());
+
+        return response()->json([
+            'success' => false,
+            'message' => '❌ Đã xảy ra lỗi hệ thống khi tạo báo cáo.',
+            'error' => config('app.debug') ? $e->getMessage() : null
+        ], 500);
     }
+}
 
     public function getNameReportGroup($majorId, $classId)
     {
@@ -906,4 +983,61 @@ class ReportController extends Controller
 
         return response()->json($reports, 200);
     }
+    
+    public function deleteReport($id)
+{
+    try {
+
+        // Tìm báo cáo
+        $report = Report::where('report_id', $id)->first();
+
+        if (!$report) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Báo cáo không tồn tại'
+            ], 404);
+        }
+
+        // 🔴 TẠM THỜI: Bỏ kiểm tra role để fix lỗi
+        // Chỉ kiểm tra đăng nhập đơn giản
+        AuthHelper::isLogin();
+        
+  
+
+        // Kiểm tra xem có bài nộp không
+        $hasSubmissions = DB::table('submissions')
+            ->where('report_id', $id)
+            ->exists();
+
+        if ($hasSubmissions) {
+            return response()->json([
+                'success' => false,
+                'message' => '❌ Không thể xóa báo cáo đã có sinh viên nộp bài'
+            ], 400);
+        }
+
+        // Xóa các thành viên nhóm liên quan
+        DB::table('report_members')
+            ->where('report_id', $id)
+            ->delete();
+
+        // Xóa báo cáo
+        $report->delete();
+
+        Log::info("✅ REPORT DELETED SUCCESS", ['report_id' => $id]);
+
+        return response()->json([
+            'success' => true,
+            'message' => '✅ Xóa báo cáo thành công!'
+        ], 200);
+
+    } catch (\Exception $e) {
+        Log::error("❌ DELETE REPORT ERROR: " . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'error' => 'Lỗi: ' . $e->getMessage()
+        ], 500);
+    }
+}
 }

@@ -42,15 +42,16 @@ class ClassesRepository
             'major_id'      => $data['major_id'],
         ]);
     }
+
     // chưa code
-    public function createTeacher(array $data)
+    public function createInfTeacher(array $data)
     {
         return user_profile::create([
             'fullname'     => $data['fullname'],
-            'birthdate'    => $data['fullname'],
+            'birthdate'    => $data['birthdate'],
             'phone'        => $data['phone'],
-            'user_id'      => $data['teacher_id'],
             'class_id'     => $data['class_id'], // lấy từ class mới tạo
+            'user_id'      => $data['teacher_id'],
             'major_id'     => $data['major_id'],
         ]);
     }

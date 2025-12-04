@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Classe;
 use App\Models\Major;
 use App\Models\Subject;
+use App\Models\User;
+use App\Models\user_profile;
 use App\Repositories\ClassesRepository;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
@@ -89,17 +91,36 @@ class ClassesService
             ];
         }
 
-        // 2 Kiểm tra ngành
+        //  Kiểm tra ngành
         if (!Major::where('major_id', $data['major_id'])->exists()) {
-            return ['success' => false, 'message_error' => 'Ngành học không tồn tại!'];
+            return ['success' => false, 'message_error' => 'Ngành học không hợp lệ!'];
         }
 
-        // 3 Kiểm tra môn học
+        //  Kiểm tra ngành
+        if (!Major::where('major_id', $data['major_id'])->exists()) {
+            return ['success' => false, 'message_error' => 'Ngành học không hợp lệ!'];
+        }
+
+        // Kiểm tra giáo viên
+        if (!Classe::where('teacher_id', $data['teacher_id'])->exists()) {
+            return ['success' => false, 'message_error' => 'Giảng viên không hợp lệ!'];
+        }
+
+        // Kiểm tra môn học
         if (!Subject::where('subject_id', $data['subject_id'])->exists()) {
-            return ['success' => false, 'message_error' => 'Môn học không tồn tại!'];
+            return ['success' => false, 'message_error' => 'Môn học không hợp lệ!'];
         }
 
-        // 4Kiểm tra môn học có thuộc ngành đó không
+        $arrSemester =  ["1", "2", "Hè"];
+        if (!in_array($data['semester'], $arrSemester)) {
+            return ['success' => false, 'message_error' => 'Học kỳ không hợp lệ!'];
+        }
+
+        if (!preg_match('/^\d{4}-\d{4}$/', $data['academic_year'])) {
+            return ['success' => false, 'message_error' => 'Năm học không hợp lệ!'];
+        }
+
+        // Kiểm tra môn học có thuộc ngành đó không
         $checkSubjectExistsMajor = DB::table('subjects')
             ->join('majors', 'subjects.major_id', '=', 'majors.major_id')
             ->where('subjects.subject_id', $data['subject_id'])
@@ -109,7 +130,7 @@ class ClassesService
             return ['success' => false, 'message_error' => 'Không tồn tại ngành của môn học này!'];
         }
 
-        //5 kiểm tra trùng dữ liệu
+        // kiểm tra trùng dữ liệu
         $sameTeacherAndName = DB::table("classes")
             ->join("subjects", "classes.subject_id", "subjects.subject_id")
             ->where('classes.teacher_id', $data['teacher_id'])
@@ -121,7 +142,7 @@ class ClassesService
             return ['success' => false, 'message_error' => 'Lớp này đã có môn học trước đó'];
         }
 
-        //5 kiểm tra trùng dữ liệu
+        // kiểm tra trùng dữ liệu
         $sameTeacherAndSemester = DB::table("classes")
             ->join("subjects", "classes.subject_id", "subjects.subject_id")
             ->where('classes.teacher_id', $data['teacher_id'])
@@ -145,13 +166,27 @@ class ClassesService
             ->where('class_code', $data['class_code'])
             ->exists();
 
+
+
         if ($sameMajorAndCode) {
             return ['success' => false, 'message_error' => 'Mã lớp này đã tồn tại trong cùng ngành!'];
         }
 
+
+
         // Tạo lớp
         try {
             $class = $this->repo->insertClassesRepository($data);
+
+            $inFoTeacher = user_profile::where('user_id', $data['teacher_id'])->first();
+            $this->repo->createInfTeacher([
+                'fullname'   => $inFoTeacher->fullname,
+                'birthdate'  => $inFoTeacher->birthdate,
+                'phone'      => $inFoTeacher->phone,
+                'class_id'   => $class->class_id,
+                'teacher_id' => $data['teacher_id'],
+                'major_id'   => $data['major_id'],
+            ]);
 
             return [
                 'success' => true,
