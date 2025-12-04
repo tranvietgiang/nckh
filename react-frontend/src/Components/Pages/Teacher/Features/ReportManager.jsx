@@ -18,6 +18,8 @@ import {
   Edit,
   Calendar,
   BookOpen,
+  Trash2,
+  AlertCircle,
 } from "lucide-react";
 import { getAuth } from "../../../Constants/INFO_USER";
 import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
@@ -35,6 +37,8 @@ export default function ReportManager() {
   const [updateModalOpen, setUpdateModalOpen] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // State cho confirm delete
+  const [deleting, setDeleting] = useState(false); // State cho loading xóa
 
   // DỮ LIỆU REPORT
   const [reports, setReports] = useState([]);
@@ -43,8 +47,8 @@ export default function ReportManager() {
   // LOAD API
   useEffect(() => {
     fetchReports();
-    axios.get();
   }, []);
+
   const navigate = useNavigate();
 
   const fetchReports = async () => {
@@ -95,6 +99,34 @@ export default function ReportManager() {
     if (currentReport) {
       setSelectedReport(currentReport);
       setUpdateModalOpen(true);
+    }
+  };
+
+  // HÀM XÓA BÁO CÁO
+  const handleDeleteReport = async (reportId) => {
+    if (!window.confirm("Bạn có chắc chắn muốn xóa báo cáo này?")) {
+      return;
+    }
+
+    try {
+      setDeleting(true);
+      const res = await axios.delete(`/teacher/reports/${reportId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.data.success) {
+        alert("✅ Xóa báo cáo thành công!");
+        // Xóa khỏi state mà không cần reload
+        setReports(reports.filter(report => report.id !== reportId));
+      } else {
+        alert("❌ " + res.data.message);
+      }
+    } catch (err) {
+      console.error("Lỗi xóa báo cáo:", err);
+      alert(err.response?.data?.message || "Lỗi khi xóa báo cáo");
+    } finally {
+      setDeleting(false);
+      setDeleteConfirm(null);
     }
   };
 
@@ -150,6 +182,55 @@ export default function ReportManager() {
   // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("vi-VN");
+  };
+
+  // Modal Confirm Delete
+  const DeleteConfirmModal = () => {
+    if (!deleteConfirm) return null;
+
+    const report = reports.find(r => r.id === deleteConfirm);
+
+    return (
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 p-4">
+        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+          <div className="mb-4 flex items-start gap-3">
+            <div className="rounded-full bg-red-100 p-2">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Xóa báo cáo</h3>
+              <p className="mt-1 text-sm text-gray-600">
+                Bạn có chắc chắn muốn xóa báo cáo này?
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-4 rounded-lg bg-gray-50 p-3">
+            <p className="font-medium text-gray-900">{report?.title}</p>
+            <p className="text-sm text-gray-600 mt-1">{report?.subject}</p>
+            <p className="text-xs text-gray-500 mt-2">
+              Ngày tạo: {formatDate(report?.start_date)}
+            </p>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={() => setDeleteConfirm(null)}
+              className="flex-1 rounded-lg border border-gray-300 bg-white py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Hủy
+            </button>
+            <button
+              onClick={() => handleDeleteReport(deleteConfirm)}
+              disabled={deleting}
+              className={`flex-1 rounded-lg py-2.5 text-sm font-medium text-white ${deleting ? 'bg-red-400' : 'bg-red-600 hover:bg-red-700'}`}
+            >
+              {deleting ? 'Đang xóa...' : 'Xóa báo cáo'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -209,6 +290,7 @@ export default function ReportManager() {
             </div>
           </div>
           <RouterBack navigate={navigate} />
+
           {/* Report List */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
             {loading ? (
@@ -299,14 +381,22 @@ export default function ReportManager() {
                           )}
                         </div>
 
-                        {/* Action Button */}
-                        <div className="flex-shrink-0">
+                        {/* Action Buttons */}
+                        <div className="flex-shrink-0 flex gap-2">
                           <button
                             onClick={() => handleUpdateReport(report.id)}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
                           >
                             <Edit className="w-4 h-4" />
                             Cập nhật
+                          </button>
+
+                          <button
+                            onClick={() => setDeleteConfirm(report.id)}
+                            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Xóa
                           </button>
                         </div>
                       </div>
@@ -337,6 +427,9 @@ export default function ReportManager() {
           onSuccess={handleUpdateSuccess}
           report={selectedReport}
         />
+
+        {/* Delete Confirm Modal */}
+        <DeleteConfirmModal />
       </div>
 
       <BackToTop />

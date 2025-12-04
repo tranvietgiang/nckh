@@ -346,3 +346,8 @@ Route::middleware('auth:sanctum')->get('/tvg/get-count-report-complete-by-studen
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-by-student-length', [ReportController::class, 'getCountReportCompleteByStudentLength']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-classes-teaching-by-teacher', [ClassController::class, 'getCountClassesTeachingByTeacher']);
 Route::middleware('auth:sanctum')->get('/tvg/get-count-report-teaching-by-teacher', [ReportController::class, 'getCountReportTeachingByTeacher']);
+
+// delete major 
+Route::delete('/pc/delete-majors/{major_id}', [MajorsController::class, 'destroy']);
+//delete reports
+Route::middleware('auth:sanctum')->delete('/teacher/reports/{id}', [ReportController::class, 'deleteReport']);
