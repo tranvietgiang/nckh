@@ -93,12 +93,31 @@ class ClassesService
 
         //  Kiểm tra ngành
         if (!Major::where('major_id', $data['major_id'])->exists()) {
-            return ['success' => false, 'message_error' => 'Ngành học không tồn tại!'];
+            return ['success' => false, 'message_error' => 'Ngành học không hợp lệ!'];
+        }
+
+        //  Kiểm tra ngành
+        if (!Major::where('major_id', $data['major_id'])->exists()) {
+            return ['success' => false, 'message_error' => 'Ngành học không hợp lệ!'];
+        }
+
+        // Kiểm tra giáo viên
+        if (!Classe::where('teacher_id', $data['teacher_id'])->exists()) {
+            return ['success' => false, 'message_error' => 'Giảng viên không hợp lệ!'];
         }
 
         // Kiểm tra môn học
         if (!Subject::where('subject_id', $data['subject_id'])->exists()) {
-            return ['success' => false, 'message_error' => 'Môn học không tồn tại!'];
+            return ['success' => false, 'message_error' => 'Môn học không hợp lệ!'];
+        }
+
+        $arrSemester =  ["1", "2", "Hè"];
+        if (!in_array($data['semester'], $arrSemester)) {
+            return ['success' => false, 'message_error' => 'Học kỳ không hợp lệ!'];
+        }
+
+        if (!preg_match('/^\d{4}-\d{4}$/', $data['academic_year'])) {
+            return ['success' => false, 'message_error' => 'Năm học không hợp lệ!'];
         }
 
         // Kiểm tra môn học có thuộc ngành đó không
@@ -146,6 +165,8 @@ class ClassesService
         $sameMajorAndCode = Classe::where('major_id', $data['major_id'])
             ->where('class_code', $data['class_code'])
             ->exists();
+
+
 
         if ($sameMajorAndCode) {
             return ['success' => false, 'message_error' => 'Mã lớp này đã tồn tại trong cùng ngành!'];

@@ -25,7 +25,7 @@ export default function CreateClass({ stateOpen, onClose }) {
     academic_year: "",
   });
 
-  // 🧩 Load ngành
+  // Load ngành
   useEffect(() => {
     axios
       .get("/get-majors")
@@ -33,14 +33,15 @@ export default function CreateClass({ stateOpen, onClose }) {
       .catch(() => setMajors([]));
   }, []);
 
-  // 🧩 Load lớp (để check trùng)
+  // Load lớp (để check trùng)
   useEffect(() => {
     axios
       .get("/tvg/get-classes")
       .then((res) => setClasses(res.data || []))
       .catch(() => setClasses([]));
   }, []);
-  // 🧩 Khi chọn ngành → load giáo viên và môn học
+
+  // Khi chọn ngành → load giáo viên và môn học
   useEffect(() => {
     if (!formData.major_id) {
       setTeachers([]);
@@ -89,6 +90,57 @@ export default function CreateClass({ stateOpen, onClose }) {
     setFormData((p) => ({ ...p, [name]: value }));
   };
 
+  const validateClassFields = (class_code, class_name) => {
+    const codeRegex = /^[A-Z0-9_-]{3,20}$/;
+    const nameRegex = /^[A-Za-zÀ-ỹ0-9 _-]{3,50}$/;
+
+    // Kiểm tra mã lớp
+    if (!codeRegex.test(class_code)) {
+      alert(
+        "❌ Mã lớp chỉ được chứa chữ IN HOA, số, không dấu, không khoảng trắng (VD: CNTT01)"
+      );
+      return false;
+    }
+
+    // Kiểm tra tên lớp
+    if (!nameRegex.test(class_name)) {
+      alert(
+        "❌ Tên lớp chỉ được chứa chữ, số, khoảng trắng, dấu -, _ và dài 1-10 ký tự!"
+      );
+      return false;
+    }
+
+    return true;
+  };
+
+  useEffect(() => {
+    if (!formData.teacher_id) return;
+    if (!teachers || teachers.length === 0) return;
+
+    const validTeacher = teachers.some(
+      (t) => String(t.user_id) === String(formData.teacher_id)
+    );
+
+    if (!validTeacher) {
+      alert("❌ Giảng viên không hợp lệ!");
+      setFormData((prev) => ({ ...prev, teacher_id: "" }));
+    }
+  }, [formData.teacher_id]);
+
+  useEffect(() => {
+    if (!formData.subject_id) return;
+    if (!subjects || subjects.length === 0) return;
+
+    const validSubject = subjects.some(
+      (s) => String(s.subject_id) === String(formData.subject_id)
+    );
+
+    if (!validSubject) {
+      alert("❌ Môn học không hợp lệ!");
+      setFormData((prev) => ({ ...prev, subject_id: "" }));
+    }
+  }, [formData.subject_id]);
+
   const createClasses = async (e) => {
     e.preventDefault();
 
@@ -135,11 +187,13 @@ export default function CreateClass({ stateOpen, onClose }) {
       return;
     }
 
+    if (!validateClassFields(formData.class_code, formData.class_name)) return;
+
     try {
       setLoading(true);
       const res = await axios.post("/create-classes", formData);
 
-      alert("✅ Tạo lớp học thành công!");
+      alert("Tạo lớp học thành công!");
       setClasses(res.data?.data_classes);
       onClose(false);
       window.location.reload();
@@ -263,7 +317,7 @@ export default function CreateClass({ stateOpen, onClose }) {
               <option value="">-- Chọn học kỳ --</option>
               <option value="1">Học kỳ 1</option>
               <option value="2">Học kỳ 2</option>
-              <option value="3">Học kỳ Hè</option>
+              <option value="Hè">Học kỳ Hè</option>
             </select>
           </div>
 
