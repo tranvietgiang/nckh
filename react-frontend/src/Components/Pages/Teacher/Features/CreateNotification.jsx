@@ -71,7 +71,7 @@ export default function CreateNotification({ stateOpen, onClose }) {
       .get(`/get-class-by-major-teacher/${selectedMajor}`)
       .then((res) => {
         setClasses(res.data);
-        console.log(res.data);
+        // console.log(res.data);
       })
       .catch(() => setClasses([]))
       .finally(() => setLoadingClass(false));
@@ -104,14 +104,71 @@ export default function CreateNotification({ stateOpen, onClose }) {
     }));
   };
 
+  // hàm kiểm tra ký tự đăc biệt trong tên lớp và mã lớp
+  const validateFields = (a, b) => {
+    const check =
+      /^[A-Za-z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưĂÂÊÔƠƯáàảãạâầấẩẫậăằắẳẵặéèẻẽẹêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựỳýỷỹỵ\s_-]+$/;
+
+    // Kiểm tra tên lớp
+    if (!check.test(a)) {
+      alert("⚠️ tiêu đề chỉ được chứa chữ, số, khoảng trắng");
+      return false;
+    }
+
+    // Kiểm tra mã lớp
+    if (!check.test(b)) {
+      alert("⚠️ content chỉ được chứa chữ, số, khoảng trắng");
+      return false;
+    }
+
+    return true;
+  };
+
+  // kiểm tra ngành có hợp lệ không
+  useEffect(() => {
+    if (majors.length === 0) return;
+    if (!selectedMajor) return;
+
+    const valid = majors.some(
+      (m) => String(m.major_id) === String(selectedMajor)
+    );
+
+    if (!valid) {
+      setSelectedMajor("");
+      alert("⚠️ Ngành học không hợp lệ!");
+    }
+  }, [selectedMajor, majors]);
+
+  // kiểm tra  lớp có hợp lệ không
+  useEffect(() => {
+    if (!formData.class_id || classes.length === 0) return;
+
+    const valid = classes.some(
+      (cl) => String(cl.class_id) === String(formData.class_id)
+    );
+
+    if (!valid) {
+      setFormData((prev) => ({ ...prev, class_id: "" }));
+      alert("⚠️ lớp học học không hợp lệ!");
+    }
+  }, [formData.class_id, classes]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.major_id) return alert("⚠️ Vui lòng chọn ngành!");
     if (!formData.class_id) return alert("⚠️ Vui lòng chọn lớp!");
     if (!formData.title.trim()) return alert("⚠️ Vui lòng nhập tiêu đề!");
     if (!formData.content.trim()) return alert("⚠️ Vui lòng nhập nội dung!");
-    if (!formData.content.trim() > 500 || formData.title.trim() > 200)
-      return alert("⚠️ Vui lòng nhập nội dung dưới 500 ký tự!");
+
+    if (!formData.title || formData.title.length > 200) {
+      return alert("⚠️ Tiêu đề  dưới 200 ký tự!");
+    }
+
+    if (!formData.content || formData.content.length > 1000) {
+      return alert("⚠️ Nội dung và dưới 1000 ký tự!");
+    }
+
+    if (!validateFields(formData.title, formData.content)) return;
 
     try {
       setLoading(true);
@@ -129,7 +186,10 @@ export default function CreateNotification({ stateOpen, onClose }) {
       setSelectedMajor("");
       onClose(false);
     } catch (err) {
-      alert("❌ Gửi thất bại!");
+      if (err.response && err.response.data) {
+        alert(err.response?.data?.message_error || "Gửi thông báo thất bại!");
+        // alert("❌ Gửi thất bại!");
+      }
       console.log(err);
     } finally {
       setLoading(false);

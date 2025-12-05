@@ -51,13 +51,13 @@ class ClassesService
                 'required',
                 'string',
                 'max:10',
-                'regex:/^[A-Za-zÀ-ỹ0-9 _-]{3,10}$/u',   // <-- ĐÃ SỬA
+                'regex:/^[A-Za-zÀ-ỹ0-9 _-]{1,10}$/u',   // <-- ĐÃ SỬA
             ],
             'class_code' => [
                 'required',
                 'string',
                 'max:10',
-                'regex:/^[A-Za-z0-9_-]{3,10}$/',
+                'regex:/^[A-Za-z0-9_-]{1,10}$/',
             ],
             'major_id'      => 'required|integer',
             'teacher_id'    => 'required|string',
