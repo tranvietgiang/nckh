@@ -19,6 +19,7 @@ export default function AdminManagement() {
   const navigate = useNavigate();
   const { user, token } = getAuth();
   useIsLogin(user, token, "admin");
+  // localStorage.clear();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [openImports, setOpenImports] = useState(false);
