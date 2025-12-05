@@ -91,22 +91,18 @@ export default function CreateClass({ stateOpen, onClose }) {
   };
 
   const validateClassFields = (class_code, class_name) => {
-    const nameRegex = /^[A-Za-zÀ-ỹ0-9 _-]{3,10}$/;
-    const codeRegex = /^[A-Za-z0-9_-]{3,20}$/;
+    const check =
+      /^[A-Za-z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưĂÂÊÔƠƯáàảãạâầấẩẫậăằắẳẵặéèẻẽẹêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựỳýỷỹỵ\s_-]+$/;
 
     // Kiểm tra tên lớp
-    if (!nameRegex.test(class_name)) {
-      alert(
-        "❌ Tên lớp chỉ được chứa chữ, số, khoảng trắng, dấu -, _ và dài 1-10 ký tự!"
-      );
+    if (!check.test(class_name)) {
+      alert("❌ Tên lớp không được chứ ký tự đặc biệt!");
       return false;
     }
 
     // Kiểm tra mã lớp
-    if (!codeRegex.test(class_code)) {
-      alert(
-        "❌ Mã lớp chỉ được chứa chữ IN HOA, số, không dấu, không khoảng trắng (VD: CNTT01)"
-      );
+    if (!check.test(class_code)) {
+      alert("❌ Mã lớp không được chứ ký tự đặc biệt!");
       return false;
     }
 

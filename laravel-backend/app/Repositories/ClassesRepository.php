@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Classe;
 use App\Models\user_profile;
+use Illuminate\Support\Facades\DB;
 
 class ClassesRepository
 {
@@ -16,18 +17,39 @@ class ClassesRepository
      */
     public function deleteByClass(int $classId, string $teacherId): int
     {
-        $hasStudents = user_profile::join('users', 'user_profiles.user_id', '=', 'users.user_id')
+        return Classe::where('class_id', $classId)
+            ->where('teacher_id', $teacherId)
+            ->delete();
+    }
+
+
+    // kiểm tra sinh viên trong lớp
+    public function studentExists(int $classId): bool
+    {
+        $hasStudents = DB::table('users')
+            ->join('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
             ->where('user_profiles.class_id', $classId)
             ->where('users.role', 'student')
             ->exists();
 
         if ($hasStudents) {
-            return 0;
+            return true;
         }
 
-        return Classe::where('class_id', $classId)
-            ->where('teacher_id', $teacherId)
-            ->delete();
+        return false;
+    }
+
+    // kiểm tra lớp không tồn tại
+    public function classExists(int $classId): bool
+    {
+        $hasClasses = Classe::where('class_id', $classId)
+            ->exists();
+
+        if (!$hasClasses) {
+            return true;
+        }
+
+        return false;
     }
 
     public function insertClassesRepository(array $data)
@@ -43,14 +65,14 @@ class ClassesRepository
         ]);
     }
 
-    // chưa code
+    // tự động tạo giảng viên sau khi tọa lớp
     public function createInfTeacher(array $data)
     {
         return user_profile::create([
             'fullname'     => $data['fullname'],
             'birthdate'    => $data['birthdate'],
             'phone'        => $data['phone'],
-            'class_id'     => $data['class_id'], // lấy từ class mới tạo
+            'class_id'     => $data['class_id'],
             'user_id'      => $data['teacher_id'],
             'major_id'     => $data['major_id'],
         ]);

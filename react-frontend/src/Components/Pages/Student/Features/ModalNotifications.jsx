@@ -61,6 +61,20 @@ export default function ModelNotifications({ stateOpen, onClose }) {
     setDisplayCount((prev) => prev + 2);
   };
 
+  useEffect(() => {
+    if (!stateOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [stateOpen]);
+
   if (!stateOpen) return null;
 
   return (

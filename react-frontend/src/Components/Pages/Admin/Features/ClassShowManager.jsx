@@ -140,7 +140,8 @@ export default function ClassShowManager() {
         .catch((error) => {
           if (error.response) {
             alert(error.response.data.message_error);
-            console.log("Error deleting class:", error);
+            window.location.reload();
+            // console.log("Error deleting class:", error);
           } else {
             alert("Lỗi server!");
           }
