@@ -6,6 +6,7 @@ use App\Models\Major;
 use App\Models\User;
 use App\Models\user_profile;
 use App\Interface\NotificationInterface;
+use Illuminate\Support\Facades\DB;
 
 
 class NotificationService
@@ -18,9 +19,14 @@ class NotificationService
         if (empty($data)) {
             return ['success' => false, 'message_error' => 'Dữ liệu gửi đi không tồn tại!'];
         }
+
         // Kiểm tra độ dài dữ liệu 
-        if (strlen($data['title']) > 200 || strlen($data['content']) > 500) {
-            return ['success' => false, 'message_error' => 'Ký tự tiêu đề hoặc nội dung vượt quá giới hạn!'];
+        if (strlen($data['title']) > 200) {
+            return ['success' => false, 'message_error' => 'Ký tự tiêu đề vượt quá giới hạn 200!'];
+        }
+
+        if (strlen($data['content']) > 1000) {
+            return ['success' => false, 'message_error' => 'Ký tự nội dung vượt quá giới hạn 1000!'];
         }
 
         // Check ngành tồn tại
@@ -28,9 +34,18 @@ class NotificationService
             return ['success' => false, 'message_error' => 'Ngành này không tồn tại!'];
         }
 
-        // Check giảng viên tồn tại
+        // Check giảng viên không tồn tại
         if (!User::where('user_id', $data['teacher_id'])->exists()) {
             return ['success' => false, 'message_error' => 'Không tìm thấy giảng viên!'];
+        }
+
+        $roleTeacher = DB::table('user_profiles')
+            ->join('users', 'user_profiles.user_id', '=', 'users.user_id')
+            ->where('user_profiles.user_id', $data['teacher_id'])
+            ->where('users.role', '!=', 'teacher')->exists();
+
+        if ($roleTeacher) {
+            return ['success' => false, 'message_error' => 'Người dùng không phải giảng viên!'];
         }
 
         // Check required nếu bật gửi email
@@ -44,6 +59,7 @@ class NotificationService
 
         // Lấy thông tin lớp
         $class = $this->repo->findClassById($data['class_id']);
+
         if (!$class) {
             return ['success' => false, 'message_error' => 'Lớp này không tồn tại!'];
         }
