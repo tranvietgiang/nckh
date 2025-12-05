@@ -28,14 +28,23 @@ class ClassesService
             ];
         }
 
-        $deleted = $this->repo->deleteByClass($classId, $teacherId);
-
-        if ($deleted === 0) {
+        $check = $this->repo->studentExists($classId);
+        if ($check) {
             return [
                 'success' => false,
-                'message_error' => 'Không thể xóa lớp (còn sinh viên hoặc lớp không tồn tại)'
+                'message_error' => 'Sinh viên đang có trong lớp, không thể xóa lớp học',
             ];
         }
+
+        $checkClass = $this->repo->classExists($classId);
+        if ($checkClass) {
+            return [
+                'success' => false,
+                'message_error' => 'Lớp không tồn tại, không thể xóa',
+            ];
+        }
+
+        $this->repo->deleteByClass($classId, $teacherId);
 
         return [
             'success' => true,
@@ -51,13 +60,13 @@ class ClassesService
                 'required',
                 'string',
                 'max:10',
-                'regex:/^[A-Za-zÀ-ỹ0-9 _-]{1,10}$/u',   // <-- ĐÃ SỬA
+                'regex:/^[A-Za-zÀ-ỹ0-9 _-]+$/u',
             ],
             'class_code' => [
                 'required',
                 'string',
                 'max:10',
-                'regex:/^[A-Za-z0-9_-]{1,10}$/',
+                'regex:/^[A-Za-zÀ-ỹ0-9 _-]+$/u',
             ],
             'major_id'      => 'required|integer',
             'teacher_id'    => 'required|string',
@@ -107,7 +116,7 @@ class ClassesService
         if (!empty($data['academic_year'])) {
             [$start, $end] = array_map('trim', explode('-', $data['academic_year']));
 
-            if ($end <= $start) {
+            if ($end < $start) {
                 return [
                     'success' => false,
                     'message_error' => 'Năm sau phải lớn hơn năm trước.',
