@@ -35,7 +35,7 @@ class AuthHelper
             ], 401);
         }
 
-        // ✅ Nếu đăng nhập hợp lệ → trả user_id
+        // Nếu đăng nhập hợp lệ → trả user_id
         return Auth::user()->role;
     }
 

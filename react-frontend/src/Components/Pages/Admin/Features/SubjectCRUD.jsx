@@ -6,6 +6,8 @@ import Footer from "../../../ReUse/Footer/Footer";
 import { getAuth } from "../../../Constants/INFO_USER";
 import BackToTop from "../../../ReUse/Top/BackToTop";
 import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
+import dayjs from "dayjs";
+
 export default function SubjectImportPage() {
   const { user, token } = getAuth();
   useIsLogin(user, token, "admin");
@@ -80,12 +82,19 @@ export default function SubjectImportPage() {
     fetchSubjectErrors();
   }, []);
 
+  window.onSubjectActionSuccess = () => {
+    fetchSubjects(); // gọi API lấy lại dữ liệu mới nhất (updated_at mới)
+  };
+
   // === Lấy danh sách môn học ===
   const fetchSubjects = () => {
     setLoading(true);
     axios
       .get("/get-subjects")
-      .then((res) => setSubjects(res.data || []))
+      .then((res) => {
+        console.log(res.data);
+        setSubjects(res.data || []);
+      })
       .catch((err) => {
         console.error("Lỗi tải danh sách môn học:", err);
         setSubjects([]);
@@ -180,7 +189,7 @@ export default function SubjectImportPage() {
     return () => delete window.onSubjectActionSuccess;
   }, []);
 
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString("vi-VN") : "-");
+  const formatDate = (d) => dayjs(d).format("DD/MM/YYYY");
 
   // === Màu theo ngành
   const getMajorColor = (majorId) => {

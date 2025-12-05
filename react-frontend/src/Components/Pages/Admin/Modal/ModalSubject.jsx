@@ -7,11 +7,14 @@ export default function ModalSubject({ stateOpen, onClose, editData = null }) {
     subject_name: "",
     subject_code: "",
     major_id: "",
+    updated_at: editData?.updated_at ?? "",
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // 🟢 Load danh sách ngành khi mở modal
+  // console.log(formData.updated_at);
+
+  // Load danh sách ngành khi mở modal
   useEffect(() => {
     if (stateOpen) fetchMajors();
   }, [stateOpen]);
@@ -26,7 +29,7 @@ export default function ModalSubject({ stateOpen, onClose, editData = null }) {
     }
   };
 
-  // 🧹 Nạp dữ liệu hoặc reset form khi mở modal
+  // Nạp dữ liệu hoặc reset form khi mở modal
   useEffect(() => {
     if (stateOpen) {
       if (editData) {
@@ -35,23 +38,29 @@ export default function ModalSubject({ stateOpen, onClose, editData = null }) {
           subject_name: editData.subject_name || "",
           subject_code: editData.subject_code || "",
           major_id: editData.major_id || "",
+          updated_at: editData.updated_at || "",
         });
       } else {
         // Nếu đang thêm → reset form
-        setFormData({ subject_name: "", subject_code: "", major_id: "" });
+        setFormData({
+          subject_name: "",
+          subject_code: "",
+          major_id: "",
+          updated_at: "",
+        });
       }
       setErrors({});
     }
   }, [stateOpen, editData]);
 
-  // ✏️ Xử lý nhập liệu
+  // Xử lý nhập liệu
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // ✅ Validate form
+  // Validate form
   const validateForm = () => {
     const newErrors = {};
     if (!formData.subject_name.trim())
@@ -63,31 +72,95 @@ export default function ModalSubject({ stateOpen, onClose, editData = null }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  // 🚀 Submit form (tự chọn thêm hoặc sửa)
+  // hàm kiểm tra ký tự đăc biệt trong tên lớp và mã lớp
+  const validateFields = (a, b) => {
+    const check =
+      /^[A-Za-z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưĂÂÊÔƠƯáàảãạâầấẩẫậăằắẳẵặéèẻẽẹêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựỳýỷỹỵ\s_-]+$/;
+
+    // Kiểm tra tên lớp
+    if (!check.test(a)) {
+      alert("⚠️ Tên môn học không thể chứa ký tự đặc biệt");
+      return false;
+    }
+
+    // Kiểm tra mã lớp
+    if (!check.test(b)) {
+      alert("⚠️ Mã môn học không thể chứa ký tự đặc biệt");
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateLength = (a, b) => {
+    if (a.length < 5 || a.length > 100) {
+      alert("Tên môn học chỉ có dộ dài (5 - 100) ký tự!");
+      return true;
+    }
+
+    if (b.length < 3 || b.length > 50) {
+      alert("Mã môn học chỉ có dộ dài (3 - 50) ký tự!");
+      return true;
+    }
+
+    return false;
+  };
+
+  useEffect(() => {
+    if (!majors || majors.length === 0) return;
+    if (!formData.major_id) return;
+
+    const exist = majors.some(
+      (m) => String(m.major_id) !== String(formData.major_id)
+    );
+
+    if (!exist) {
+      alert("Ngành học không tồn tại!");
+      setFormData((prev) => ({
+        ...prev,
+        major_id: "",
+      }));
+      return;
+    }
+  }, [formData.major_id, majors]);
+
+  // Submit form (tự chọn thêm hoặc sửa)
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (
+      !formData.major_id &&
+      !formData.subject_name &&
+      !formData.subject_code
+    ) {
+      alert("Vui lòng nhập đầy đủ thông tin!");
+      return;
+    }
     if (!validateForm()) return;
+
+    if (!validateFields(formData.subject_name, formData.subject_code)) return;
+
+    if (validateLength(formData.subject_name, formData.subject_code)) return;
 
     setLoading(true);
     try {
       if (editData) {
-        // 🟢 Cập nhật
+        // Cập nhật
         await axios.put(`/update/subjects/${editData.subject_id}`, formData);
-        alert("✅ Cập nhật môn học thành công!");
+        alert("Cập nhật môn học thành công!");
       } else {
-        // 🟢 Thêm mới
+        // Thêm mới
         await axios.post("/create/subjects", formData);
-        alert("✅ Thêm môn học thành công!");
+        alert("Thêm môn học thành công!");
       }
 
-      // 🔄 Reload lại danh sách bên ngoài nếu có
+      // Reload lại danh sách bên ngoài nếu có
       if (window.onSubjectActionSuccess) window.onSubjectActionSuccess();
       onClose();
     } catch (err) {
       console.error("Lỗi xử lý môn học:", err);
       const msg =
-        err.response?.data?.message_error ||
-        "❌ Có lỗi xảy ra khi xử lý môn học!";
+        err.response?.data?.message_error || "Không thể kêt nói với máy chủ!";
       alert(msg);
     } finally {
       setLoading(false);
