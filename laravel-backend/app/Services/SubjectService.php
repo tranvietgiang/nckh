@@ -24,41 +24,68 @@ class SubjectService
 
     public function createSubject(array $data)
     {
-        // 🧩 1. Kiểm tra dữ liệu bắt buộc
-        if (empty($data['subject_name'])) {
-            return ['success' => false, 'message_error' => 'Tên môn học không được để trống!'];
+        // // Kiểm tra dữ liệu bắt buộc
+        // if (empty($data['subject_name'])) {
+        //     return ['success' => false, 'message_error' => 'Tên môn học không được để trống!'];
+        // }
+
+        // if (empty($data['subject_code'])) {
+        //     return ['success' => false, 'message_error' => 'Mã môn học không được để trống!'];
+        // }
+
+        // if (empty($data['major_id'])) {
+        //     return ['success' => false, 'message_error' => 'Vui lòng chọn ngành!'];
+        // }
+
+        // // kiểm tra độ dài tên môn học 
+        // if (strlen($data["subject_name"]) < 5 || strlen($data["subject_name"]) > 100) {
+        //     return ['success' => false, 'message_error' => 'Tên môn học chỉ có dộ dài (5 - 100) ký tự!!'];;
+        // }
+
+        // // kiểm tra độ dài tên môn học 
+        // if (strlen($data["subject_code"]) < 3 || strlen($data["subject_code"]) > 50) {
+        //     return ['success' => false, 'message_error' => 'Mã môn học chỉ có dộ dài (5 - 100) ký tự!!'];;
+        // }
+
+        // // kiểm tra ký tự đặc biệt
+        // if (!preg_match('/^[A-Za-z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưĂÂÊÔƠƯáàảãạâầấẩẫậăằắẳẵặéèẻẽẹêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựỳýỷỹỵ\s_-]+$/u', $data["subject_name"])) {
+        //     return ['success' => false, 'message_error' => 'Tên môn học không được chứa ký tự!!'];;
+        // }
+
+        // // kiểm tra ký tự đặc biệt
+        // if (!preg_match('/^[A-Za-z0-9ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠƯàáâãèéêìíòóôõùúăđĩũơưĂÂÊÔƠƯáàảãạâầấẩẫậăằắẳẵặéèẻẽẹêềếểễệíìỉĩịóòỏõọôồốổỗộơờớởỡợúùủũụưừứửữựỳýỷỹỵ\s_-]+$/u', $data["subject_code"])) {
+        //     return ['success' => false, 'message_error' => 'Mã môn học không được chứa ký tự!!'];;
+        // }
+
+        // // Kiểm tra ngành có tồn tại không
+        // $majorExists = Major::where('major_id', $data['major_id'])->exists();
+        // if (!$majorExists) {
+        //     return ['success' => false, 'message_error' => 'Ngành học không tồn tại!'];
+        // }
+
+
+        $validate = $this->subjectRepo->validateData($data);
+        if (!$validate['success']) {
+            return $validate; // trả về message_error
         }
 
-        if (empty($data['subject_code'])) {
-            return ['success' => false, 'message_error' => 'Mã môn học không được để trống!'];
-        }
-
-        if (empty($data['major_id'])) {
-            return ['success' => false, 'message_error' => 'Vui lòng chọn ngành!'];
-        }
-
-        // 🔍 2. Kiểm tra ngành có tồn tại không
-        $majorExists = Major::where('major_id', $data['major_id'])->exists();
-        if (!$majorExists) {
-            return ['success' => false, 'message_error' => 'Ngành học không tồn tại!'];
-        }
-
-        // 🔍 3. Kiểm tra trùng tên & mã trong cùng ngành
+        // Kiểm tra trùng tên & mã trong cùng ngành
         if ($this->subjectRepo->existsSameNameCodeMajor($data['subject_name'], $data['subject_code'], $data['major_id'])) {
             return ['success' => false, 'message_error' => 'Tên và mã môn học này đã tồn tại trong ngành!'];
         }
 
-        // 🔍 4. Kiểm tra trùng tên khác mã trong ngành
+        // Kiểm tra trùng tên khác mã trong ngành
         if ($this->subjectRepo->existsNameOnly($data['subject_name'], $data['major_id'])) {
             return ['success' => false, 'message_error' => 'Tên môn học đã tồn tại trong ngành này!'];
         }
 
-        // 🔍 5. Kiểm tra trùng mã khác tên trong ngành
+        // Kiểm tra trùng mã khác tên trong ngành
         if ($this->subjectRepo->existsCodeOnly($data['subject_code'], $data['major_id'])) {
             return ['success' => false, 'message_error' => 'Mã môn học đã tồn tại trong ngành này!'];
         }
 
-        // 🧱 6. Tạo mới môn học
+
+        // Tạo mới môn học
         $created = $this->subjectRepo->createSubject($data);
 
         if ($created) {
@@ -72,43 +99,61 @@ class SubjectService
     public function updateSubject($id, array $data)
     {
         try {
-            if (empty($data['subject_name'])) {
-                return ['success' => false, 'message_error' => 'Tên môn học không được để trống!'];
+
+            // kiểm tra trc khi update
+            $not = $this->subjectRepo->subjectNotExist($id);
+
+            if (!$not) {
+                return ['success' => false, 'message_error' => 'Môn học này không tồn tại, vui lòng tải lại trang!'];
             }
 
-            if (empty($data['subject_code'])) {
-                return ['success' => false, 'message_error' => 'Mã môn học không được để trống!'];
+            // check update cùng 1 thời điểm
+            $toggleTime = $this->subjectRepo->updateToggleId($id, $data);
+            if (!$toggleTime["success"]) {
+                return $toggleTime;
             }
 
-            if (empty($data['major_id'])) {
-                return ['success' => false, 'message_error' => 'Vui lòng chọn ngành!'];
+            // Kiểm tra trùng tên (bỏ qua chính nó)
+            $notChange = $this->subjectRepo->updateNotChange($id, $data);
+            if ($notChange) {
+                return ['success' => false, 'message_error' => 'Chưa có sự thay đổi!'];
             }
 
-            // // 🔍 Kiểm tra trùng tên (bỏ qua chính nó)
-            // $exists = $this->subjectRepo->($data['subject_name'], $data['subject_code'], $data['major_id']);
-            // if ($exists) {
-            //     return ['success' => false, 'message_error' => 'Chưa có sự thay đổi!'];
-            // }
+            $validate = $this->subjectRepo->validateData($data);
+            if (!$validate['success']) {
+                return $validate;
+            }
 
             $updated = $this->subjectRepo->updateSubject($id, $data);
             if ($updated > 0) {
                 return ['success' => true, 'message_error' => 'Cập nhật môn học thành công!'];
             }
 
-            return ['success' => false, 'message_error' => 'Không tìm thấy môn học hoặc không có thay đổi!'];
+            return ['success' => false, 'message_error' => 'lỗi server'];
         } catch (Exception $e) {
-            Log::error('❌ Lỗi cập nhật môn học: ' . $e->getMessage());
+            // return ['success' => false, 'message_error' => $e->getMessage()];
             return ['success' => false, 'message_error' => 'Đã xảy ra lỗi khi cập nhật môn học!'];
         }
     }
 
-    // 🟢 Xóa môn học
+    //  Xóa môn học
     public function deleteSubject($id)
     {
-        $check = $this->subjectRepo->ExistsSubjectInClass($id);
-        if ($check) {
+        $not = $this->subjectRepo->SubjectNotExist($id);
 
-            return ['success' => false, 'message_error' => 'Xóa môn học không thành công, môn học này đã được giảng viên'];
+        if (!$not) {
+            return ['success' => false, 'message_error' => 'Môn học này không tồn tại, vui lòng tải lại trang!'];
+        }
+
+        // $check = $this->subjectRepo->ExistsSubjectInClass($id);
+        // if ($check) {
+        //     return ['success' => false, 'message_error' => 'Xóa môn học không thành công, môn học này đã được giảng viên phụ trách'];
+        // }
+
+        $studentInClass = $this->subjectRepo->canDeleteSubject($id);
+
+        if (!$studentInClass['success']) {
+            return $studentInClass;
         }
 
         $deleted = $this->subjectRepo->deleteSubject($id);

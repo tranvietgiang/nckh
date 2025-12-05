@@ -51,7 +51,7 @@ class SubjectController extends Controller
         }
     }
 
-    // 🟢 Lấy danh sách
+    //  Lấy danh sách
     public function getSubjectByMajorByClass($majorId, $subjectId)
     {
         AuthHelper::roleTeacher();
@@ -85,7 +85,7 @@ class SubjectController extends Controller
     }
 
 
-    // 🟢 Thêm môn học
+    // Thêm môn học
     public function storeSubject(Request $request)
     {
         AuthHelper::roleAmin();
@@ -95,7 +95,7 @@ class SubjectController extends Controller
         return response()->json($result, $code);
     }
 
-    // 🟢 Cập nhật môn học
+    // Cập nhật môn học
     public function updateSubject(Request $request, $id)
     {
         AuthHelper::roleAmin();
@@ -105,7 +105,7 @@ class SubjectController extends Controller
         return response()->json($result, $code);
     }
 
-    // 🟢 Xóa môn học
+    // Xóa môn học
     public function destroySubject($id)
     {
         AuthHelper::roleAmin();
