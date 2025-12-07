@@ -259,7 +259,7 @@ export default function AdminManagement() {
               element={<ReportsManagement reports={reports} />}
             />
             <Route path="majors" element={<MajorImportPage />} />
-            {/* 👇 Thêm route mới cho import */}
+            {/* Thêm route mới cho import */}
             <Route path="import-teacher" element={<ImportTeacher />} />
           </Routes>
         </div>

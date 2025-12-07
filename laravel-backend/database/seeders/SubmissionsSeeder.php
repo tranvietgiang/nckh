@@ -12,7 +12,7 @@ class SubmissionsSeeder extends Seeder
     {
         // Lấy tất cả report_id
         $reports = DB::table('reports')->pluck('report_id')->toArray();
-        
+
         // Lấy tất cả sinh viên
         $students = DB::table('users')
             ->where('role', 'student')
