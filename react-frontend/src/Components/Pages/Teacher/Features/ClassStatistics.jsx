@@ -127,13 +127,18 @@ export default function ClassStatistics() {
 
                 <td className="border p-2 text-center">
                   <button
-                    onClick={() =>
-                      navigate("/nckh-show-group-teacher", {
-                        state: {
-                          class_id: r?.class_id,
-                          report_id: r?.report_id,
-                        },
-                      })
+                    onClick={
+                      () =>
+                        navigate("/nckh-show-group-teacher", {
+                          state: {
+                            class_id: r?.class_id,
+                            report_id: r?.report_id,
+                          },
+                        })
+
+                      // navigate(
+                      //   `/teacher/class/${r?.class_id}/report/${r?.report_id}/groups`
+                      // )
                     }
                     className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
                   >
