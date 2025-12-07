@@ -1,9 +1,14 @@
 export default function Footer() {
   return (
-    <footer className="bg-gray-800 text-gray-300 text-center py-3 text-sm fixed bottom-0 left-0 w-full">
-      <p className="text-xs text-gray-500 text-center">
-        TDC - {new Date().toLocaleDateString("vi-VN")}
-      </p>
+    <footer className="bg-[#01609a] relative after:pointer-events-none after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-white/10">
+      <div className="max-w-7xl mx-auto px-4 py-3 mt-[100px]">
+        <p className="text-center text-sm text-white">
+          © 2025 TRUONG CAO DANG CONG NGHE THU DUC
+        </p>
+        <p className="text-center text-xs text-white/70 mt-1">
+          Cập nhật lần cuối: {new Date().toLocaleDateString("vi-VN")}
+        </p>
+      </div>
     </footer>
   );
 }

@@ -145,10 +145,6 @@ export default function TeacherDashboard() {
               Ngành: {majorInfo?.major_name || "Chưa có thông tin"}
             </p>
           </div>
-
-          <span className="bg-green-100 text-green-600 px-4 py-2 rounded-full text-sm mt-4 md:mt-0">
-            Đang hoạt động
-          </span>
         </div>
 
         {/* THỐNG KÊ */}

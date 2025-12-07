@@ -40,13 +40,28 @@ export default function Navbar() {
           ? "/nckh-home"
           : role === "teacher"
           ? "/nckh-teacher"
-          : role === "admin"
-          ? "/nckh-admin"
           : "/nckh-404",
     },
     {
-      href: role === "student" ? "" : "/nckh-404",
-      current: false,
+      name: role === "student" ? "Xem báo cáo" : null,
+      href:
+        role === "student"
+          ? "/chưa phát triển"
+          : role === "teacher"
+          ? "/chưa phát triển"
+          : "/nckh-404",
+    },
+    {
+      name: role === "teacher" ? "Quản Lý Báo Cáo" : null,
+      href: role === "teacher" ? "/nckh-report-manager" : null,
+    },
+    {
+      name: role === "teacher" ? "Chấm Báo cáo" : null,
+      href: role === "teacher" ? "/nckh-teacher-scoringfeedback" : null,
+    },
+    {
+      name: role === "teacher" ? "Quản lý nhóm" : null,
+      href: role === "teacher" ? "/nckh-teacher-groups" : null,
     },
   ];
 
@@ -78,34 +93,49 @@ export default function Navbar() {
             </div>
             <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
               <div className="flex shrink-0 items-center">
-                <img
-                  alt="Your Company"
-                  src="../../../../public/Images/logo-truong-cao-dang-cong-nghe-thu-duc-tdc.webp"
-                  className="h-8 w-auto"
-                />
+                <picture>
+                  {/* Mobile - dưới 640px */}
+                  <source
+                    media="(max-width: 639px)"
+                    srcSet="/Images/logo-tdc-orginal.webp"
+                  />
+                  {/* Tablet - 640px đến 1023px */}
+                  <source
+                    media="(max-width: 1023px)"
+                    srcSet="/Images/tdc-navbar.png"
+                  />
+                  {/* Desktop - trên 1024px */}
+                  <img
+                    alt="Your Company"
+                    src="/Images/tdc-navbar.png"
+                    className="h-8 md:h-10 lg:h-12 xl:h-16 w-auto"
+                  />
+                </picture>
               </div>
-              <div className="hidden sm:ml-6 sm:block">
-                <div className="flex space-x-4">
-                  {navigation.map((item, index) => (
-                    <a
-                      key={item.name || index}
-                      href={item.href}
-                      aria-current={item.current ? "page" : undefined}
-                      className={classNames(
-                        item.current
-                          ? "bg-gray-950/50 text-white"
-                          : "text-gray-300 hover:bg-white/5 hover:text-white",
-                        "rounded-md px-3 py-2 text-sm font-medium"
-                      )}
-                    >
-                      {item.name}
-                    </a>
-                  ))}
+              <div className="hidden sm:ml-6 sm:block flex place-content-center">
+                <div className="flex space-x-4 place-content-center">
+                  {navigation.map(
+                    (item, index) =>
+                      item.name !== null && (
+                        <a
+                          key={item.name || index}
+                          href={item.href}
+                          aria-current={item.current ? "page" : undefined}
+                          className={classNames(
+                            item.current
+                              ? "bg-gray-950/50 text-white"
+                              : "text-gray-300 hover:bg-white/5 hover:text-white",
+                            "rounded-md px-3 py-2 text-sm font-medium"
+                          )}
+                        >
+                          {item.name}
+                        </a>
+                      )
+                  )}
                 </div>
               </div>
             </div>
             <div className="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-              <div></div>
               {role === "student" ? (
                 <div>
                   <button
@@ -216,22 +246,25 @@ export default function Navbar() {
 
         <DisclosurePanel className="sm:hidden">
           <div className="space-y-1 px-2 pb-3 pt-2">
-            {navigation.map((item) => (
-              <DisclosureButton
-                key={item.name}
-                as="a"
-                href={item.href}
-                aria-current={item.current ? "page" : undefined}
-                className={classNames(
-                  item.current
-                    ? "bg-gray-950/50 text-white"
-                    : "text-gray-300 hover:bg-white/5 hover:text-white",
-                  "block rounded-md px-3 py-2 text-base font-medium"
-                )}
-              >
-                {item.name}
-              </DisclosureButton>
-            ))}
+            {navigation.map(
+              (item) =>
+                item.name !== null && (
+                  <DisclosureButton
+                    key={item.name}
+                    as="a"
+                    href={item.href}
+                    aria-current={item.current ? "page" : undefined}
+                    className={classNames(
+                      item.current
+                        ? "bg-gray-950/50 text-white"
+                        : "text-gray-300 hover:bg-white/5 hover:text-white",
+                      "block rounded-md px-3 py-2 text-base font-medium"
+                    )}
+                  >
+                    {item.name}
+                  </DisclosureButton>
+                )
+            )}
           </div>
         </DisclosurePanel>
 
