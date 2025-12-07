@@ -150,7 +150,7 @@ export default function ScoringFeedbackBySubject() {
       setLoading(true);
 
       // ============================
-      // 🔥 GỬI API CHẤM ĐIỂM
+      //  GỬI API CHẤM ĐIỂM
       // ============================
       const res = await axios.post("/grades/update", {
         submission_id: submission.submission_id,
@@ -162,7 +162,7 @@ export default function ScoringFeedbackBySubject() {
       console.log("Đã chấm:", res.data);
 
       // ============================
-      // 🔥 CẬP NHẬT UI LOCAL
+      //  CẬP NHẬT UI LOCAL
       // ============================
       setClassSubmissions((prev) => ({
         ...prev,
