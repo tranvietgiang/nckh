@@ -310,7 +310,6 @@ class ReportMembersController extends Controller
                 'rm.rm_code',
                 DB::raw('COUNT(rm.student_id) AS total_members'),
 
-                // THÊM:
                 'ls.leader_id',
                 'ls.leader_name',
 
@@ -328,7 +327,6 @@ class ReportMembersController extends Controller
             ->groupBy('rm.rm_code', 'ls.leader_id', 'ls.leader_name', 'status', 'g.score')
             ->orderBy('rm.rm_code')
             ->get();
-
 
 
         return response()->json($groups, 200);

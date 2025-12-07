@@ -231,7 +231,7 @@ export default function TeacherDashboard() {
                     onClick={() => handleViewStats(cls.class_id)}
                     className="text-blue-600 hover:underline font-medium"
                   >
-                    Xem thống kê
+                    Xem báo cáo
                   </button>
                 </div>
               ))}
