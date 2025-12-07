@@ -380,7 +380,6 @@ export default function MajorImportPage() {
       )}
 
       <BackToTop />
-      <Footer />
     </div>
   );
 }

@@ -4,7 +4,7 @@ import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import Navbar from "../../../ReUse/Navbar/Navbar";
-import Footer from "../../Student/Home/Footer";
+import Footer from "../../../ReUse/Footer/Footer";
 import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ClassStatistics() {
@@ -127,13 +127,18 @@ export default function ClassStatistics() {
 
                 <td className="border p-2 text-center">
                   <button
-                    onClick={() =>
-                      navigate("/nckh-show-group-teacher", {
-                        state: {
-                          class_id: r?.class_id,
-                          report_id: r?.report_id,
-                        },
-                      })
+                    onClick={
+                      () =>
+                        navigate("/nckh-show-group-teacher", {
+                          state: {
+                            class_id: r?.class_id,
+                            report_id: r?.report_id,
+                          },
+                        })
+
+                      // navigate(
+                      //   `/teacher/class/${r?.class_id}/report/${r?.report_id}/groups`
+                      // )
                     }
                     className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
                   >

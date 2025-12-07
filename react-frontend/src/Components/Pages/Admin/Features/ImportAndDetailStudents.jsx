@@ -494,7 +494,6 @@ export default function ImportAndDetailStudents() {
         </div>
 
         <BackToTop />
-        <Footer />
       </div>
     </>
   );

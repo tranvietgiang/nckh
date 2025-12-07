@@ -79,10 +79,12 @@ export default function ClassShowManager() {
         setClasses(newList.data);
         setSafeJSON("data_classes", newList.data);
       }
+      window.location.reload();
     } catch (err) {
       console.error("Lỗi khi import:", err);
       // Chỉ báo lỗi hệ thống
-      alert(err.response?.data?.message || "❌ Cần Resert lại trang !!");
+      alert("❌ lỗi import, vui lòng liên hệ admin !!");
+      // alert(err.response?.data?.message );
     } finally {
       setImportLoading(false);
     }
@@ -437,7 +439,6 @@ export default function ClassShowManager() {
           </div>
         )}
       </div>
-      <Footer />
     </>
   );
 }
