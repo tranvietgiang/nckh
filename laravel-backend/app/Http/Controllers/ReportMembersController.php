@@ -264,6 +264,77 @@ class ReportMembersController extends Controller
         return response()->json(['success' => false, 'message_error' => 'Không tìm thấy nhóm nào để xóa.']);
     }
 
+    // public function getGroupsOfReport($classId, $reportId)
+    // {
+    //     $teacherId = AuthHelper::isLogin();
+    //     AuthHelper::roleTeacher();
+
+    //     // Kiểm tra report có thuộc lớp & giáo viên
+    //     $report = DB::table("reports")
+    //         ->where("report_id", $reportId)
+    //         ->where("class_id", $classId)
+    //         ->where("teacher_id", $teacherId)
+    //         ->first();
+
+    //     if (!$report) {
+    //         return response()->json([
+    //             "message_error" => "Báo cáo không tồn tại hoặc không thuộc lớp này!"
+    //         ], 404);
+    //     }
+
+    //     $latestSubmission = DB::table('report_members as rm2')
+    //         ->join('report_members as leader2', function ($join) {
+    //             $join->on('leader2.report_id', '=', 'rm2.report_id')
+    //                 ->on('leader2.rm_code', '=', 'rm2.rm_code')
+    //                 ->where('leader2.report_m_role', '=', 'NT'); // NHÓM TRƯỞNG
+    //         })
+    //         ->leftJoin('submissions as s2', 's2.student_id', '=', 'leader2.student_id')
+    //         ->leftJoin('user_profiles as up', 'up.user_id', '=', 'leader2.student_id')
+    //         ->select(
+    //             'rm2.rm_code',
+    //             'leader2.student_id AS leader_id',
+    //             'up.fullname AS leader_name',
+    //             DB::raw('MAX(s2.submission_id) AS latest_submission_id')
+    //         )
+    //         ->where('rm2.report_id', $reportId)
+    //         ->groupBy('rm2.rm_code', 'leader2.student_id', 'up.fullname');
+
+
+    //     $groups = DB::table('report_members as rm')
+    //         ->leftJoinSub($latestSubmission, 'ls', function ($join) {
+    //             $join->on('ls.rm_code', '=', 'rm.rm_code');
+    //         })
+    //         ->leftJoin('submissions as s', 's.submission_id', '=', 'ls.latest_submission_id')
+    //         ->leftJoin('grades as g', 'g.submission_id', '=', 's.submission_id')
+    //         ->select(
+    //             'rm.rm_code',
+    //             DB::raw('COUNT(rm.student_id) AS total_members'),
+
+    //             'ls.leader_id',
+    //             'ls.leader_name',
+
+    //             DB::raw("
+    //         CASE
+    //             WHEN s.status = 'submitted' THEN 'submitted'
+    //             WHEN s.status = 'graded' THEN 'graded'
+    //             WHEN s.status = 'rejected' THEN 'rejected'
+    //             ELSE 'not_submitted'
+    //         END AS status
+    //     "),
+    //             DB::raw('COALESCE(g.score, NULL) AS grade')
+    //         )
+    //         ->where('rm.report_id', $reportId)
+    //         // ->join('reports', 'rm.report_id', '=', 'reports.report_id')
+    //         // ->join('classes', 'reports.class_id', '=', 'classes.class_id')
+    //         // ->where('reports.class_id', $classId)
+    //         ->groupBy('rm.rm_code', 'ls.leader_id', 'ls.leader_name', 'status', 'g.score')
+    //         ->orderBy('rm.rm_code')
+    //         ->get();
+
+
+    //     return response()->json($groups, 200);
+    // }
+
     public function getGroupsOfReport($classId, $reportId)
     {
         $teacherId = AuthHelper::isLogin();
@@ -282,52 +353,55 @@ class ReportMembersController extends Controller
             ], 404);
         }
 
-        $latestSubmission = DB::table('report_members as rm2')
-            ->join('report_members as leader2', function ($join) {
-                $join->on('leader2.report_id', '=', 'rm2.report_id')
-                    ->on('leader2.rm_code', '=', 'rm2.rm_code')
-                    ->where('leader2.report_m_role', '=', 'NT'); // NHÓM TRƯỞNG
-            })
-            ->leftJoin('submissions as s2', 's2.student_id', '=', 'leader2.student_id')
-            ->leftJoin('user_profiles as up', 'up.user_id', '=', 'leader2.student_id')
+        // --- LẤY SUBMISSION MỚI NHẤT CỦA TỪNG NHÓM – THEO ĐÚNG report_id ---
+        $latestSubmission = DB::table('submissions')
             ->select(
-                'rm2.rm_code',
-                'leader2.student_id AS leader_id',
-                'up.fullname AS leader_name',
-                DB::raw('MAX(s2.submission_id) AS latest_submission_id')
+                'rm.rm_code',
+                DB::raw('MAX(submissions.submission_id) AS latest_submission_id')
             )
-            ->where('rm2.report_id', $reportId)
-            ->groupBy('rm2.rm_code', 'leader2.student_id', 'up.fullname');
-
-
-        $groups = DB::table('report_members as rm')
-            ->leftJoinSub($latestSubmission, 'ls', function ($join) {
-                $join->on('ls.rm_code', '=', 'rm.rm_code');
+            ->join('report_members as rm', function ($join) use ($reportId) {
+                $join->on('rm.student_id', '=', 'submissions.student_id')
+                    ->where('rm.report_id', '=', $reportId);
             })
+            ->where('submissions.report_id', $reportId) // QUAN TRỌNG
+            ->groupBy('rm.rm_code');
+
+        // --- LẤY LEADER ---
+        $leaders = DB::table('report_members')
+            ->join('user_profiles', 'user_id', '=', 'student_id')
+            ->select(
+                'rm_code',
+                'student_id as leader_id',
+                'fullname as leader_name'
+            )
+            ->where('report_id', $reportId)
+            ->where('report_m_role', 'NT'); // Nhóm trưởng
+
+        // --- GHÉP TẤT CẢ ---
+        $groups = DB::table('report_members as rm')
+            ->leftJoinSub($leaders, 'ld', 'ld.rm_code', '=', 'rm.rm_code')
+            ->leftJoinSub($latestSubmission, 'ls', 'ls.rm_code', '=', 'rm.rm_code')
             ->leftJoin('submissions as s', 's.submission_id', '=', 'ls.latest_submission_id')
             ->leftJoin('grades as g', 'g.submission_id', '=', 's.submission_id')
             ->select(
                 'rm.rm_code',
                 DB::raw('COUNT(rm.student_id) AS total_members'),
-
-                'ls.leader_id',
-                'ls.leader_name',
-
+                'ld.leader_id',
+                'ld.leader_name',
                 DB::raw("
-            CASE
-                WHEN s.status = 'submitted' THEN 'submitted'
-                WHEN s.status = 'graded' THEN 'graded'
-                WHEN s.status = 'rejected' THEN 'rejected'
-                ELSE 'not_submitted'
-            END AS status
-        "),
-                DB::raw('COALESCE(g.score, NULL) AS grade')
+                CASE
+                    WHEN s.status = 'submitted' THEN 'submitted'
+                    WHEN s.status = 'graded' THEN 'graded'
+                    WHEN s.status = 'rejected' THEN 'rejected'
+                    ELSE 'not_submitted'
+                END AS status
+            "),
+                'g.score as grade'
             )
             ->where('rm.report_id', $reportId)
-            ->groupBy('rm.rm_code', 'ls.leader_id', 'ls.leader_name', 'status', 'g.score')
+            ->groupBy('rm.rm_code', 'ld.leader_id', 'ld.leader_name', 'status', 'g.score')
             ->orderBy('rm.rm_code')
             ->get();
-
 
         return response()->json($groups, 200);
     }

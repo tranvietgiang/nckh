@@ -74,10 +74,16 @@ function App() {
             {/* Quản lý báo cáo */}
             <Route path="/nckh-report-manager" element={<ReportManager />} />
             {/* Quản lý Xem nhóm  */}
+            {/** version 1 */}
             <Route
               path="/nckh-show-group-teacher"
               element={<ShowMemberGroup />}
-            />
+            />{" "}
+            {/** version 2 */}
+            {/* <Route
+              path="/teacher/class/:classId/report/:reportId/groups"
+              element={<ShowMemberGroup />}
+            /> */}
             /*===============================================END============================================
             */
           </Routes>
