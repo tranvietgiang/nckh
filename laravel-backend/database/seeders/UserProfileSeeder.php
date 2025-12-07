@@ -15,7 +15,7 @@ class UserProfileSeeder extends Seeder
             [
                 'fullname'     => 'Thay A',
                 'birthdate'    => '1985-10-15',
-                'phone'        => '0901111111',
+                'phone'        => '0123456799',
                 'user_id'      => 'gv001',
                 'class_id'     => 1,
                 'major_id'     => 1,
@@ -26,7 +26,7 @@ class UserProfileSeeder extends Seeder
             [
                 'fullname'     => 'Thay B',
                 'birthdate'    => '1988-02-10',
-                'phone'        => '0902222222',
+                'phone'        => '0123456678',
                 'user_id'      => 'gv002',
                 'class_id'     => 2,
                 'major_id'     => 2,
@@ -37,8 +37,8 @@ class UserProfileSeeder extends Seeder
             [
                 'fullname'     => 'Thay C',
                 'birthdate'    => '1990-09-01',
-                'phone'        => '0905555555',
-                'user_id'      => 'gv005',
+                'phone'        => '0123456778',
+                'user_id'      => 'gv003',
                 'class_id'     => 3,
                 'major_id'     => 3,
             ],
@@ -46,8 +46,8 @@ class UserProfileSeeder extends Seeder
             [
                 'fullname'     => 'Thay D',
                 'birthdate'    => '1990-09-01',
-                'phone'        => '0905555555',
-                'user_id'      => 'gv005',
+                'phone'        => '0123456788',
+                'user_id'      => 'gv004',
                 'class_id'     => 4,
                 'major_id'     => 4,
             ],

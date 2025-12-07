@@ -32,6 +32,7 @@ export default function AdminManagement() {
   const [toastMessage, setToastMessage] = useState("");
   const [reports, setReports] = useState([]);
 
+  console.log(activeTab);
   const handleDelete = async (id, type) => {
     if (
       !window.confirm(

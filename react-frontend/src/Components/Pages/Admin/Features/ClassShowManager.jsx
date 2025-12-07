@@ -437,7 +437,6 @@ export default function ClassShowManager() {
           </div>
         )}
       </div>
-      <Footer />
     </>
   );
 }
