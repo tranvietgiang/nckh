@@ -27,7 +27,7 @@ class SubjectSeeder extends Seeder
                 'major_id'     => 1,
             ],
             [
-                'subject_name' => 'Mon-CNTT 3',
+                'subject_name' => 'Mon-CNTT 4',
                 'subject_code' => 'TT04',
                 'major_id'     => 1,
             ],

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import axios from "../../../../config/axios";
 import Navbar from "../../../ReUse/Navbar/Navbar";
-import Footer from "../../Student/Home/Footer";
+import Footer from "../../../ReUse/Footer/Footer";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import { CiUser } from "react-icons/ci";
 import { getAuth } from "../../../Constants/INFO_USER";
