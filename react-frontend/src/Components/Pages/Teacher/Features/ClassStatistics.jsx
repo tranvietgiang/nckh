@@ -4,7 +4,7 @@ import axios from "../../../../config/axios";
 import { getAuth } from "../../../Constants/INFO_USER";
 import RouterBack from "../../../ReUse/Back/RouterBack";
 import Navbar from "../../../ReUse/Navbar/Navbar";
-import Footer from "../../Student/Home/Footer";
+import Footer from "../../../ReUse/Footer/Footer";
 import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 
 export default function ClassStatistics() {
