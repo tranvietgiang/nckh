@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import Header from "../Home/Header";
 import Content from "../Home/Content";
-import Footer from "../Home/Footer";
+import Footer from "../../../ReUse/Footer/Footer";
 import useIsLogin from "../../../ReUse/IsLogin/IsLogin";
 import { getAuth } from "../../../Constants/INFO_USER";
 import BackToTop from "../../../ReUse/Top/BackToTop";
+import Navbar from "../../../ReUse/Navbar/Navbar";
 export default function StudentDashboard() {
   const { user, token } = getAuth();
 
@@ -16,6 +17,7 @@ export default function StudentDashboard() {
 
   return (
     <>
+      <Navbar />
       <Header />
       <Content />
       <BackToTop />
