@@ -267,7 +267,6 @@ export default function AdminManagement() {
 
       <ModalImport stateOpen={openImports} onClose={setOpenImports} />
       <BackToTop />
-      <Footer />
     </div>
   );
 }

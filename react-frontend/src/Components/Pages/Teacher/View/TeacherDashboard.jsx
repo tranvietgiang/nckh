@@ -125,7 +125,7 @@ export default function TeacherDashboard() {
       <Navbar />
 
       {/* HEADER */}
-      <div className="max-w-5xl mx-auto mt-3 bg-blue-600 text-white p-6 shadow-md rounded-b-2xl">
+      <div className="max-w-5xl mx-auto mt-3 bg-[#01609a] text-white p-6 shadow-md rounded-b-2xl">
         <h1 className="text-3xl font-bold text-center">
           BẢNG TỔNG QUAN GIẢNG VIÊN
         </h1>
