@@ -340,18 +340,18 @@ class ReportMembersController extends Controller
         $teacherId = AuthHelper::isLogin();
         AuthHelper::roleTeacher();
 
-        // Kiểm tra report có thuộc lớp & giáo viên
-        $report = DB::table("reports")
-            ->where("report_id", $reportId)
-            ->where("class_id", $classId)
-            ->where("teacher_id", $teacherId)
-            ->first();
+        // // Kiểm tra report có thuộc lớp & giáo viên
+        // $report = DB::table("reports")
+        //     ->where("report_id", $reportId)
+        //     ->where("class_id", $classId)
+        //     ->where("teacher_id", $teacherId)
+        //     ->first();
 
-        if (!$report) {
-            return response()->json([
-                "message_error" => "Báo cáo không tồn tại hoặc không thuộc lớp này!"
-            ], 404);
-        }
+        // if (!$report) {
+        //     return response()->json([
+        //         "message_error" => "Báo cáo không tồn tại hoặc không thuộc lớp này!"
+        //     ], 404);
+        // }
 
         // --- LẤY SUBMISSION MỚI NHẤT CỦA TỪNG NHÓM – THEO ĐÚNG report_id ---
         $latestSubmission = DB::table('submissions')
