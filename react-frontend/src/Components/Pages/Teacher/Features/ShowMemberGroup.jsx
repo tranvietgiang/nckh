@@ -36,10 +36,6 @@ export default function ShowMemberGroup() {
       .catch((err) => console.error(err));
   }, [classId, reportId]);
 
-  // Nếu có rmCode thì tải chi tiết nhóm
-
-  // KHÔNG CÓ rm_code → HIỂN THỊ DANH SÁCH NHÓM
-
   if (!rmCode) {
     return (
       <>

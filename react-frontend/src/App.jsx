@@ -71,9 +71,9 @@ function App() {
             />
             {/* Quản lý nhóm */}
             <Route path="/nckh-teacher-groups" element={<ManagerGroups />} />
-            {/* Quản lý nhóm */}
+            {/* Quản lý báo cáo */}
             <Route path="/nckh-report-manager" element={<ReportManager />} />
-            {/* Xem nhóm lớp */}
+            {/* Quản lý Xem nhóm  */}
             <Route
               path="/nckh-show-group-teacher"
               element={<ShowMemberGroup />}

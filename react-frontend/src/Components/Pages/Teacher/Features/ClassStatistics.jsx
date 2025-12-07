@@ -69,7 +69,7 @@ export default function ClassStatistics() {
         <RouterBack navigate={navigate} />
 
         <h1 className="text-2xl font-bold text-blue-700 mb-3">
-          📚 Danh sách báo cáo của lớp {classId}
+          Danh sách báo cáo của lớp
         </h1>
 
         {/* Search + Filter */}
