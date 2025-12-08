@@ -340,7 +340,7 @@ class ReportMembersController extends Controller
         $teacherId = AuthHelper::isLogin();
         AuthHelper::roleTeacher();
 
-        // // Kiểm tra report có thuộc lớp & giáo viên
+        //  Kiểm tra report có thuộc lớp & giáo viên
         // $report = DB::table("reports")
         //     ->where("report_id", $reportId)
         //     ->where("class_id", $classId)

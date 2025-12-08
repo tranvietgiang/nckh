@@ -11,40 +11,137 @@ class UserProfileSeeder extends Seeder
     public function run(): void
     {
         $teacherProfiles = [
-            // === gv001 - Phan Thanh Nhuần (CNTT) ===
+            // === gv001 - Thầy A(CNTT) ===
             [
-                'fullname'     => 'Thay A',
+                'fullname'     => 'Thầy A',
                 'birthdate'    => '1985-10-15',
                 'phone'        => '0123456799',
                 'user_id'      => 'gv001',
                 'class_id'     => 1,
                 'major_id'     => 1,
             ],
+            [
+                'fullname'     => 'Thầy A',
+                'birthdate'    => '1985-10-15',
+                'phone'        => '0123456799',
+                'user_id'      => 'gv001',
+                'class_id'     => 2,
+                'major_id'     => 1,
+            ],
+            [
+                'fullname'     => 'Thầy A',
+                'birthdate'    => '1985-10-15',
+                'phone'        => '0123456799',
+                'user_id'      => 'gv001',
+                'class_id'     => 3,
+                'major_id'     => 1,
+            ],
+            [
+                'fullname'     => 'Thầy A',
+                'birthdate'    => '1985-10-15',
+                'phone'        => '0123456799',
+                'user_id'      => 'gv001',
+                'class_id'     => 4,
+                'major_id'     => 1,
+            ],
 
 
             // === gv002 - Nguyễn Văn A (CNTT + Đồ họa) ===
             [
-                'fullname'     => 'Thay B',
+                'fullname'     => 'Thầy B',
+                'birthdate'    => '1988-02-10',
+                'phone'        => '0123456678',
+                'user_id'      => 'gv002',
+                'class_id'     => 1,
+                'major_id'     => 2,
+            ],
+            [
+                'fullname'     => 'Thầy B',
                 'birthdate'    => '1988-02-10',
                 'phone'        => '0123456678',
                 'user_id'      => 'gv002',
                 'class_id'     => 2,
                 'major_id'     => 2,
             ],
+            [
+                'fullname'     => 'Thầy B',
+                'birthdate'    => '1988-02-10',
+                'phone'        => '0123456678',
+                'user_id'      => 'gv002',
+                'class_id'     => 3,
+                'major_id'     => 2,
+            ],
+            [
+                'fullname'     => 'Thầy B',
+                'birthdate'    => '1988-02-10',
+                'phone'        => '0123456678',
+                'user_id'      => 'gv002',
+                'class_id'     => 4,
+                'major_id'     => 2,
+            ],
 
 
             // === gv004 - Trần Thị Mai (Anh) ===
             [
-                'fullname'     => 'Thay C',
+                'fullname'     => 'Thầy C',
+                'birthdate'    => '1990-09-01',
+                'phone'        => '0123456778',
+                'user_id'      => 'gv003',
+                'class_id'     => 1,
+                'major_id'     => 3,
+            ],
+            [
+                'fullname'     => 'Thầy C',
+                'birthdate'    => '1990-09-01',
+                'phone'        => '0123456778',
+                'user_id'      => 'gv003',
+                'class_id'     => 2,
+                'major_id'     => 3,
+            ],
+            [
+                'fullname'     => 'Thầy C',
                 'birthdate'    => '1990-09-01',
                 'phone'        => '0123456778',
                 'user_id'      => 'gv003',
                 'class_id'     => 3,
                 'major_id'     => 3,
             ],
+            [
+                'fullname'     => 'Thầy C',
+                'birthdate'    => '1990-09-01',
+                'phone'        => '0123456778',
+                'user_id'      => 'gv003',
+                'class_id'     => 4,
+                'major_id'     => 3,
+            ],
+
             // === gv005 - Trần Thị Mai (Ngôn ngữ Trung) ===
             [
-                'fullname'     => 'Thay D',
+                'fullname'     => 'Thầy D',
+                'birthdate'    => '1990-09-01',
+                'phone'        => '0123456788',
+                'user_id'      => 'gv004',
+                'class_id'     => 1,
+                'major_id'     => 4,
+            ],
+            [
+                'fullname'     => 'Thầy D',
+                'birthdate'    => '1990-09-01',
+                'phone'        => '0123456788',
+                'user_id'      => 'gv004',
+                'class_id'     => 2,
+                'major_id'     => 4,
+            ],
+            [
+                'fullname'     => 'Thầy D',
+                'birthdate'    => '1990-09-01',
+                'phone'        => '0123456788',
+                'user_id'      => 'gv004',
+                'class_id'     => 3,
+                'major_id'     => 4,
+            ],
+            [
+                'fullname'     => 'Thầy D',
                 'birthdate'    => '1990-09-01',
                 'phone'        => '0123456788',
                 'user_id'      => 'gv004',
