@@ -33,24 +33,33 @@ class AdminRepository
      * Lấy toàn bộ người dùng
      * (Sử dụng model đã được inject)
      */
+    // public function getAllUsers()
+    // {
+    //     return DB::table('users')
+    //         ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
+    //         ->leftJoin('majors', 'user_profiles.major_id', '=', 'majors.major_id')
+    //         ->select(
+    //             'users.user_id',
+    //             'users.email',
+    //             'users.role',
+    //             'user_profiles.fullname',
+    //             'user_profiles.phone',
+    //             'user_profiles.class_student',
+    //             'user_profiles.class_id',
+    //             'user_profiles.major_id',
+    //             'majors.major_name',
+    //             DB::raw("count(users.user_id)")
+    //         )
+    //         ->get();
+    // }
+
     public function getAllUsers()
     {
         return DB::table('users')
-            ->leftJoin('user_profiles', 'users.user_id', '=', 'user_profiles.user_id')
-            ->leftJoin('majors', 'user_profiles.major_id', '=', 'majors.major_id')
-            ->select(
-                'users.user_id',
-                'users.email',
-                'users.role',
-                'user_profiles.fullname',
-                'user_profiles.phone',
-                'user_profiles.class_student',
-                'user_profiles.class_id',
-                'user_profiles.major_id',
-                'majors.major_name'
-            )
+            ->select('user_id', 'email', 'role')
             ->get();
     }
+
     /**
      * 🗑️ Xóa người dùng theo ID
      */
